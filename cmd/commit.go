@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/yondero/multiverse/repo"
 )
@@ -21,10 +23,18 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	r := repo.NewRepo()
-	if err := r.Commit(message); err != nil {
+	r, err := repo.NewRepo()
+	if err != nil {
 		return err
 	}
 
+	cid, err := r.Commit(message);
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Changes committed successfully")
+	fmt.Println(cid)
+	
 	return nil
 }

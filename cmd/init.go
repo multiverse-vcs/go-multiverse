@@ -23,12 +23,15 @@ func init() {
 
 func executeInit(cmd *cobra.Command, args []string) error {
 	var path = "."
-
 	if len(args) > 0 {
 		path = args[0]
 	}
 
-	r := repo.NewRepo()
+	r, err := repo.NewRepo()
+	if err != nil {
+		return err
+	}
+
 	if dir, err := r.Dir(path); err == nil {
 		return fmt.Errorf("Repo exists at %s", dir)
 	}

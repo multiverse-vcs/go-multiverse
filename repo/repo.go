@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/go-ipld-cbor"
@@ -21,14 +22,14 @@ type Repo struct {
 }
 
 // Create a repo
-func NewRepo() *Repo {
+func NewRepo() (*Repo, error) {
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	fs := afero.Afero{Fs: afero.NewOsFs()}
-	return &Repo{fs: fs, ipfs: ipfs}
+	return &Repo{fs: fs, ipfs: ipfs}, nil
 }
 
 // Initialize a repo in the directory.
@@ -86,29 +87,30 @@ func (repo *Repo) Dir(path string) (string, error) {
 }
 
 // Record changes in the local repo.
-func (repo *Repo) Commit(message string) error {
+// Returns the CID of the commit if successful.
+func (repo *Repo) Commit(message string) (*cid.Cid, error) {
 	if err := repo.Root(); err != nil {
-		return err
+		return nil, err
 	}
 
 	stat, err := repo.fs.Stat(".")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	filter, err := files.NewFilter("", []string{".multi"}, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	node, err := files.NewSerialFileWithFilter(".", filter, stat)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	changes, err := repo.ipfs.Unixfs().Add(context.TODO(), node)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	commit := make(map[string]interface{})
@@ -117,8 +119,13 @@ func (repo *Repo) Commit(message string) error {
 
 	dag, err := cbornode.WrapObject(commit, multihash.SHA2_256, -1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return repo.ipfs.Dag().Pinning().Add(context.TODO(), dag)
+	if err := repo.ipfs.Dag().Pinning().Add(context.TODO(), dag); err != nil {
+		return nil, err
+	}
+
+	cid := dag.Cid()
+	return &cid, nil
 }
