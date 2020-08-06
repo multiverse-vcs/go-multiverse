@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"os"
-	
 	"github.com/spf13/cobra"
 )
 
@@ -12,8 +10,6 @@ var rootCmd = &cobra.Command{
 	Long: `Distributed version control.`,
 }
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+func Execute() error {
+	return rootCmd.Execute();
 }

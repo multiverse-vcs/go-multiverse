@@ -1,7 +1,13 @@
 package main
 
-import "github.com/yondero/multiverse/cmd"
+import (
+	"os"
+
+	"github.com/yondero/multiverse/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
