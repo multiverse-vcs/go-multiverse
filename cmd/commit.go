@@ -23,12 +23,12 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	cid, err := repo.Commit(message);
+	c, err := repo.Commit(message);
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Changes committed successfully")
-	fmt.Println(cid)
+	fmt.Println(c)
 	return nil
 }

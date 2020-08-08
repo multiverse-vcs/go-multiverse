@@ -10,9 +10,8 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-ipld-cbor"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiformats/go-multihash"
+	"github.com/yondero/multiverse/commit"
 )
 
 // Walk parent directories until repo root is found.
@@ -44,69 +43,59 @@ func Root() error {
 }
 
 // Record changes in the local repo.
-func Commit(message string) (cid.Cid, error) {
+func Commit(message string) (*commit.Commit, error) {
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
-		return cid.Cid{}, err
+		return nil, err
 	}
 
 	node, err := Changes()
 	if err != nil {
-		return cid.Cid{}, err
+		return nil, err
 	}
 
 	changes, err := ipfs.Unixfs().Add(context.TODO(), node)
 	if err != nil {
-		return cid.Cid{}, err
+		return nil, err
 	}
 
-	commit := make(map[string]interface{})
-	commit["message"] = message
-	commit["changes"] = changes.Cid()
-
-	if head, err := readHead(); err == nil {
-		commit["parent"] = head
-	}
-
-	dag, err := cbornode.WrapObject(commit, multihash.SHA2_256, -1)
+	head, err := readHead()
 	if err != nil {
-		return cid.Cid{}, err
+		return nil, err
+	}
+
+	c := commit.NewCommit(message, changes.Cid(), head)
+
+	dag, err := c.Node(ipfs)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := ipfs.Dag().Pinning().Add(context.TODO(), dag); err != nil {
-		return cid.Cid{}, err
+		return nil, err
 	}
 
-	if err := writeHead(dag.Cid().Bytes()); err != nil {
-		return cid.Cid{}, err
+	if err := writeHead(dag.Cid()); err != nil {
+		return nil, err
 	}
 
-	return dag.Cid(), nil
+	c.Id = dag.Cid()
+	return c, nil
 }
 
 // Clone an existing commit into the directory.
-func Clone(hash string, target string) (string, error) {
+func Clone(id cid.Cid, target string) (string, error) {
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
 		return "", err
 	}
 
-	commit, err := cid.Parse(hash)
+	c, err := commit.Get(ipfs, id)
 	if err != nil {
 		return "", err
 	}
 
-	dag, err := ipfs.Dag().Get(context.TODO(), commit)
-	if err != nil {
-		return "", err
-	}
-
-	changes, _, err := dag.ResolveLink([]string{"changes"})
-	if err != nil {
-		return "", err
-	}
-
-	node, err := ipfs.Unixfs().Get(context.TODO(), path.IpfsPath(changes.Cid))
+	node, err := ipfs.Unixfs().Get(context.TODO(), path.IpfsPath(c.Changes))
 	if err != nil {
 		return "", err
 	}
@@ -128,11 +117,43 @@ func Clone(hash string, target string) (string, error) {
 		return "", err
 	}
 
-	if err := writeHead(commit.Bytes()); err != nil {
+	if err := writeHead(id); err != nil {
 		return "", err
 	}
 
 	return dir, nil
+}
+
+// List change history from the current head.
+func Log() error {
+	ipfs, err := httpapi.NewLocalApi()
+	if err != nil {
+		return nil
+	}
+
+	head, err := readHead()
+	if err != nil {
+		return err
+	}
+
+	c, err := commit.Get(ipfs, head)
+	if err != nil {
+		return err
+	}
+
+	for {
+		fmt.Println(c.String())
+		if !c.Parent.Defined() {
+			return nil
+		}
+
+		c, err = commit.Get(ipfs, c.Parent)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Returns a node containing the local changes.
@@ -198,13 +219,13 @@ func readHead() (cid.Cid, error) {
 
 	head, err := ioutil.ReadFile(".multi/HEAD")
 	if err != nil {
-		return cid.Cid{}, err
+		return cid.Cid{}, nil
 	}
 
 	return cid.Parse(head)
 }
 
-func writeHead(cid []byte) error {
+func writeHead(id cid.Cid) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -216,5 +237,5 @@ func writeHead(cid []byte) error {
 		return err
 	}
 
-	return ioutil.WriteFile(".multi/HEAD", cid, 0644)
+	return ioutil.WriteFile(".multi/HEAD", id.Bytes(), 0644)
 }

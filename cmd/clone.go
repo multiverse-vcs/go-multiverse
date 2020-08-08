@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/yondero/multiverse/repo"
 )
@@ -21,7 +22,12 @@ func init() {
 }
 
 func executeClone(cmd *cobra.Command, args []string) error {
-	dir, err := repo.Clone(args[0], args[1]);
+	id, err := cid.Parse(args[0])
+	if err != nil {
+		return err
+	}
+
+	dir, err := repo.Clone(id, args[1]);
 	if err != nil {
 		return err
 	}
