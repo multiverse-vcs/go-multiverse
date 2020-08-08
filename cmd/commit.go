@@ -10,11 +10,11 @@ import (
 var message string
 
 var commitCmd = &cobra.Command{
-	Use: "commit",
-	Short: "Record changes in the local repository.",
-	Long: `Record changes in the local repository.`,
+	Use:          "commit",
+	Short:        "Record changes in the local repository.",
+	Long:         `Record changes in the local repository.`,
 	SilenceUsage: true,
-	RunE: executeCommit,
+	RunE:         executeCommit,
 }
 
 func init() {
@@ -23,7 +23,7 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	c, err := repo.Commit(message);
+	c, err := repo.Commit(message)
 	if err != nil {
 		return err
 	}

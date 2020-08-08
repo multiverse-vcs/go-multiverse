@@ -6,11 +6,11 @@ import (
 )
 
 var logCmd = &cobra.Command{
-	Use: "log",
-	Short: "Clone an existing Multiverse repository.",
-	Long: `Clone an existing Multiverse repository.`,
+	Use:          "log",
+	Short:        "Clone an existing Multiverse repository.",
+	Long:         `Clone an existing Multiverse repository.`,
 	SilenceUsage: true,
-	RunE: executeLog,
+	RunE:         executeLog,
 }
 
 func init() {
@@ -18,7 +18,7 @@ func init() {
 }
 
 func executeLog(cmd *cobra.Command, args []string) error {
-	err := repo.Log();
+	err := repo.Log()
 	if err != nil {
 		return err
 	}

@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/go-ipfs-files"
+	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/yondero/multiverse/commit"
 )
 
-// Walk parent directories until repo root is found.
+// Root walks parent directories until repo root is found.
 func Root() error {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -42,7 +42,7 @@ func Root() error {
 	return Root()
 }
 
-// Record changes in the local repo.
+// Commit records changes in the local repo.
 func Commit(message string) (*commit.Commit, error) {
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
@@ -79,18 +79,18 @@ func Commit(message string) (*commit.Commit, error) {
 		return nil, err
 	}
 
-	c.Id = dag.Cid()
+	c.ID = dag.Cid()
 	return c, nil
 }
 
-// Clone an existing commit into the directory.
+// Clone copies an existing commit into the directory.
 func Clone(id cid.Cid, target string) (string, error) {
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
 		return "", err
 	}
 
-	c, err := commit.Get(ipfs, id)
+	c, err := commit.Fetch(ipfs, id)
 	if err != nil {
 		return "", err
 	}
@@ -124,11 +124,11 @@ func Clone(id cid.Cid, target string) (string, error) {
 	return dir, nil
 }
 
-// List change history from the current head.
+// Log lists change history from the current head.
 func Log() error {
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	head, err := readHead()
@@ -136,27 +136,20 @@ func Log() error {
 		return err
 	}
 
-	c, err := commit.Get(ipfs, head)
-	if err != nil {
-		return err
-	}
-
-	for {
-		fmt.Println(c.String())
-		if !c.Parent.Defined() {
-			return nil
-		}
-
-		c, err = commit.Get(ipfs, c.Parent)
+	for head.Defined() {		
+		c, err := commit.Fetch(ipfs, head)
 		if err != nil {
 			return err
 		}
+
+		head = c.Parent
+		fmt.Println(c.String())
 	}
 
 	return nil
 }
 
-// Returns a node containing the local changes.
+// Changes creates a node containing the local changes.
 func Changes() (files.Node, error) {
 	cwd, err := os.Getwd()
 	if err != nil {

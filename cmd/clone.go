@@ -9,12 +9,12 @@ import (
 )
 
 var cloneCmd = &cobra.Command{
-	Use: "clone [cid] [path]",
-	Short: "Clone an existing Multiverse repository.",
-	Long: `Clone an existing Multiverse repository.`,
-	Args: cobra.MinimumNArgs(2),
+	Use:          "clone [cid] [path]",
+	Short:        "Clone an existing Multiverse repository.",
+	Long:         `Clone an existing Multiverse repository.`,
+	Args:         cobra.MinimumNArgs(2),
 	SilenceUsage: true,
-	RunE: executeClone,
+	RunE:         executeClone,
 }
 
 func init() {
@@ -27,7 +27,7 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dir, err := repo.Clone(id, args[1]);
+	dir, err := repo.Clone(id, args[1])
 	if err != nil {
 		return err
 	}
