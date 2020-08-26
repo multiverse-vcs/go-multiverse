@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/yondero/multiverse/ipfs"
 	"github.com/yondero/multiverse/repo"
 )
 
@@ -23,7 +25,12 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	c, err := repo.Commit(message)
+	ipfs, err := ipfs.NewDefault(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	c, err := repo.Commit(ipfs, message)
 	if err != nil {
 		return err
 	}

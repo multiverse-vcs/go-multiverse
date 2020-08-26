@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
+	"github.com/yondero/multiverse/ipfs"
 	"github.com/yondero/multiverse/repo"
 )
 
@@ -27,11 +28,14 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dir, err := repo.Clone(id, args[1])
+	ipfs, err := ipfs.NewDefault(context.TODO())
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Repo cloned at", dir)
+	if err := repo.Clone(ipfs, id, args[1]); err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -1,14 +1,17 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
+	"github.com/yondero/multiverse/ipfs"
 	"github.com/yondero/multiverse/repo"
 )
 
 var logCmd = &cobra.Command{
 	Use:          "log",
-	Short:        "Clone an existing Multiverse repository.",
-	Long:         `Clone an existing Multiverse repository.`,
+	Short:        "Log change history.",
+	Long:         `Log change history.`,
 	SilenceUsage: true,
 	RunE:         executeLog,
 }
@@ -18,10 +21,10 @@ func init() {
 }
 
 func executeLog(cmd *cobra.Command, args []string) error {
-	err := repo.Log()
+	ipfs, err := ipfs.NewDefault(context.TODO())
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return repo.Log(ipfs)
 }
