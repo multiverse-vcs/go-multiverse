@@ -40,7 +40,7 @@ func initRepo(repoPath string) (repo.Repo, error) {
 	return fsrepo.Open(repoPath)
 }
 
-// Creates a default IPFS node.
+// NewDefault creates a default IPFS node.
 func NewDefault(ctx context.Context) (*core.IpfsNode, error) {
 	repoPath, err := fsrepo.BestKnownPath()
 	if err != nil {
@@ -66,7 +66,7 @@ func NewDefault(ctx context.Context) (*core.IpfsNode, error) {
 	return core.NewNode(ctx, nodeOptions)
 }
 
-// Creates an ephemeral IPFS node.
+// NewEphemeral creates an ephemeral IPFS node.
 func NewEphemeral(ctx context.Context) (*core.IpfsNode, error) {
 	repoPath, err := ioutil.TempDir("", "ipfs-shell")
 	if err != nil {

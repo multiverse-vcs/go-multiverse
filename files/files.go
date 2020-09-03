@@ -177,7 +177,7 @@ func WriteFile(ipfs *core.IpfsNode, path string, node *Node) error {
 // WriteDirectory copies the directory to the local file system.
 func WriteDirectory(ipfs *core.IpfsNode, path string, node *Node) error {
 	path = filepath.Join(path, node.Name)
-	if err := os.Mkdir(path, 0644); err != nil {
+	if err := os.Mkdir(path, 0755); err != nil {
 		return err
 	}
 

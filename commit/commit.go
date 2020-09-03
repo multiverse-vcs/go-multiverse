@@ -42,6 +42,21 @@ func Get(ipfs *core.IpfsNode, id cid.Cid) (*Commit, error) {
 	return &node, nil
 }
 
+// Log prints the commit history starting at the given CID.
+func Log(ipfs *core.IpfsNode, id cid.Cid) error {
+	c, err := Get(ipfs, id)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(c.String())
+	if c.Parent.Defined() {
+		return Log(ipfs, c.Parent)
+	}
+
+	return nil
+}
+
 // Node returns an ipld node representation of the commit.
 func (c *Commit) Node() (format.Node, error) {
 	return cbornode.WrapObject(c, multihash.SHA2_256, -1)

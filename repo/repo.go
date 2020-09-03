@@ -2,14 +2,12 @@ package repo
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs/core"
-	"github.com/ipfs/go-ipld-format"
 	"github.com/yondero/multiverse/commit"
 	"github.com/yondero/multiverse/files"
 )
@@ -27,7 +25,7 @@ func Root(path string) (string, error) {
 	}
 
 	if parent == path {
-		return "", fmt.Errorf("Repo not found")
+		return "", err
 	}
 
 	return Root(parent)
@@ -35,23 +33,36 @@ func Root(path string) (string, error) {
 
 // Commit records changes in the local repo.
 func Commit(ipfs *core.IpfsNode, message string) (*cid.Cid, error) {
-	changes, err := Changes(ipfs)
+	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := ipfs.DAG.Add(context.TODO(), changes); err != nil {
-		return nil, err
-	}
-
-	head, err := readHead()
+	root, err := Root(cwd)
 	if err != nil {
 		return nil, err
 	}
 
-	c := commit.NewCommit(message, changes.Cid(), head)
+	changes, err := files.Add(ipfs, root)
+	if err != nil {
+		return nil, err
+	}
 
-	dag, err := c.Node()
+	node, err := changes.Node()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ipfs.DAG.Add(context.TODO(), node); err != nil {
+		return nil, err
+	}
+
+	head, err := ReadHead(root)
+	if err != nil {
+		return nil, err
+	}
+
+	dag, err := commit.NewCommit(message, node.Cid(), head).Node()
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +72,7 @@ func Commit(ipfs *core.IpfsNode, message string) (*cid.Cid, error) {
 	}
 
 	id := dag.Cid()
-	if err := writeHead(id); err != nil {
+	if err := WriteHead(root, id); err != nil {
 		return nil, err
 	}
 
@@ -75,91 +86,61 @@ func Clone(ipfs *core.IpfsNode, id cid.Cid, path string) error {
 		return err
 	}
 
-	dir, err := filepath.Abs(path)
+	root, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(dir, 0644); err != nil {
+	multiDir := filepath.Join(root, ".multi")
+	if err := os.MkdirAll(multiDir, 0755); err != nil {
 		return err
 	}
 
-	if err := files.Write(ipfs, dir, c.Changes); err != nil {
-		return err
+	if err := WriteHead(root, id); err != nil {
+		return err 
 	}
 
-	return nil
+	return files.Write(ipfs, root, c.Changes)
 }
 
 // Log lists change history from the current head.
 func Log(ipfs *core.IpfsNode) error {
-	head, err := readHead()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	for head.Defined() {		
-		c, err := commit.Get(ipfs, head)
-		if err != nil {
-			return err
-		}
-
-		head = c.Parent
-		fmt.Println(c.String())
+	head, err := ReadHead(cwd)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	return commit.Log(ipfs, head)
 }
 
-// Changes creates a node containing the local changes.
-func Changes(ipfs *core.IpfsNode) (format.Node, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	root, err := Root(cwd)
-	if err != nil {
-		return nil, err
-	}
-
-	node, err := files.Add(ipfs, root)
-	if err != nil {
-		return nil, err
-	}
-
-	return node.Node()
-}
-
-func readHead() (cid.Cid, error) {
-	cwd, err := os.Getwd()
+// ReadHead returns the head for the repo in the given directory.
+func ReadHead(dir string) (cid.Cid, error) {
+	root, err := Root(dir)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	root, err := Root(cwd)
-	if err != nil {
-		return cid.Cid{}, err
-	}
-
-	head, err := ioutil.ReadFile(filepath.Join(root, ".multi/HEAD"))
+	bytes, err := ioutil.ReadFile(filepath.Join(root, ".multi/HEAD"))
 	if err != nil {
 		return cid.Cid{}, nil
 	}
 
-	return cid.Parse(head)
+	hash := string(bytes)
+	return cid.Parse(hash)
 }
 
-func writeHead(id cid.Cid) error {
-	cwd, err := os.Getwd()
+// WriteHead sets the head for the repo in the given directory.
+func WriteHead(dir string, id cid.Cid) error {
+	root, err := Root(dir)
 	if err != nil {
 		return err
 	}
 
-	root, err := Root(cwd)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(filepath.Join(root, ".multi/HEAD"), id.Bytes(), 0644)
+	bytes := []byte(id.String())
+	return ioutil.WriteFile(filepath.Join(root, ".multi/HEAD"), bytes, 0755)
 }
