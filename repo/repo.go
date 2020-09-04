@@ -18,18 +18,18 @@ type Repo struct {
 }
 
 // Open returns a repo if one exists in the current or parent directories.
-func Open(path string) (*Repo, error) {
-	stat, err := os.Stat(filepath.Join(path, ".multi"))
+func Open(root string) (*Repo, error) {
+	stat, err := os.Stat(filepath.Join(root, ".multi"))
 	if err == nil && stat.IsDir() {
-		return &Repo{Root: path}, nil
+		return &Repo{Root: root}, nil
 	}
 
-	parent, err := filepath.Abs(filepath.Join(path, ".."))
+	parent, err := filepath.Abs(filepath.Join(root, ".."))
 	if err != nil {
 		return nil, err
 	}
 
-	if parent == path {
+	if parent == root {
 		return nil, err
 	}
 
@@ -37,13 +37,13 @@ func Open(path string) (*Repo, error) {
 }
 
 // Clone creates a repo from an existing commit.
-func Clone(ipfs *core.IpfsNode, id cid.Cid, path string) (*Repo, error) {
+func Clone(ipfs *core.IpfsNode, id cid.Cid, root string) (*Repo, error) {
 	c, err := commit.Get(ipfs, id)
 	if err != nil {
 		return nil, err
 	}
 
-	root, err := filepath.Abs(path)
+	root, err = filepath.Abs(root)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func Clone(ipfs *core.IpfsNode, id cid.Cid, path string) (*Repo, error) {
 		return nil, err
 	}
 
-	path = filepath.Join(dir, "HEAD")
+	path := filepath.Join(dir, "HEAD")
 	if err := ioutil.WriteFile(path, []byte(id.String()), 0755); err != nil {
 		return nil, err 
 	}
@@ -62,7 +62,7 @@ func Clone(ipfs *core.IpfsNode, id cid.Cid, path string) (*Repo, error) {
 		return nil, err
 	}
 
-	return &Repo{Root: path}, nil
+	return &Repo{Root: root}, nil
 }
 
 // Commit records changes in the local repo.

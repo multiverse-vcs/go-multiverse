@@ -39,6 +39,6 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("Repo cloned to %s", r.Root)
+	fmt.Println("Repo cloned to", r.Root)
 	return nil
 }
