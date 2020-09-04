@@ -2,34 +2,34 @@ package files
 
 import "io"
 
-// Splitter reads bytes from a file and splits them into smaller blocks.
+// Splitter reads bytes from a file and splits them into blocks.
 type Splitter interface {
-	Reader() io.Reader
-	NextBytes() ([]byte, error)
+	NextBlock() (*Block, error)
 }
 
 type sizeSplitter struct {
 	reader io.Reader
-	buffer []byte
+	size   uint32
 }
 
 // NewSizeSplitter returns a splitter that creates blocks of the given size.
 func NewSizeSplitter(reader io.Reader, size uint32) Splitter {
-	buffer := make([]byte, size)
-	return &sizeSplitter{reader, buffer}
+	return &sizeSplitter{reader, size}
 }
 
-// NextBytes reads bytes up to the block size of the splitter.
-func (s *sizeSplitter) NextBytes() ([]byte, error) {
-	size, err := io.ReadFull(s.reader, s.buffer)
-	if err != nil && err != io.ErrUnexpectedEOF {
-		return nil, err
+// NextBlock reads bytes up to the block size of the splitter.
+func (s *sizeSplitter) NextBlock() (*Block, error) {
+	buffer := make([]byte, 0, s.size)
+
+	size, err := io.ReadFull(s.reader, buffer)
+	if err == nil {
+		return NewBlock(buffer)
 	}
 
-	return s.buffer[:size], nil
-}
+	// finished reading blocks
+	if err == io.ErrUnexpectedEOF {
+		return NewBlock(buffer[:size])		
+	}
 
-// Reader returns the io.Reader from the splitter.
-func (s *sizeSplitter) Reader() io.Reader {
-	return s.reader
+	return nil, err
 }

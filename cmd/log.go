@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/yondero/multiverse/ipfs"
@@ -26,5 +27,15 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return repo.Log(ipfs)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	r, err := repo.Open(cwd)
+	if err != nil {
+		return err
+	}
+
+	return r.Log(ipfs)
 }

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipld-cbor"
@@ -13,6 +12,7 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
+// BlockSize is the maximum size of file chunks.
 const BlockSize = 512
 
 // Node represents a file or directory.
@@ -43,21 +43,34 @@ func Get(ipfs *core.IpfsNode, id cid.Cid) (*Node, error) {
 }
 
 // Add creates a file or directory node from the given path.
-func Add(ipfs *core.IpfsNode, path string) (*Node, error) {
+func Add(ipfs *core.IpfsNode, path string) (format.Node, error) {
 	stat, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
 	if stat.IsDir() {
-		return AddDirectory(ipfs, path, stat)
+		return addDirectory(ipfs, path, stat)
 	}
 
-	return AddFile(ipfs, path, stat)
+	return addFile(ipfs, path, stat)
 }
 
-// AddFile creates a file node from the given path.
-func AddFile(ipfs *core.IpfsNode, path string, info os.FileInfo) (*Node, error) {
+// Write copies the file or directory to the local file system.
+func Write(ipfs *core.IpfsNode, path string, id cid.Cid) error {
+	node, err := Get(ipfs, id)
+	if err != nil {
+		return err
+	}
+
+	if node.Mode.IsDir() {
+		return writeDirectory(ipfs, path, node)
+	}
+
+	return writeFile(ipfs, path, node)
+}
+
+func addFile(ipfs *core.IpfsNode, path string, info os.FileInfo) (format.Node, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -65,26 +78,17 @@ func AddFile(ipfs *core.IpfsNode, path string, info os.FileInfo) (*Node, error) 
 
 	defer file.Close()
 
-	splitter := NewSizeSplitter(file, BlockSize)
+	// calculate number of chunks to reduce allocations
 	size := info.Size() / BlockSize
 	if (info.Size() % BlockSize) > 0 {
 		size = size + 1
 	}
 
-	chunks := make([]cid.Cid, size)
-	for i := range chunks {
-		chunk, err := splitter.NextBytes()
+	splitter := NewSizeSplitter(file, BlockSize)
+	chunks := make([]cid.Cid, 0, size)
+	for range chunks {
+		block, err := splitter.NextBlock()
 		if err != nil {
-			return nil, err
-		}
-
-		hash, err := multihash.Sum(chunk, multihash.SHA2_256, -1)
-		if err != nil {
-			return nil, err
-		}
-
-		block, err := blocks.NewBlockWithCid(chunk, cid.NewCidV1(cid.Raw, hash))
-		if  err != nil {
 			return nil, err
 		}
 
@@ -92,14 +96,14 @@ func AddFile(ipfs *core.IpfsNode, path string, info os.FileInfo) (*Node, error) 
 			return nil, err
 		}
 
-		chunks[i] = block.Cid()
+		chunks = append(chunks, block.Cid())
 	}
 
-	return &Node{Name: info.Name(), Mode: info.Mode(), Chunks: chunks}, nil
+	node := &Node{Name: info.Name(), Mode: info.Mode(), Chunks: chunks}
+	return addNode(ipfs, node)
 }
 
-// AddDirectory creates a directory node from the given path.
-func AddDirectory(ipfs *core.IpfsNode, path string, info os.FileInfo) (*Node, error) {
+func addDirectory(ipfs *core.IpfsNode, path string, info os.FileInfo) (format.Node, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -114,44 +118,34 @@ func AddDirectory(ipfs *core.IpfsNode, path string, info os.FileInfo) (*Node, er
 		return nil, err
 	}
 
-	files := make([]cid.Cid, len(names))
-	for i, name := range names {
+	files := make([]cid.Cid, 0, len(names))
+	for _, name := range names {
 		node, err := Add(ipfs, filepath.Join(path, name))
 		if err != nil {
 			return nil, err
 		}
 
-		dag, err := node.Node()
-		if err != nil {
-			return nil, err
-		}
-
-		if err := ipfs.DAG.Add(context.TODO(), dag); err != nil {
-			return nil, err
-		}
-
-		files[i] = dag.Cid()
+		files = append(files, node.Cid())
 	}
 
-	return &Node{Name: info.Name(), Mode: info.Mode(), Files: files}, nil
+	node := &Node{Name: info.Name(), Mode: info.Mode(), Files: files}
+	return addNode(ipfs, node)
 }
 
-// Write copies the file or directory to the local file system.
-func Write(ipfs *core.IpfsNode, path string, id cid.Cid) error {
-	node, err := Get(ipfs, id)
+func addNode(ipfs *core.IpfsNode, node *Node) (format.Node, error) {
+	dag, err := cbornode.WrapObject(node, multihash.SHA2_256, -1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if node.Mode.IsDir() {
-		return WriteDirectory(ipfs, path, node)
+	if err := ipfs.DAG.Add(context.TODO(), dag); err != nil {
+		return nil, err
 	}
 
-	return WriteFile(ipfs, path, node)
+	return dag, nil
 }
 
-// WriteFile copies the file to the local file system.
-func WriteFile(ipfs *core.IpfsNode, path string, node *Node) error {
+func writeFile(ipfs *core.IpfsNode, path string, node *Node) error {
 	file, err := os.Create(filepath.Join(path, node.Name))
 	if err != nil {
 		return err
@@ -174,8 +168,7 @@ func WriteFile(ipfs *core.IpfsNode, path string, node *Node) error {
 	return nil
 }
 
-// WriteDirectory copies the directory to the local file system.
-func WriteDirectory(ipfs *core.IpfsNode, path string, node *Node) error {
+func writeDirectory(ipfs *core.IpfsNode, path string, node *Node) error {
 	path = filepath.Join(path, node.Name)
 	if err := os.Mkdir(path, 0755); err != nil {
 		return err
@@ -188,9 +181,4 @@ func WriteDirectory(ipfs *core.IpfsNode, path string, node *Node) error {
 	}
 
 	return nil
-}
-
-// Node returns an ipld representation of the node.
-func (n *Node) Node() (format.Node, error) {
-	return cbornode.WrapObject(n, multihash.SHA2_256, -1)
 }

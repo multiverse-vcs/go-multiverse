@@ -1,116 +1,98 @@
 package repo
 
 import (
-	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs/core"
+	"github.com/ipfs/go-ipld-format"
 	"github.com/yondero/multiverse/commit"
 	"github.com/yondero/multiverse/files"
 )
 
-// Root walks parent directories until the root is found.
-func Root(path string) (string, error) {
+// Repo contains repository info.
+type Repo struct {
+	Root string
+}
+
+// Open returns a repo if one exists in the current or parent directories.
+func Open(path string) (*Repo, error) {
 	stat, err := os.Stat(filepath.Join(path, ".multi"))
 	if err == nil && stat.IsDir() {
-		return path, nil
+		return &Repo{Root: path}, nil
 	}
 
 	parent, err := filepath.Abs(filepath.Join(path, ".."))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if parent == path {
-		return "", err
+		return nil, err
 	}
 
-	return Root(parent)
+	return Open(parent)
 }
 
-// Commit records changes in the local repo.
-func Commit(ipfs *core.IpfsNode, message string) (*cid.Cid, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	root, err := Root(cwd)
-	if err != nil {
-		return nil, err
-	}
-
-	changes, err := files.Add(ipfs, root)
-	if err != nil {
-		return nil, err
-	}
-
-	node, err := changes.Node()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ipfs.DAG.Add(context.TODO(), node); err != nil {
-		return nil, err
-	}
-
-	head, err := ReadHead(root)
-	if err != nil {
-		return nil, err
-	}
-
-	dag, err := commit.NewCommit(message, node.Cid(), head).Node()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ipfs.DAG.Add(context.TODO(), dag); err != nil {
-		return nil, err
-	}
-
-	id := dag.Cid()
-	if err := WriteHead(root, id); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
-// Clone copies an existing commit into the directory.
-func Clone(ipfs *core.IpfsNode, id cid.Cid, path string) error {
+// Clone creates a repo from an existing commit.
+func Clone(ipfs *core.IpfsNode, id cid.Cid, path string) (*Repo, error) {
 	c, err := commit.Get(ipfs, id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	root, err := filepath.Abs(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	multiDir := filepath.Join(root, ".multi")
-	if err := os.MkdirAll(multiDir, 0755); err != nil {
-		return err
+	dir := filepath.Join(root, ".multi")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, err
 	}
 
-	if err := WriteHead(root, id); err != nil {
-		return err 
+	path = filepath.Join(dir, "HEAD")
+	if err := ioutil.WriteFile(path, []byte(id.String()), 0755); err != nil {
+		return nil, err 
 	}
 
-	return files.Write(ipfs, root, c.Changes)
+	if err := files.Write(ipfs, root, c.Changes); err != nil {
+		return nil, err
+	}
+
+	return &Repo{Root: path}, nil
+}
+
+// Commit records changes in the local repo.
+func (r *Repo) Commit(ipfs *core.IpfsNode, message string) (format.Node, error) {
+	node, err := files.Add(ipfs, r.Root)
+	if err != nil {
+		return nil, err
+	}
+
+	head, err := r.Head()
+	if err != nil {
+		return nil, err
+	}
+
+	dag, err := commit.Add(ipfs, message, node.Cid(), head)
+	if err != nil {
+		return nil, err
+	}
+
+	path := filepath.Join(r.Root, ".multi/HEAD")
+	if err := ioutil.WriteFile(path, []byte(dag.Cid().String()), 0755); err != nil {
+		return nil, err 
+	}
+
+	return dag, nil
 }
 
 // Log lists change history from the current head.
-func Log(ipfs *core.IpfsNode) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	head, err := ReadHead(cwd)
+func (r *Repo) Log(ipfs *core.IpfsNode) error {
+	head, err := r.Head()
 	if err != nil {
 		return err
 	}
@@ -118,29 +100,14 @@ func Log(ipfs *core.IpfsNode) error {
 	return commit.Log(ipfs, head)
 }
 
-// ReadHead returns the head for the repo in the given directory.
-func ReadHead(dir string) (cid.Cid, error) {
-	root, err := Root(dir)
-	if err != nil {
-		return cid.Cid{}, err
-	}
-
-	bytes, err := ioutil.ReadFile(filepath.Join(root, ".multi/HEAD"))
+// Head returns the CID of the current head of the repo.
+func (r *Repo) Head() (cid.Cid, error) {
+	path := filepath.Join(r.Root, ".multi/HEAD")
+	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return cid.Cid{}, nil
 	}
 
 	hash := string(bytes)
 	return cid.Parse(hash)
-}
-
-// WriteHead sets the head for the repo in the given directory.
-func WriteHead(dir string, id cid.Cid) error {
-	root, err := Root(dir)
-	if err != nil {
-		return err
-	}
-
-	bytes := []byte(id.String())
-	return ioutil.WriteFile(filepath.Join(root, ".multi/HEAD"), bytes, 0755)
 }

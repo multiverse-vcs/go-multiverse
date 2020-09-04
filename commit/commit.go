@@ -22,9 +22,20 @@ func init() {
 	cbornode.RegisterCborType(Commit{})
 }
 
-// NewCommit creates commit.
-func NewCommit(message string, changes cid.Cid, parent cid.Cid) *Commit {
-	return &Commit{Message: message, Changes: changes, Parent: parent}
+// Add creates a commit from local changes.
+func Add(ipfs *core.IpfsNode, message string, changes cid.Cid, parent cid.Cid) (format.Node, error) {
+	node := &Commit{Message: message, Changes: changes, Parent: parent}
+
+	dag, err := cbornode.WrapObject(node, multihash.SHA2_256, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ipfs.DAG.Add(context.TODO(), dag); err != nil {
+		return nil, err
+	}
+
+	return dag, nil
 }
 
 // Get returns the commit with the matching CID.
@@ -55,11 +66,6 @@ func Log(ipfs *core.IpfsNode, id cid.Cid) error {
 	}
 
 	return nil
-}
-
-// Node returns an ipld node representation of the commit.
-func (c *Commit) Node() (format.Node, error) {
-	return cbornode.WrapObject(c, multihash.SHA2_256, -1)
 }
 
 // String returns a human readable representation of the commit.

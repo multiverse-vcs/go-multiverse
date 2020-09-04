@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
@@ -33,9 +34,11 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := repo.Clone(ipfs, id, args[1]); err != nil {
+	r, err := repo.Clone(ipfs, id, args[1]);
+	if err != nil {
 		return err
 	}
 
+	fmt.Println("Repo cloned to %s", r.Root)
 	return nil
 }
