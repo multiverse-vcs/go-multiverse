@@ -1,3 +1,5 @@
+// Package files contains functions for transferring files
+// between the local file system and IPFS.
 package files
 
 import (
@@ -12,7 +14,7 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-// BlockSize is the maximum size of file chunks.
+// BlockSize is the maximum size of blocks.
 const BlockSize = 512
 
 // Node represents a file or directory.
@@ -78,25 +80,25 @@ func addFile(ipfs *core.IpfsNode, path string, info os.FileInfo) (format.Node, e
 
 	defer file.Close()
 
-	// calculate number of chunks to reduce allocations
+	// calculate number of blocks
 	size := info.Size() / BlockSize
 	if (info.Size() % BlockSize) > 0 {
 		size = size + 1
 	}
 
-	splitter := NewSizeSplitter(file, BlockSize)
+	reader := NewBlockReader(file)
 	chunks := make([]cid.Cid, 0, size)
+
 	for range chunks {
-		block, err := splitter.NextBlock()
+		block, err := reader.ReadBlock(BlockSize)
 		if err != nil {
 			return nil, err
 		}
 
+		chunks = append(chunks, block.Cid())
 		if err := ipfs.Blocks.AddBlock(block); err != nil {
 			return nil, err
 		}
-
-		chunks = append(chunks, block.Cid())
 	}
 
 	node := &Node{Name: info.Name(), Mode: info.Mode(), Chunks: chunks}
