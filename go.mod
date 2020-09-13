@@ -4,8 +4,11 @@ go 1.14
 
 require (
 	github.com/ipfs/go-block-format v0.0.2
+	github.com/ipfs/go-blockservice v0.1.3
 	github.com/ipfs/go-cid v0.0.6
+	github.com/ipfs/go-ds-badger v0.2.4
 	github.com/ipfs/go-ipfs v0.6.0
+	github.com/ipfs/go-ipfs-blockstore v0.1.4
 	github.com/ipfs/go-ipfs-config v0.8.0
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.5

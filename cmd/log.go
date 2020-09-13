@@ -11,8 +11,8 @@ import (
 
 var logCmd = &cobra.Command{
 	Use:          "log",
-	Short:        "Log change history.",
-	Long:         `Log change history.`,
+	Short:        "Print change history.",
+	Long:         `Print change history.`,
 	SilenceUsage: true,
 	RunE:         executeLog,
 }
@@ -22,7 +22,7 @@ func init() {
 }
 
 func executeLog(cmd *cobra.Command, args []string) error {
-	ipfs, err := ipfs.NewDefault(context.TODO())
+	ipfs, err := ipfs.NewNode(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -37,5 +37,10 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return r.Log(ipfs)
+	id, err := r.Head()
+	if err != nil {
+		return err
+	}
+
+	return r.Log(ipfs, id)
 }

@@ -26,7 +26,7 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	ipfs, err := ipfs.NewDefault(context.TODO())
+	ipfs, err := ipfs.NewNode(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,6 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("Changes committed successfully")
-	fmt.Println(c)
+	fmt.Println(c.String())
 	return nil
 }

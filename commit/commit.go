@@ -2,73 +2,74 @@ package commit
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipfs/core"
-	"github.com/ipfs/go-ipld-cbor"
-	"github.com/ipfs/go-ipld-format"
+	"github.com/ipfs/go-block-format"
 	"github.com/multiformats/go-multihash"
+	"github.com/yondero/multiverse/ipfs"
 )
 
 // Commit contains metadata for the commit.
 type Commit struct {
-	Message string  `refmt:"message,omitempty"`
-	Changes cid.Cid `refmt:"changes,omitempty"`
-	Parent  cid.Cid `refmt:"parent,omitempty"`
+	ID      cid.Cid `json:"-"`
+	Message string  `json:"message,omitempty"`
+	Changes cid.Cid `json:"changes,omitempty"`
+	Parent  cid.Cid `json:"parent,omitempty"`
 }
 
-func init() {
-	cbornode.RegisterCborType(Commit{})
+// NewCommit returns a new commit.
+func NewCommit(message string, changes cid.Cid, parent cid.Cid) *Commit {
+	return &Commit{Message: message, Changes: changes, Parent: parent}
 }
 
-// Add creates a commit from local changes.
-func Add(ipfs *core.IpfsNode, message string, changes cid.Cid, parent cid.Cid) (format.Node, error) {
-	node := &Commit{Message: message, Changes: changes, Parent: parent}
-
-	dag, err := cbornode.WrapObject(node, multihash.SHA2_256, -1)
+// Get returns the commit with the CID from the blockstore.
+func Get(ipfs *ipfs.Node, id cid.Cid) (*Commit, error) {
+	b, err := ipfs.Blocks.GetBlock(context.TODO(), id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := ipfs.DAG.Add(context.TODO(), dag); err != nil {
+	c := Commit{ID: id}
+	if err := json.Unmarshal(b.RawData(), &c); err != nil {
 		return nil, err
 	}
 
-	return dag, nil
+	return &c, nil
 }
 
-// Get returns the commit with the matching CID.
-func Get(ipfs *core.IpfsNode, id cid.Cid) (*Commit, error) {
-	dag, err := ipfs.DAG.Get(context.TODO(), id)
-	if err != nil {
-		return nil, err
-	}
-
-	var node Commit
-	if err := cbornode.DecodeInto(dag.RawData(), &node); err != nil {
-		return nil, err
-	}
-
-	return &node, nil
-}
-
-// Log prints the commit history starting at the given CID.
-func Log(ipfs *core.IpfsNode, id cid.Cid) error {
-	c, err := Get(ipfs, id)
+// Add persists the commit to the blockstore.
+func (c *Commit) Add(ipfs *ipfs.Node) error {
+	b, err := c.Block()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(c.String())
-	if c.Parent.Defined() {
-		return Log(ipfs, c.Parent)
+	c.ID = b.Cid()
+	if err := ipfs.Blocks.AddBlock(b); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// String returns a human readable representation of the commit.
+// Block returns a block representation of the Commit.
+func (c *Commit) Block() (blocks.Block, error) {
+	data, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+
+	hash, err := multihash.Sum(data, multihash.SHA2_256, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	return blocks.NewBlockWithCid(data, cid.NewCidV1(cid.Raw, hash))
+}
+
+// String returns a human readable representation of the Commit.
 func (c *Commit) String() string {
-	return fmt.Sprintf("%s\n\t%s\n", c.Changes, c.Message)
+	return fmt.Sprintf("commit %s", c.Changes)
 }

@@ -2,92 +2,45 @@ package ipfs
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
-	config "github.com/ipfs/go-ipfs-config"
-
-	"github.com/ipfs/go-ipfs/core"
-	"github.com/ipfs/go-ipfs/core/node/libp2p"
-	"github.com/ipfs/go-ipfs/repo"
-	"github.com/ipfs/go-ipfs/repo/fsrepo"
-	"github.com/ipfs/go-ipfs/plugin/loader"
+	"github.com/ipfs/go-blockservice"
+	"github.com/ipfs/go-ds-badger"
+	"github.com/ipfs/go-ipfs-blockstore"
 )
 
-func initPlugins(path string) error {
-	plugins, err := loader.NewPluginLoader(path)
-	if err != nil {
-		return err
-	}
-
-	if err := plugins.Initialize(); err != nil {
-		return err
-	}
-
-	return plugins.Inject()
+// Node is a wrapper around IPFS services.
+type Node struct {
+	Blocks blockservice.BlockService
 }
 
-func initRepo(repoPath string) (repo.Repo, error) {
-	cfg, err := config.Init(ioutil.Discard, 2048)
+// NewNode creates an IPFS node.
+func NewNode(ctx context.Context) (*Node, error) {
+	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = fsrepo.Init(repoPath, cfg); err != nil {
+	path := filepath.Join(home, ".multiverse", "datastore")
+	if err := os.MkdirAll(path, 0700); err != nil {
 		return nil, err
 	}
 
-	return fsrepo.Open(repoPath)
-}
-
-// NewDefault creates a default IPFS node.
-func NewDefault(ctx context.Context) (*core.IpfsNode, error) {
-	repoPath, err := fsrepo.BestKnownPath()
+	store, err := badger.NewDatastore(path, &badger.DefaultOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	pluginsPath := filepath.Join(repoPath, "plugins")
-	if err = initPlugins(pluginsPath); err != nil {
-		return nil, err
-	}
+	bstore := blockstore.NewBlockstore(store)
+	bstore = blockstore.NewIdStore(bstore)
 
-	repo, err := initRepo(repoPath)
+	opts := blockstore.DefaultCacheOpts()
+	bstore, err = blockstore.CachedBlockstore(ctx, bstore, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	nodeOptions := &core.BuildCfg{
-		Online: true,
-		Routing: libp2p.DHTOption,
-		Repo: repo,
-	}
-
-	return core.NewNode(ctx, nodeOptions)
-}
-
-// NewEphemeral creates an ephemeral IPFS node.
-func NewEphemeral(ctx context.Context) (*core.IpfsNode, error) {
-	repoPath, err := ioutil.TempDir("", "ipfs-shell")
-	if err != nil {
-		return nil, err
-	}
-
-	pluginsPath := filepath.Join(repoPath, "plugins")
-	if err = initPlugins(pluginsPath); err != nil {
-		return nil, err
-	}
-
-	repo, err := initRepo(repoPath)
-	if err != nil {
-		return nil, err
-	}
-
-	nodeOptions := &core.BuildCfg{
-		Online: true,
-		Routing: libp2p.DHTOption,
-		Repo: repo,
-	}
-
-	return core.NewNode(ctx, nodeOptions)
+	bservice := blockservice.New(bstore, nil)
+	return &Node{Blocks: bservice}, nil
 }

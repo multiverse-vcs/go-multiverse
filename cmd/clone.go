@@ -29,7 +29,7 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ipfs, err := ipfs.NewDefault(context.TODO())
+	ipfs, err := ipfs.NewNode(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -39,6 +39,6 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("Repo cloned to", r.Root)
+	fmt.Println(r.String())
 	return nil
 }
