@@ -2,18 +2,19 @@ package cmd
 
 import (
 	"context"
-	"fmt"
+	"path/filepath"
 
-	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-ipfs-files"
+	"github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/ipfs"
 	"github.com/yondero/multiverse/repo"
 )
 
 var cloneCmd = &cobra.Command{
-	Use:          "clone [cid] [path]",
-	Short:        "Clone an existing Multiverse repository.",
-	Long:         `Clone an existing Multiverse repository.`,
+	Use:          "clone [remote] [local]",
+	Short:        "Copy an existing repository.",
+	Long:         `Copy an existing repository.`,
 	Args:         cobra.MinimumNArgs(2),
 	SilenceUsage: true,
 	RunE:         executeClone,
@@ -24,21 +25,30 @@ func init() {
 }
 
 func executeClone(cmd *cobra.Command, args []string) error {
-	id, err := cid.Parse(args[0])
+	api, err := httpapi.NewLocalApi()
 	if err != nil {
 		return err
 	}
 
-	ipfs, err := ipfs.NewNode(context.TODO())
+	remote, err := api.ResolvePath(context.TODO(), path.Join(path.New(args[0]), "tree"))
 	if err != nil {
 		return err
 	}
 
-	r, err := repo.Clone(ipfs, id, args[1]);
+	f, err := api.Unixfs().Get(context.TODO(), remote)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(r.String())
-	return nil
+	local, err := filepath.Abs(args[1])
+	if err != nil {
+		return err
+	}
+
+	if err := files.WriteTo(f, local); err != nil {
+		return err
+	}
+
+	r := repo.Repo{Path: local, Head: remote.Root()}
+	return r.Write()
 }

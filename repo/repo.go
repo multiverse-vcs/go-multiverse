@@ -1,27 +1,48 @@
 package repo
 
 import (
-	"fmt"
+	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/ipfs/go-cid"
-	"github.com/yondero/multiverse/commit"
-	"github.com/yondero/multiverse/file"
-	"github.com/yondero/multiverse/ipfs"
 )
 
-// Repo contains repository info.
+var (
+	ErrRepoExists   = errors.New("repo already exists")
+	ErrRepoNotFound = errors.New("repo not found")
+)
+
+// Config is the name of the repo config file.
+const Config = "multi.json"
+
+// Repo contains repo info.
 type Repo struct {
-	path string
+	// Path to repo root.
+	Path string `json:"-"`
+
+	// CID of repo head.
+	Head cid.Cid `json:"head"`
 }
 
-// Open returns a repo if one exists in the current or parent directories.
+// Init creates a new empty repo at the given path.
+func Init(path string) (*Repo, error) {
+	_, err := Open(path)
+	if err == nil {
+		return nil, ErrRepoExists
+	}
+
+	r := Repo{Path: path}
+	return &r, r.Write()
+}
+
+// Open returns an existing repo in the current or parent directories.
 func Open(path string) (*Repo, error) {
-	stat, err := os.Stat(filepath.Join(path, ".multi"))
-	if err == nil && stat.IsDir() {
-		return &Repo{path}, nil
+	_, err := os.Stat(filepath.Join(path, Config))
+	if err == nil {
+		return Read(path)
 	}
 
 	parent, err := filepath.Abs(filepath.Join(path, ".."))
@@ -30,96 +51,33 @@ func Open(path string) (*Repo, error) {
 	}
 
 	if parent == path {
-		return nil, err
+		return nil, ErrRepoNotFound
 	}
 
 	return Open(parent)
 }
 
-// Clone creates a repo from an existing commit.
-func Clone(ipfs *ipfs.Node, id cid.Cid, root string) (*Repo, error) {
-	c, err := commit.Get(ipfs, id)
-	if err != nil {
-		return nil, err
-	}
+// Read returns an existing repo in the current directory.
+func Read(path string) (*Repo, error) {
+	data, err := ioutil.ReadFile(filepath.Join(path, Config))
+  if err != nil {
+    return nil, err
+  }
 
-	root, err = filepath.Abs(root)
-	if err != nil {
-		return nil, err
-	}
+  r := Repo{Path: path}
+  if err := json.Unmarshal(data, &r); err != nil {
+  	return nil, err
+  }
 
-	dir := filepath.Join(root, ".multi")
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return nil, err
-	}
-
-	path := filepath.Join(dir, "HEAD")
-	if err := ioutil.WriteFile(path, []byte(id.String()), 0755); err != nil {
-		return nil, err 
-	}
-
-	if err := file.Write(ipfs, c.Changes, root); err != nil {
-		return nil, err
-	}
-
-	return &Repo{path: root}, nil
+  return &r, nil
 }
 
-// Commit records changes in the local repo.
-func (r *Repo) Commit(ipfs *ipfs.Node, message string) (*commit.Commit, error) {
-	f, err := file.NewFile(r.path)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := f.Add(ipfs); err != nil {
-		return nil, err
-	}
-
-	head, err := r.Head()
-	if err != nil {
-		return nil, err
-	}
-
-	c := commit.NewCommit(message, f.ID, head)
-	if err := c.Add(ipfs); err != nil {
-		return nil, err
-	}
-
-	path := filepath.Join(r.path, ".multi", "HEAD")
-	if err := ioutil.WriteFile(path, []byte(c.ID.String()), 0755); err != nil {
-		return nil, err 
-	}
-
-	return c, nil
-}
-
-// Log prints the commit history from the given CID.
-func (r *Repo) Log(ipfs *ipfs.Node, id cid.Cid) error {
-	c, err := commit.Get(ipfs, id)
+// Write saves the repo config to the root directory.
+func (r *Repo) Write() error {
+	data, err := json.Marshal(r)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(c.String())
-	if c.Parent.Defined() {
-		return r.Log(ipfs, c.Parent)
-	}
-
-	return nil
-}
-
-// Head returns the parent CID of the repo.
-func (r *Repo) Head() (cid.Cid, error) {
-	bytes, err := ioutil.ReadFile(filepath.Join(r.path, ".multi", "HEAD"))
-	if err != nil {
-		return cid.Cid{}, nil
-	}
-
-	return cid.Parse(string(bytes))
-}
-
-// String returns a string representation of the repo.
-func (r *Repo) String() string {
-	return fmt.Sprintf("repo %s", r.path)
+	return ioutil.WriteFile(Config, data, 0644)
 }

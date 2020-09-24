@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 
+	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/ipfs"
+	"github.com/yondero/multiverse/commit"
 	"github.com/yondero/multiverse/repo"
 )
 
@@ -22,7 +24,7 @@ func init() {
 }
 
 func executeLog(cmd *cobra.Command, args []string) error {
-	ipfs, err := ipfs.NewNode(context.TODO())
+	api, err := httpapi.NewLocalApi()
 	if err != nil {
 		return err
 	}
@@ -37,10 +39,21 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	id, err := r.Head()
+	if !r.Head.Defined() {
+		return nil
+	}
+
+	node, err := api.Dag().Get(context.TODO(), r.Head)
 	if err != nil {
 		return err
 	}
 
-	return r.Log(ipfs, id)
+	c, err := commit.FromNode(node)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("commit %s\n", node.Cid().String())
+	fmt.Printf("\n\t%s\n", c.Message)
+	return nil
 }
