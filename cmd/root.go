@@ -8,8 +8,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "multi",
-	Short: "Distributed version control.",
-	Long:  `Distributed version control.`,
+	Short: "Decentralized version control system.",
+	Long:  `Decentralized version control system.`,
 }
 
 // Execute runs the root command.

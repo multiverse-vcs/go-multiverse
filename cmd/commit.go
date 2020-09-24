@@ -14,10 +14,12 @@ import (
 
 var message string
 
+var ignore = []string{repo.Config, ".git"}
+
 var commitCmd = &cobra.Command{
 	Use:          "commit",
-	Short:        "Record changes in the local repository.",
-	Long:         `Record changes in the local repository.`,
+	Short:        "Record changes to a repository.",
+	Long:         `Record changes to a repository.`,
 	SilenceUsage: true,
 	RunE:         executeCommit,
 }
@@ -48,7 +50,7 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	filter, err := files.NewFilter("", []string{repo.Config, ".git"}, true)
+	filter, err := files.NewFilter("", ignore, true)
 	if err != nil {
 		return err
 	}
@@ -73,7 +75,7 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := api.Dag().Add(context.TODO(), node); err != nil {
+	if err := api.Dag().Pinning().Add(context.TODO(), node); err != nil {
 		return err
 	}
 
