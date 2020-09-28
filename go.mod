@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-git/go-git/v5 v5.1.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/ipfs/go-bitswap v0.2.19 // indirect
 	github.com/ipfs/go-blockservice v0.1.3 // indirect

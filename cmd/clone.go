@@ -15,7 +15,7 @@ var cloneCmd = &cobra.Command{
 	Use:          "clone [remote] [local]",
 	Short:        "Copy an existing repository.",
 	Long:         `Copy an existing repository.`,
-	Args:         cobra.MinimumNArgs(2),
+	Args:         cobra.ExactArgs(2),
 	SilenceUsage: true,
 	RunE:         executeClone,
 }

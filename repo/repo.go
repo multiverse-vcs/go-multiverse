@@ -45,11 +45,7 @@ func Open(path string) (*Repo, error) {
 		return Read(path)
 	}
 
-	parent, err := filepath.Abs(filepath.Join(path, ".."))
-	if err != nil {
-		return nil, err
-	}
-
+	parent := filepath.Dir(path)
 	if parent == path {
 		return nil, ErrRepoNotFound
 	}
