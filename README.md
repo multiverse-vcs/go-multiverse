@@ -20,7 +20,6 @@ Available Commands:
   clone       Copy an existing repository.
   commit      Record changes to a repository.
   help        Help about any command
-  import      Import an existing git repo.
   init        Create a new empty repo.
   log         Print change history.
 
