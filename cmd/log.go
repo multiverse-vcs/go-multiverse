@@ -53,7 +53,9 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("commit %s\n", node.Cid().String())
-	fmt.Printf("\n\t%s\n", c.Message)
+	fmt.Printf("Commit: %s\n", node.Cid().String())
+	fmt.Printf("Author: %s %s\n", c.Author.Name, c.Author.Email)
+	fmt.Printf("Date:   %s\n", c.Author.When.Format("Mon Jan 2 15:04:05 2006 -0700"))
+	fmt.Printf("\n%s\n\n", c.Message)
 	return nil
 }

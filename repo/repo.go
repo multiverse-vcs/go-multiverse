@@ -21,8 +21,7 @@ const Config = "multi.json"
 // Repo contains repo info.
 type Repo struct {
 	// Path to repo root.
-	Path string `json:"-"`
-
+	Path string  `json:"-"`
 	// CID of repo head.
 	Head cid.Cid `json:"head"`
 }
