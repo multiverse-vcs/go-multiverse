@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ipfs/go-ipfs/commands"
 	"github.com/ipfs/go-ipfs-config"
+	"github.com/ipfs/go-ipfs/commands"
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/corehttp"
 	"github.com/ipfs/go-ipfs/plugin/loader"
@@ -62,8 +62,8 @@ func executeDaemon(cmd *cobra.Command, args []string) error {
 	}
 
 	nodeOptions := &core.BuildCfg{
-		Online:  true,
-		Repo: repo,
+		Online: true,
+		Repo:   repo,
 	}
 
 	node, err := core.NewNode(context.TODO(), nodeOptions)
@@ -73,8 +73,8 @@ func executeDaemon(cmd *cobra.Command, args []string) error {
 
 	cctx := commands.Context{
 		ConfigRoot: path,
-		Plugins: plugins,
-		ReqLog: &commands.ReqLog{},
+		Plugins:    plugins,
+		ReqLog:     &commands.ReqLog{},
 		LoadConfig: func(path string) (*config.Config, error) {
 			return node.Repo.Config()
 		},

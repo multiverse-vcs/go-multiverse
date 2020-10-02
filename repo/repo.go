@@ -21,7 +21,7 @@ const Config = "multi.json"
 // Repo contains repo info.
 type Repo struct {
 	// Path repo root directory.
-	Path string  `json:"-"`
+	Path string `json:"-"`
 	// Head is the CID of latest commit.
 	Head cid.Cid `json:"head"`
 }
@@ -55,16 +55,16 @@ func Open(path string) (*Repo, error) {
 // Read returns an existing repo in the current directory.
 func Read(path string) (*Repo, error) {
 	data, err := ioutil.ReadFile(filepath.Join(path, Config))
-  if err != nil {
-    return nil, err
-  }
+	if err != nil {
+		return nil, err
+	}
 
-  r := Repo{Path: path}
-  if err := json.Unmarshal(data, &r); err != nil {
-  	return nil, err
-  }
+	r := Repo{Path: path}
+	if err := json.Unmarshal(data, &r); err != nil {
+		return nil, err
+	}
 
-  return &r, nil
+	return &r, nil
 }
 
 // Write saves the repo config to the root directory.

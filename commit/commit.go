@@ -14,9 +14,9 @@ import (
 // Signature contains info about who created the commit.
 type Signature struct {
 	// Name is the name of the person who created the commit.
-	Name string    `json:"name"`
+	Name string `json:"name"`
 	// Email is an address that can be used to contact the committer.
-	Email string   `json:"email"`
+	Email string `json:"email"`
 	// When is the timestamp of when the commit was created.
 	When time.Time `json:"when"`
 }
@@ -24,15 +24,15 @@ type Signature struct {
 // Commit contains info about changes to a repo.
 type Commit struct {
 	// Author is the person that created the commit.
-	Author Signature    `json:"author"`
+	Author Signature `json:"author"`
 	// Committer is the person that performed the commit.
 	Committer Signature `json:"committer"`
 	// Message is a description of the changes.
-	Message string      `json:"message"`
+	Message string `json:"message"`
 	// Tree is the current state of the repo files.
-	Tree cid.Cid        `json:"tree"`
+	Tree cid.Cid `json:"tree"`
 	// Parents contains the CIDs of parent commits.
-	Parents []cid.Cid   `json:"parents"`
+	Parents []cid.Cid `json:"parents"`
 }
 
 // FromNode returns a commit from the node.
