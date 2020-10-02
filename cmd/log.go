@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ipfs/go-ipfs-http-client"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/yondero/multiverse/commit"
 	"github.com/yondero/multiverse/repo"
@@ -24,7 +25,12 @@ func init() {
 }
 
 func executeLog(cmd *cobra.Command, args []string) error {
-	api, err := httpapi.NewLocalApi()
+	address, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
+	if err != nil {
+		return err
+	}
+
+	api, err := httpapi.NewApi(address)
 	if err != nil {
 		return err
 	}

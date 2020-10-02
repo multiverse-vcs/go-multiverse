@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -30,5 +31,6 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	fmt.Println("Repo initialized successfully!")
 	return nil
 }

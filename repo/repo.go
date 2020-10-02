@@ -20,9 +20,9 @@ const Config = "multi.json"
 
 // Repo contains repo info.
 type Repo struct {
-	// Path to repo root.
+	// Path repo root directory.
 	Path string  `json:"-"`
-	// CID of repo head.
+	// Head is the CID of latest commit.
 	Head cid.Cid `json:"head"`
 }
 

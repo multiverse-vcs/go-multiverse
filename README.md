@@ -6,10 +6,6 @@
 
 Multiverse is a decentralized version control system.
 
-### Install
-
-A local [IPFS](https://docs.ipfs.io/install/) node is required to use Multiverse.
-
 ### Usage
 
 ```
@@ -19,6 +15,7 @@ Usage:
 Available Commands:
   clone       Copy an existing repository.
   commit      Record changes to a repository.
+  daemon      Runs a persistent Multiverse node.
   help        Help about any command
   init        Create a new empty repo.
   log         Print change history.
