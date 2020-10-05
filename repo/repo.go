@@ -36,7 +36,11 @@ func Init(path string) (*Repo, error) {
 	}
 
 	r := Repo{Path: path}
-	return &r, r.Write()
+	if err := r.Write(); err != nil {
+		return nil, err
+	}
+
+	return &r, nil
 }
 
 // Open returns an existing repo in the current or parent directories.

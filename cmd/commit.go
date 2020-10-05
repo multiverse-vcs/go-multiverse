@@ -9,7 +9,7 @@ import (
 	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/commit"
+	"github.com/yondero/multiverse/core"
 	"github.com/yondero/multiverse/repo"
 )
 
@@ -71,25 +71,25 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c := commit.Commit{Message: message, Tree: p.Root()}
+	c := core.Commit{Message: message, WorkTree: p.Root()}
 	if r.Head.Defined() {
 		c.Parents = append(c.Parents, r.Head)
 	}
 
-	node, err := c.Node()
+	/*node, err := c.Node()
 	if err != nil {
 		return err
-	}
+	}*/
 
-	if err := api.Dag().Pinning().Add(context.TODO(), node); err != nil {
+	if err := api.Dag().Pinning().Add(context.TODO(), &c); err != nil {
 		return err
 	}
 
-	r.Head = node.Cid()
+	r.Head = c.Cid()
 	if err := r.Write(); err != nil {
 		return err
 	}
 
-	fmt.Println(node.Cid().String())
+	fmt.Println(c.Cid().String())
 	return nil
 }

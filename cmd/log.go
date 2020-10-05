@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/commit"
+	"github.com/yondero/multiverse/core"
 	"github.com/yondero/multiverse/repo"
 )
 
@@ -54,14 +54,11 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := commit.FromNode(node)
-	if err != nil {
-		return err
-	}
+	c := node.(*core.Commit)
 
 	fmt.Printf("Commit: %s\n", node.Cid().String())
 	fmt.Printf("Author: %s %s\n", c.Author.Name, c.Author.Email)
-	fmt.Printf("Date:   %s\n", c.Author.When.Format("Mon Jan 2 15:04:05 2006 -0700"))
+	fmt.Printf("Date:   %s\n", c.Author.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
 	fmt.Printf("\n%s\n\n", c.Message)
 	return nil
 }
