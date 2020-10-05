@@ -26,12 +26,12 @@ func init() {
 }
 
 func executeClone(cmd *cobra.Command, args []string) error {
-	address, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
+	addr, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
 	if err != nil {
 		return err
 	}
 
-	api, err := httpapi.NewApi(address)
+	api, err := httpapi.NewApi(addr)
 	if err != nil {
 		return err
 	}
