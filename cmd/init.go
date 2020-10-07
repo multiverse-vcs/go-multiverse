@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/repo"
+	"github.com/yondero/multiverse/core"
 )
 
 var initCmd = &cobra.Command{
@@ -26,11 +27,11 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	_, err = repo.Init(cwd)
+	config, err = core.InitConfig(cwd, cid.Cid{})
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Repo initialized successfully!")
+	fmt.Printf("Repo initialized successfully at %s\n", config.Path)
 	return nil
 }

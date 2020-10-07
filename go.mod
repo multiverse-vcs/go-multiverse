@@ -24,6 +24,7 @@ require (
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/spf13/cobra v1.0.0
+	github.com/yondero/go-ipld-multiverse v0.0.1
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a // indirect
 	golang.org/x/tools v0.0.0-20200522201501-cb1345f3a375 // indirect

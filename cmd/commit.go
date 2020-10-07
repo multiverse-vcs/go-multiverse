@@ -5,17 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-ipfs-http-client"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/yondero/multiverse/core"
-	"github.com/yondero/multiverse/repo"
 )
 
 var message string
-
-var ignore = []string{repo.DefaultConfig, ".git"}
 
 var commitCmd = &cobra.Command{
 	Use:          "commit",
@@ -31,62 +25,13 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	addr, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
-	if err != nil {
-		return err
-	}
-
-	api, err := httpapi.NewApi(addr)
-	if err != nil {
-		return err
-	}
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	r, err := repo.Open(cwd)
+	c, err := core.Commit(context.TODO(), cwd, message)
 	if err != nil {
-		return err
-	}
-
-	info, err := os.Stat(r.Path)
-	if err != nil {
-		return err
-	}
-
-	filter, err := files.NewFilter("", ignore, true)
-	if err != nil {
-		return err
-	}
-
-	tree, err := files.NewSerialFileWithFilter(r.Path, filter, info)
-	if err != nil {
-		return err
-	}
-
-	p, err := api.Unixfs().Add(context.TODO(), tree)
-	if err != nil {
-		return err
-	}
-
-	c := core.Commit{Message: message, WorkTree: p.Root()}
-	if r.Head.Defined() {
-		c.Parents = append(c.Parents, r.Head)
-	}
-
-	/*node, err := c.Node()
-	if err != nil {
-		return err
-	}*/
-
-	if err := api.Dag().Pinning().Add(context.TODO(), &c); err != nil {
-		return err
-	}
-
-	r.Head = c.Cid()
-	if err := r.Write(); err != nil {
 		return err
 	}
 

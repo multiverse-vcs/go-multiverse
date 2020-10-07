@@ -7,11 +7,25 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-config"
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/plugin/loader"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
+	"github.com/ipfs/go-ipld-format"
+	"github.com/yondero/go-ipld-multiverse"
 )
+
+func init() {
+	cid.Codecs["multi-commit"] = ipldmulti.CommitCodec
+	cid.Codecs["multi-repository"] = ipldmulti.RepositoryCodec
+	
+	cid.CodecToStr[ipldmulti.CommitCodec] = "multi-commit"
+	cid.CodecToStr[ipldmulti.RepositoryCodec] = "multi-repository"
+
+	format.Register(ipldmulti.CommitCodec, ipldmulti.DecodeCommit)
+	format.Register(ipldmulti.RepositoryCodec, ipldmulti.DecodeRepository)
+}
 
 // RootPath returns the path to the root of the IPFS directory.
 func RootPath() (string, error) {

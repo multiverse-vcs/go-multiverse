@@ -2,14 +2,11 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
-	"github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-ipfs-http-client"
-	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/repo"
+	"github.com/yondero/multiverse/core"
 )
 
 var cloneCmd = &cobra.Command{
@@ -26,35 +23,16 @@ func init() {
 }
 
 func executeClone(cmd *cobra.Command, args []string) error {
-	addr, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
-	if err != nil {
-		return err
-	}
-
-	api, err := httpapi.NewApi(addr)
-	if err != nil {
-		return err
-	}
-
-	remote, err := api.ResolvePath(context.TODO(), path.Join(path.New(args[0]), "tree"))
-	if err != nil {
-		return err
-	}
-
-	f, err := api.Unixfs().Get(context.TODO(), remote)
-	if err != nil {
-		return err
-	}
-
 	local, err := filepath.Abs(args[1])
 	if err != nil {
 		return err
 	}
 
-	if err := files.WriteTo(f, local); err != nil {
+	config, err := core.Clone(context.TODO(), local, args[0])
+	if err != nil {
 		return err
 	}
 
-	r := repo.Repo{Path: local, Head: remote.Root()}
-	return r.Write()
+	fmt.Printf("Repo cloned successfully to %s\n", config.Path)
+	return nil
 }
