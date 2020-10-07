@@ -6,7 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/core"
+	"github.com/yondero/go-multiverse/core"
 )
 
 var initCmd = &cobra.Command{
@@ -27,7 +27,7 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, err = core.InitConfig(cwd, cid.Cid{})
+	config, err := core.InitConfig(cwd, cid.Cid{})
 	if err != nil {
 		return err
 	}

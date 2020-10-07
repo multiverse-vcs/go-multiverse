@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/core"
+	"github.com/yondero/go-multiverse/core"
 )
 
 var cloneCmd = &cobra.Command{

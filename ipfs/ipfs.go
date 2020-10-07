@@ -19,7 +19,7 @@ import (
 func init() {
 	cid.Codecs["multi-commit"] = ipldmulti.CommitCodec
 	cid.Codecs["multi-repository"] = ipldmulti.RepositoryCodec
-	
+
 	cid.CodecToStr[ipldmulti.CommitCodec] = "multi-commit"
 	cid.CodecToStr[ipldmulti.RepositoryCodec] = "multi-repository"
 

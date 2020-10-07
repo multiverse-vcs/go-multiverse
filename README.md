@@ -1,6 +1,6 @@
 # Multiverse
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/yondero/multiverse)](https://goreportcard.com/report/github.com/yondero/multiverse)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yondero/go-multiverse)](https://goreportcard.com/report/github.com/yondero/go-multiverse)
 
 ### About
 

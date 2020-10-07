@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/yondero/multiverse/cmd"
+	"github.com/yondero/go-multiverse/cmd"
 )
 
 func main() {

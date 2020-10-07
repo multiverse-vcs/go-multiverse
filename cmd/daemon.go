@@ -10,7 +10,7 @@ import (
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/corehttp"
 	"github.com/spf13/cobra"
-	"github.com/yondero/multiverse/ipfs"
+	"github.com/yondero/go-multiverse/ipfs"
 )
 
 var daemonCmd = &cobra.Command{
@@ -59,7 +59,7 @@ func executeDaemon(cmd *cobra.Command, args []string) error {
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
-	
+
 	<-interrupt
 	return nil
 }

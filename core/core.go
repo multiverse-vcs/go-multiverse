@@ -138,6 +138,6 @@ func Log(ctx context.Context, local string) error {
 
 		id = c.Parents[0]
 	}
-	
+
 	return nil
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/ipfs/go-cid"
 )
 
-
 const (
 	// DefaultConfig is the name of the default repo config file.
 	DefaultConfig = "multi.json"
