@@ -55,7 +55,7 @@ func executeDaemon(cmd *cobra.Command, args []string) error {
 		return node, nil
 	}
 
-	go corehttp.ListenAndServe(node, "/ip4/127.0.0.1/tcp/5001", corehttp.CommandsOption(cctx))
+	go corehttp.ListenAndServe(node, ipfs.CommandsApiAddress, corehttp.CommandsOption(cctx))
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)

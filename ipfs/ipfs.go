@@ -3,7 +3,6 @@ package ipfs
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -15,6 +14,9 @@ import (
 	"github.com/ipfs/go-ipld-format"
 	"github.com/yondero/go-ipld-multiverse"
 )
+
+// CommandsApiAddress is the multiaddress of the commands API.
+const CommandsApiAddress = "/ip4/127.0.0.1/tcp/5001"
 
 func init() {
 	cid.Codecs["multi-commit"] = ipldmulti.CommitCodec
@@ -37,7 +39,7 @@ func RootPath() (string, error) {
 	return filepath.Join(home, ".multi"), nil
 }
 
-// LoadPlugins initializes all plugins.
+// LoadPlugins loads and initializes plugins.
 func LoadPlugins() (*loader.PluginLoader, error) {
 	root, err := RootPath()
 	if err != nil {
@@ -60,6 +62,20 @@ func LoadPlugins() (*loader.PluginLoader, error) {
 	return plugins, nil
 }
 
+// Initializes a node with default configuration settings.
+func Initialize(root string) error {
+	if fsrepo.IsInitialized(root) {
+		return nil
+	}
+
+	cfg, err := config.Init(os.Stdout, 2048)
+	if err != nil {
+		return err
+	}
+
+	return fsrepo.Init(root, cfg)
+}
+
 // NewNode returns a new IPFS node.
 func NewNode(ctx context.Context) (*core.IpfsNode, error) {
 	root, err := RootPath()
@@ -67,12 +83,7 @@ func NewNode(ctx context.Context) (*core.IpfsNode, error) {
 		return nil, err
 	}
 
-	cfg, err := config.Init(ioutil.Discard, 2048)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := fsrepo.Init(root, cfg); err != nil {
+	if err := Initialize(root); err != nil {
 		return nil, err
 	}
 

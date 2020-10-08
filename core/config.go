@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,13 +14,6 @@ const (
 	DefaultConfig = "multi.json"
 	// DefaultBranch is the name of the default repo branch.
 	DefaultBranch = "default"
-)
-
-var (
-	// ErrRepoExists is returned when a repo already exists.
-	ErrRepoExists = errors.New("repo already exists")
-	// ErrRepoNotFound is returned when a repo cannot be found.
-	ErrRepoNotFound = errors.New("repo not found")
 )
 
 // Config contains local repo info.
@@ -87,5 +79,5 @@ func (c *Config) Write() error {
 		return err
 	}
 
-	return ioutil.WriteFile(DefaultConfig, data, 0644)
+	return ioutil.WriteFile(filepath.Join(c.Path, DefaultConfig), data, 0644)
 }

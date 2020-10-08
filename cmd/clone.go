@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 
+	"github.com/ipfs/go-cid"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
 )
@@ -28,11 +29,15 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, err := core.Clone(context.TODO(), local, args[0])
+	config, err := core.InitConfig(local, cid.Cid{})
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Repo cloned successfully to %s\n", config.Path)
-	return nil
+	c, err := core.NewCore(config)
+	if err != nil {
+		return err
+	}
+
+	return c.Checkout(context.TODO(), path.New(args[0]))
 }

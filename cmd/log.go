@@ -26,5 +26,15 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return core.Log(context.TODO(), cwd)
+	config, err := core.OpenConfig(cwd)
+	if err != nil {
+		return err
+	}
+
+	c, err := core.NewCore(config)
+	if err != nil {
+		return err
+	}
+
+	return c.Log(context.TODO(), config.Head)
 }

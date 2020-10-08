@@ -30,11 +30,21 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.Commit(context.TODO(), cwd, message)
+	config, err := core.OpenConfig(cwd)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(c.Cid().String())
+	c, err := core.NewCore(config)
+	if err != nil {
+		return err
+	}
+
+	commit, err := c.Commit(context.TODO(), message)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(commit.Cid().String())
 	return nil
 }
