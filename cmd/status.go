@@ -9,20 +9,19 @@ import (
 	"github.com/yondero/go-multiverse/core"
 )
 
-var checkoutCmd = &cobra.Command{
-	Use:          "checkout [remote]",
-	Short:        "Checkout a commit.",
-	Long:         `Checkout a commit.`,
-	Args:         cobra.ExactArgs(1),
+var statusCmd = &cobra.Command{
+	Use:          "status",
+	Short:        "Print changes to working tree.",
+	Long:         `Print changes to working tree.`,
 	SilenceUsage: true,
-	RunE:         executeCheckout,
+	RunE:         executeStatus,
 }
 
 func init() {
-	rootCmd.AddCommand(checkoutCmd)
+	rootCmd.AddCommand(statusCmd)
 }
 
-func executeCheckout(cmd *cobra.Command, args []string) error {
+func executeStatus(cmd *cobra.Command, args []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -38,5 +37,5 @@ func executeCheckout(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return c.Checkout(context.TODO(), path.New(args[0]))
+	return c.Status(context.TODO(), path.IpfsPath(config.Head))
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"github.com/ipfs/go-cid"
@@ -26,6 +27,10 @@ func init() {
 func executeClone(cmd *cobra.Command, args []string) error {
 	local, err := filepath.Abs(args[1])
 	if err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(local, 0777); err != nil {
 		return err
 	}
 

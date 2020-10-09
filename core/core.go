@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/go-ipfs-http-client"
@@ -64,7 +65,12 @@ func (c *Core) Checkout(ctx context.Context, remote path.Path) error {
 		return err
 	}
 
-	if err := files.WriteTo(tree, c.Config.Path); err != nil {
+	entries := tree.(files.Directory).Entries()
+	if err := WriteTreeEntries(entries, c.Config.Path); err != nil {
+		return err
+	}
+
+	if err := entries.Err(); err != nil {
 		return err
 	}
 
@@ -74,17 +80,7 @@ func (c *Core) Checkout(ctx context.Context, remote path.Path) error {
 
 // Commit records changes to the working directory.
 func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, error) {
-	info, err := os.Stat(c.Config.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	filter, err := files.NewFilter("", DefaultIgnore, true)
-	if err != nil {
-		return nil, err
-	}
-
-	tree, err := files.NewSerialFileWithFilter(c.Config.Path, filter, info)
+	tree, err := c.Tree()
 	if err != nil {
 		return nil, err
 	}
@@ -123,13 +119,74 @@ func (c *Core) Log(ctx context.Context, id cid.Cid) error {
 		return nil
 	}
 
-	fmt.Printf("Commit: %s\n", id.String())
-	fmt.Printf("Date:   %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
-	fmt.Printf("\n%s\n\n", commit.Message)
+	color.Yellow.Printf("commit %s\n", id.String())
+	fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
+	fmt.Printf("\n\t%s\n\n", commit.Message)
 
 	if len(commit.Parents) == 0 {
 		return nil
 	}
 
 	return c.Log(ctx, commit.Parents[0])
+}
+
+// Tree returns the current working tree files node.
+func (c *Core) Tree() (files.Node, error) {
+	info, err := os.Stat(c.Config.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	filter, err := files.NewFilter("", DefaultIgnore, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return files.NewSerialFileWithFilter(c.Config.Path, filter, info)
+}
+
+// Diff prints differences between two commits.
+func (c *Core) Diff(ctx context.Context, remoteA path.Path, remoteB path.Path) error {
+	pathA, err := c.Api.ResolvePath(ctx, path.Join(remoteA, "tree"))
+	if err != nil {
+		return err
+	}
+
+	pathB, err := c.Api.ResolvePath(ctx, path.Join(remoteB, "tree"))
+	if err != nil {
+		return err
+	}
+
+	nodeA, err := c.Api.Unixfs().Get(ctx, pathA)
+	if err != nil {
+		return err
+	}
+
+	nodeB, err := c.Api.Unixfs().Get(ctx, pathB)
+	if err != nil {
+		return err
+	}
+
+	return DiffTrees(ctx, nodeA, nodeB)
+}
+
+// Status prints the differences between the working directory and remote.
+func (c *Core) Status(ctx context.Context, remote path.Path) error {
+	pathA, err := c.Api.ResolvePath(ctx, path.Join(remote, "tree"))
+	if err != nil {
+		return err
+	}
+
+	nodeA, err := c.Api.Unixfs().Get(ctx, pathA)
+	if err != nil {
+		return err
+	}
+
+	nodeB, err := c.Tree()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Changes to working tree:")
+	return DiffTrees(ctx, nodeA, nodeB)
 }
