@@ -17,6 +17,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/yondero/go-ipld-multiverse"
 	"github.com/yondero/go-multiverse/ipfs"
+	"github.com/yondero/go-multiverse/file"
 )
 
 var (
@@ -60,17 +61,13 @@ func (c *Core) Checkout(ctx context.Context, remote path.Path) error {
 		return err
 	}
 
-	tree, err := c.Api.Unixfs().Get(ctx, p)
+	node, err := c.Api.Unixfs().Get(ctx, p)
 	if err != nil {
 		return err
 	}
 
-	entries := tree.(files.Directory).Entries()
-	if err := WriteTreeEntries(entries, c.Config.Path); err != nil {
-		return err
-	}
-
-	if err := entries.Err(); err != nil {
+	entries := node.(files.Directory).Entries()
+	if err := file.WriteEntries(entries, c.Config.Path); err != nil {
 		return err
 	}
 
@@ -167,7 +164,16 @@ func (c *Core) Diff(ctx context.Context, remoteA path.Path, remoteB path.Path) e
 		return err
 	}
 
-	return DiffTrees(ctx, nodeA, nodeB)
+	diffs, err := file.Diff(nodeA, nodeB)
+	if err != nil {
+		return err
+	}
+
+	for _, diff := range diffs {
+		fmt.Println(diff)
+	}
+
+	return nil
 }
 
 // Status prints the differences between the working directory and remote.
@@ -187,6 +193,14 @@ func (c *Core) Status(ctx context.Context, remote path.Path) error {
 		return err
 	}
 
-	fmt.Println("Changes to working tree:")
-	return DiffTrees(ctx, nodeA, nodeB)
+	diffs, err := file.Diff(nodeA, nodeB)
+	if err != nil {
+		return err
+	}
+
+	for _, diff := range diffs {
+		fmt.Println(diff)
+	}
+
+	return nil
 }
