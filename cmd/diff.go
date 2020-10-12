@@ -4,16 +4,14 @@ import (
 	"context"
 	"os"
 
-	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
 )
 
 var diffCmd = &cobra.Command{
-	Use:          "diff [remoteA] [remoteB]",
-	Short:        "Print changes between commits.",
-	Long:         `Print changes between commits.`,
-	Args:         cobra.ExactArgs(2),
+	Use:          "diff",
+	Short:        "Prints changes to files in the working tree.",
+	Long:         `Prints changes to files in the working tree.`,
 	SilenceUsage: true,
 	RunE:         executeDiff,
 }
@@ -38,5 +36,5 @@ func executeDiff(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return c.Diff(context.TODO(), path.New(args[0]), path.New(args[1]))
+	return c.Diff(context.TODO())
 }

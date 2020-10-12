@@ -4,15 +4,14 @@ import (
 	"context"
 	"os"
 
-	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
 )
 
 var statusCmd = &cobra.Command{
 	Use:          "status",
-	Short:        "Print changes to working tree.",
-	Long:         `Print changes to working tree.`,
+	Short:        "Prints status of files in the working tree.",
+	Long:         `Prints status of files in the working tree.`,
 	SilenceUsage: true,
 	RunE:         executeStatus,
 }
@@ -37,5 +36,5 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return c.Status(context.TODO(), path.IpfsPath(config.Head))
+	return c.Status(context.TODO())
 }
