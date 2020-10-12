@@ -17,11 +17,11 @@ Available Commands:
   clone       Copy an existing repository.
   commit      Record changes to a repository.
   daemon      Runs a persistent Multiverse node.
-  diff        Print changes between commits.
+  diff        Prints changes to files in the working tree.
   help        Help about any command
   init        Create a new empty repo.
   log         Print change history.
-  status      Print changes to working tree.
+  status      Prints status of files in the working tree.
 
 Flags:
   -h, --help   help for multi
