@@ -10,8 +10,8 @@ import (
 
 var statusCmd = &cobra.Command{
 	Use:          "status",
-	Short:        "Print status of files in the working tree.",
-	Long:         `Print status of files in the working tree.`,
+	Short:        "Print status of the working tree.",
+	Long:         `Print status of the working tree.`,
 	SilenceUsage: true,
 	RunE:         executeStatus,
 }
