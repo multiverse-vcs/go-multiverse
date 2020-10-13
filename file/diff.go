@@ -1,7 +1,6 @@
 package file
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 
@@ -73,10 +72,6 @@ func (d *FileDiff) Patch() (string, error) {
 
 	bytesB, err := ioutil.ReadAll(d.After)
 	if err != nil {
-		return "", err
-	}
-
-	if bytes.Equal(bytesA, bytesB) {
 		return "", err
 	}
 

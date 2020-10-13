@@ -168,10 +168,6 @@ func (c *Core) Diff(ctx context.Context) error {
 			return err
 		}
 
-		if len(patch) == 0 {
-			continue
-		}
-
 		color.Bold.Println(diff.Path)
 		fmt.Println(patch)
 	}

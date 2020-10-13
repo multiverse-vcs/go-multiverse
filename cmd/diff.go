@@ -10,8 +10,8 @@ import (
 
 var diffCmd = &cobra.Command{
 	Use:          "diff",
-	Short:        "Prints changes to files in the working tree.",
-	Long:         `Prints changes to files in the working tree.`,
+	Short:        "Print changes to files in the working tree.",
+	Long:         `Print changes to files in the working tree.`,
 	SilenceUsage: true,
 	RunE:         executeDiff,
 }
