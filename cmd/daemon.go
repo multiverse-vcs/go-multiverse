@@ -9,6 +9,7 @@ import (
 	"github.com/ipfs/go-ipfs/commands"
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/corehttp"
+	"github.com/multiformats/go-multiaddr/net"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/ipfs"
 )
@@ -26,12 +27,15 @@ func init() {
 }
 
 func executeDaemon(cmd *cobra.Command, args []string) error {
+	// TODO make background and cancel on interrupt
+	ctx := context.TODO()
+
 	plugins, err := ipfs.LoadPlugins()
 	if err != nil {
 		return err
 	}
 
-	node, err := ipfs.NewNode(context.TODO())
+	node, err := ipfs.NewNode(ctx)
 	if err != nil {
 		return err
 	}
@@ -55,7 +59,12 @@ func executeDaemon(cmd *cobra.Command, args []string) error {
 		return node, nil
 	}
 
-	go corehttp.ListenAndServe(node, ipfs.CommandsApiAddress, corehttp.CommandsOption(cctx))
+	l, err := manet.Listen(ipfs.HttpApiAddress)
+	if err != nil {
+		return err
+	}
+
+	go corehttp.Serve(node, manet.NetListener(l), corehttp.CommandsOption(cctx))
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)

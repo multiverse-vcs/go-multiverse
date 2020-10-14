@@ -21,6 +21,7 @@ Available Commands:
   help        Help about any command
   init        Create a new empty repo.
   log         Print change history.
+  publish     Announce a new version to peers.
   status      Print status of the working tree.
 
 Flags:

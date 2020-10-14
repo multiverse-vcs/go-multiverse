@@ -8,15 +8,19 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-config"
+	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/go-ipfs/core"
+	"github.com/ipfs/go-ipfs/core/coreapi"
 	"github.com/ipfs/go-ipfs/plugin/loader"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"github.com/ipfs/go-ipld-format"
+	"github.com/ipfs/interface-go-ipfs-core"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/yondero/go-ipld-multiverse"
 )
 
-// CommandsApiAddress is the multiaddress of the commands API.
-const CommandsApiAddress = "/ip4/127.0.0.1/tcp/5001"
+// HttpApiAddress is the multiaddress of the commands API.
+var HttpApiAddress = multiaddr.StringCast("/ip4/127.0.0.1/tcp/5001")
 
 func init() {
 	cid.Codecs["multi-commit"] = ipldmulti.CommitCodec
@@ -93,4 +97,34 @@ func NewNode(ctx context.Context) (*core.IpfsNode, error) {
 	}
 
 	return core.NewNode(ctx, nodeOptions)
+}
+
+// NewApi returns a new IPFS core API.
+// Falls back to an HTTP API if repo is locked.
+func NewApi(ctx context.Context) (iface.CoreAPI, error) {
+	root, err := RootPath()
+	if err != nil {
+		return nil, err
+	}
+
+	locked, err := fsrepo.LockedByOtherProcess(root)
+	if err != nil {
+		return nil, err
+	}
+
+	if locked {
+		return httpapi.NewApi(HttpApiAddress)
+	}
+
+	_, err = LoadPlugins()
+	if err != nil {
+		return nil, err
+	}
+
+	node, err := NewNode(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return coreapi.NewCoreAPI(node)
 }

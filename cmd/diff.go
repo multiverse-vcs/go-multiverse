@@ -21,6 +21,9 @@ func init() {
 }
 
 func executeDiff(cmd *cobra.Command, args []string) error {
+	// TODO make background and cancel on interrupt
+	ctx := context.TODO()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -31,10 +34,10 @@ func executeDiff(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(config)
+	c, err := core.NewCore(ctx, config)
 	if err != nil {
 		return err
 	}
 
-	return c.Diff(context.TODO())
+	return c.Diff(ctx)
 }

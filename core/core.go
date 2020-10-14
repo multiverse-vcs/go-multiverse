@@ -11,10 +11,9 @@ import (
 	"github.com/gookit/color"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core"
+	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/yondero/go-ipld-multiverse"
 	"github.com/yondero/go-multiverse/file"
 	"github.com/yondero/go-multiverse/ipfs"
@@ -41,15 +40,10 @@ type Core struct {
 var DefaultIgnore = []string{DefaultConfig, ".git"}
 
 // NewCore returns a new core api.
-func NewCore(config *Config) (*Core, error) {
-	addr, err := multiaddr.NewMultiaddr(ipfs.CommandsApiAddress)
+func NewCore(ctx context.Context, config *Config) (*Core, error) {
+	api, err := ipfs.NewApi(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	api, err := httpapi.NewApi(addr)
-	if err != nil {
-		return nil, ErrIpfsApi
 	}
 
 	return &Core{config, api}, nil
@@ -211,4 +205,9 @@ func (c *Core) Status(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// Publish announces a new version to peers.
+func (c *Core) Publish(ctx context.Context, name string, ref path.Path) (iface.IpnsEntry, error) {
+	return c.Api.Name().Publish(ctx, ref, options.Name.Key(name))
 }

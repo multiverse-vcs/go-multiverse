@@ -12,7 +12,7 @@ import (
 )
 
 var cloneCmd = &cobra.Command{
-	Use:          "clone [remote] [local]",
+	Use:          "clone [ref] [path]",
 	Short:        "Copy an existing repository.",
 	Long:         `Copy an existing repository.`,
 	Args:         cobra.ExactArgs(2),
@@ -25,6 +25,9 @@ func init() {
 }
 
 func executeClone(cmd *cobra.Command, args []string) error {
+	// TODO make background and cancel on interrupt
+	ctx := context.TODO()
+
 	local, err := filepath.Abs(args[1])
 	if err != nil {
 		return err
@@ -39,10 +42,10 @@ func executeClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(config)
+	c, err := core.NewCore(ctx, config)
 	if err != nil {
 		return err
 	}
 
-	return c.Checkout(context.TODO(), path.New(args[0]))
+	return c.Checkout(ctx, path.New(args[0]))
 }

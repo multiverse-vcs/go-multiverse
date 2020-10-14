@@ -10,7 +10,7 @@ import (
 )
 
 var checkoutCmd = &cobra.Command{
-	Use:          "checkout [remote]",
+	Use:          "checkout [ref]",
 	Short:        "Checkout a commit.",
 	Long:         `Checkout a commit.`,
 	Args:         cobra.ExactArgs(1),
@@ -23,6 +23,9 @@ func init() {
 }
 
 func executeCheckout(cmd *cobra.Command, args []string) error {
+	// TODO make background and cancel on interrupt
+	ctx := context.TODO()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -33,10 +36,10 @@ func executeCheckout(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(config)
+	c, err := core.NewCore(ctx, config)
 	if err != nil {
 		return err
 	}
 
-	return c.Checkout(context.TODO(), path.New(args[0]))
+	return c.Checkout(ctx, path.New(args[0]))
 }
