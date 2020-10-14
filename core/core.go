@@ -88,7 +88,18 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 		return nil, err
 	}
 
-	commit := ipldmulti.Commit{Message: message, WorkTree: p.Root(), Date: time.Now()}
+	key, err := c.Api.Key().Self(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	commit := ipldmulti.Commit{
+		Date: time.Now(),
+		Message: message,
+		PeerID: key.ID(),
+		WorkTree: p.Root(), 
+	}
+
 	if c.Config.Head.Defined() {
 		commit.Parents = append(commit.Parents, c.Config.Head)
 	}
@@ -118,6 +129,7 @@ func (c *Core) Log(ctx context.Context, id cid.Cid) error {
 	}
 
 	color.Yellow.Printf("commit %s\n", id.String())
+	fmt.Printf("Peer: %s\n", commit.PeerID.String())
 	fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
 	fmt.Printf("\n\t%s\n\n", commit.Message)
 

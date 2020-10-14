@@ -20,13 +20,8 @@ const CommandsApiAddress = "/ip4/127.0.0.1/tcp/5001"
 
 func init() {
 	cid.Codecs["multi-commit"] = ipldmulti.CommitCodec
-	cid.Codecs["multi-repository"] = ipldmulti.RepositoryCodec
-
 	cid.CodecToStr[ipldmulti.CommitCodec] = "multi-commit"
-	cid.CodecToStr[ipldmulti.RepositoryCodec] = "multi-repository"
-
 	format.Register(ipldmulti.CommitCodec, ipldmulti.DecodeCommit)
-	format.Register(ipldmulti.RepositoryCodec, ipldmulti.DecodeRepository)
 }
 
 // RootPath returns the path to the root of the IPFS directory.

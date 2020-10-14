@@ -1,6 +1,7 @@
 package file
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 
@@ -29,54 +30,119 @@ type FileDiff struct {
 	After files.File
 }
 
-// Tree is the internal representation of files for building diffs.
-type Tree map[string]files.File
+// Tree contains a flattened file tree.
+type FileTree map[string]files.File
+
+// Walk is a callback for building a tree from a node.
+func (tree FileTree) Walk(path string, node files.Node) error {
+	if fn, ok := node.(files.File); ok {
+		tree[path] = fn
+	}
+
+	return nil
+}
 
 // Diff returns a list of diffs between two file nodes.
 func Diff(nodeA, nodeB files.Node) ([]*FileDiff, error) {
-	treeA := make(Tree)
+	treeA := make(FileTree)
 	if err := files.Walk(nodeA, treeA.Walk); err != nil {
 		return nil, err
 	}
 
-	treeB := make(Tree)
+	treeB := make(FileTree)
 	if err := files.Walk(nodeB, treeB.Walk); err != nil {
 		return nil, err
 	}
 
-	return treeA.Diff(treeB)
-}
-
-// NewFileDiff creates a file diff from two trees.
-func NewFileDiff(treeA, treeB Tree, path string) *FileDiff {
-	nodeA, okA := treeA[path]
-	nodeB, okB := treeB[path]
-
-	if !okA && okB {
-		return &FileDiff{Add, path, nodeA, nodeB}
+	paths := make(map[string]bool)
+	for name := range treeA {
+		paths[name] = true
 	}
 
-	if okA && !okB {
-		return &FileDiff{Remove, path, nodeA, nodeB}
+	for name := range treeB {
+		paths[name] = true
 	}
 
-	return &FileDiff{Change, path, nodeA, nodeB}
+	keys := make([]string, 0, len(paths))
+	for name := range paths {
+		keys = append(keys, name)
+	}
+
+	diffs := make([]*FileDiff, 0, len(keys))
+	for _, name := range keys {
+		nodeA, okA := treeA[name]
+		nodeB, okB := treeB[name]
+
+		if !okA && okB {
+			diffs = append(diffs, &FileDiff{Add, name, nodeA, nodeB})
+			continue 
+		}
+
+		if okA && !okB {
+			diffs = append(diffs, &FileDiff{Remove, name, nodeA, nodeB})
+			continue
+		}
+
+		bytesA, err := ioutil.ReadAll(nodeA)
+		if err != nil {
+			return nil, err
+		}
+
+		bytesB, err := ioutil.ReadAll(nodeB)
+		if err != nil {
+			return nil, err
+		}
+
+		if !bytes.Equal(bytesA, bytesB) {
+			diffs = append(diffs, &FileDiff{Change, name, nodeA, nodeB})
+		}
+	}
+
+	return diffs, nil
 }
 
-// Patch returns a string representation of the changes in the diff.
-func (d *FileDiff) Patch() (string, error) {
-	bytesA, err := ioutil.ReadAll(d.Before)
+// BeforeString returns the contents of before as a string.
+func (d *FileDiff) BeforeString() (string, error) {
+	if d.Before == nil {
+		return "", nil
+	}
+
+	b, err := ioutil.ReadAll(d.Before)
 	if err != nil {
 		return "", err
 	}
 
-	bytesB, err := ioutil.ReadAll(d.After)
+	return string(b), nil
+}
+
+// AfterString returns the contents of after as a string.
+func (d *FileDiff) AfterString() (string, error) {
+	if d.After == nil {
+		return "", nil
+	}
+
+	b, err := ioutil.ReadAll(d.After)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
+// Patch returns a string representation of the changes in the diff.
+func (d *FileDiff) Patch() (string, error) {
+	before, err := d.BeforeString()
+	if err != nil {
+		return "", err
+	}
+
+	after, err := d.AfterString()
 	if err != nil {
 		return "", err
 	}
 
 	dmp := diffmatchpatch.New()
-	runesA, runesB, lines := dmp.DiffLinesToRunes(string(bytesA), string(bytesB))
+	runesA, runesB, lines := dmp.DiffLinesToRunes(before, after)
 	diffs := dmp.DiffMainRunes(runesA, runesB, false)
 	diffs = dmp.DiffCharsToLines(diffs, lines)
 	return dmp.DiffPrettyText(diffs), nil
@@ -94,37 +160,4 @@ func (d *FileDiff) String() string {
 	default:
 		return "unknown diff type"
 	}
-}
-
-// Diff returns a list of diffs between two trees.
-func (treeA Tree) Diff(treeB Tree) ([]*FileDiff, error) {
-	paths := make(map[string]bool)
-	for name := range treeA {
-		paths[name] = true
-	}
-
-	for name := range treeB {
-		paths[name] = true
-	}
-
-	keys := make([]string, 0, len(paths))
-	for name := range paths {
-		keys = append(keys, name)
-	}
-
-	diffs := make([]*FileDiff, len(keys))
-	for i, name := range keys {
-		diffs[i] = NewFileDiff(treeA, treeB, name)
-	}
-
-	return diffs, nil
-}
-
-// Walk is a callback for building a tree from files.Walk.
-func (tree Tree) Walk(path string, node files.Node) error {
-	if fn, ok := node.(files.File); ok {
-		tree[path] = fn
-	}
-
-	return nil
 }
