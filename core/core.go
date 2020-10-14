@@ -88,10 +88,10 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 	}
 
 	commit := ipldmulti.Commit{
-		Date: time.Now(),
-		Message: message,
-		PeerID: key.ID(),
-		WorkTree: p.Root(), 
+		Date:     time.Now(),
+		Message:  message,
+		PeerID:   key.ID(),
+		WorkTree: p.Root(),
 	}
 
 	if c.Config.Head.Defined() {

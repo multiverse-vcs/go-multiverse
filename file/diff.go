@@ -75,7 +75,7 @@ func Diff(nodeA, nodeB files.Node) ([]*FileDiff, error) {
 
 		if !okA && okB {
 			diffs = append(diffs, &FileDiff{Add, name, nodeA, nodeB})
-			continue 
+			continue
 		}
 
 		if okA && !okB {
