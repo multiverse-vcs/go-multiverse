@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -11,7 +10,6 @@ import (
 var logCmd = &cobra.Command{
 	Use:          "log",
 	Short:        "Print change history.",
-	Long:         `Print change history.`,
 	SilenceUsage: true,
 	RunE:         executeLog,
 }
@@ -21,9 +19,6 @@ func init() {
 }
 
 func executeLog(cmd *cobra.Command, args []string) error {
-	// TODO make background and cancel on interrupt
-	ctx := context.TODO()
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -34,10 +29,10 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(ctx, config)
+	c, err := core.NewCore(cmd.Context(), config)
 	if err != nil {
 		return err
 	}
 
-	return c.Log(ctx, config.Head)
+	return c.Log(cmd.Context(), config.Head)
 }

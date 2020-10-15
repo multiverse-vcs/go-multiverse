@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -11,7 +10,6 @@ import (
 var diffCmd = &cobra.Command{
 	Use:          "diff",
 	Short:        "Print changes to the working tree.",
-	Long:         `Print changes to the working tree.`,
 	SilenceUsage: true,
 	RunE:         executeDiff,
 }
@@ -21,9 +19,6 @@ func init() {
 }
 
 func executeDiff(cmd *cobra.Command, args []string) error {
-	// TODO make background and cancel on interrupt
-	ctx := context.TODO()
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -34,10 +29,10 @@ func executeDiff(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(ctx, config)
+	c, err := core.NewCore(cmd.Context(), config)
 	if err != nil {
 		return err
 	}
 
-	return c.Diff(ctx)
+	return c.Diff(cmd.Context())
 }

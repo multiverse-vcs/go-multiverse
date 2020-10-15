@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"os"
 
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -12,7 +11,6 @@ import (
 var checkoutCmd = &cobra.Command{
 	Use:          "checkout [ref]",
 	Short:        "Checkout a commit.",
-	Long:         `Checkout a commit.`,
 	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
 	RunE:         executeCheckout,
@@ -23,9 +21,6 @@ func init() {
 }
 
 func executeCheckout(cmd *cobra.Command, args []string) error {
-	// TODO make background and cancel on interrupt
-	ctx := context.TODO()
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -36,10 +31,10 @@ func executeCheckout(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(ctx, config)
+	c, err := core.NewCore(cmd.Context(), config)
 	if err != nil {
 		return err
 	}
 
-	return c.Checkout(ctx, path.New(args[0]))
+	return c.Checkout(cmd.Context(), path.New(args[0]))
 }

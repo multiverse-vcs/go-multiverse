@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -18,7 +17,6 @@ var (
 var publishCmd = &cobra.Command{
 	Use:          "publish",
 	Short:        "Announce a new version to peers.",
-	Long:         `Announce a new version to peers.`,
 	SilenceUsage: true,
 	RunE:         executePublish,
 }
@@ -30,9 +28,6 @@ func init() {
 }
 
 func executePublish(cmd *cobra.Command, args []string) error {
-	// TODO make background and cancel on interrupt
-	ctx := context.TODO()
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -43,7 +38,7 @@ func executePublish(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(ctx, config)
+	c, err := core.NewCore(cmd.Context(), config)
 	if err != nil {
 		return err
 	}
@@ -53,7 +48,7 @@ func executePublish(cmd *cobra.Command, args []string) error {
 		p = path.New(ref)
 	}
 
-	entry, err := c.Publish(ctx, name, p)
+	entry, err := c.Publish(cmd.Context(), name, p)
 	if err != nil {
 		return err
 	}

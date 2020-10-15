@@ -12,7 +12,6 @@ import (
 var initCmd = &cobra.Command{
 	Use:          "init",
 	Short:        "Create a new empty repo.",
-	Long:         `Create a new empty repo.`,
 	SilenceUsage: true,
 	RunE:         executeInit,
 }

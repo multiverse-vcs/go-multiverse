@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"os"
 	"os/signal"
 
@@ -17,7 +16,6 @@ import (
 var daemonCmd = &cobra.Command{
 	Use:          "daemon",
 	Short:        "Runs a persistent Multiverse node.",
-	Long:         `Runs a persistent Multiverse node.`,
 	SilenceUsage: true,
 	RunE:         executeDaemon,
 }
@@ -27,15 +25,12 @@ func init() {
 }
 
 func executeDaemon(cmd *cobra.Command, args []string) error {
-	// TODO make background and cancel on interrupt
-	ctx := context.TODO()
-
 	plugins, err := ipfs.LoadPlugins()
 	if err != nil {
 		return err
 	}
 
-	node, err := ipfs.NewNode(ctx)
+	node, err := ipfs.NewNode(cmd.Context())
 	if err != nil {
 		return err
 	}

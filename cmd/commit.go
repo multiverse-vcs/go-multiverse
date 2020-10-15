@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -14,7 +13,6 @@ var message string
 var commitCmd = &cobra.Command{
 	Use:          "commit",
 	Short:        "Record changes to a repository.",
-	Long:         `Record changes to a repository.`,
 	SilenceUsage: true,
 	RunE:         executeCommit,
 }
@@ -25,9 +23,6 @@ func init() {
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
-	// TODO make background and cancel on interrupt
-	ctx := context.TODO()
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -38,12 +33,12 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	c, err := core.NewCore(ctx, config)
+	c, err := core.NewCore(cmd.Context(), config)
 	if err != nil {
 		return err
 	}
 
-	commit, err := c.Commit(ctx, message)
+	commit, err := c.Commit(cmd.Context(), message)
 	if err != nil {
 		return err
 	}
