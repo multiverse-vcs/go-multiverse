@@ -24,8 +24,8 @@ var (
 	ErrRepoExists = errors.New("repo already exists")
 	// ErrRepoNotFound is returned when a repo cannot be found.
 	ErrRepoNotFound = errors.New("repo not found")
-	// ErrIpfsApi is returned when a connection to the local ipfs node fails.
-	ErrIpfsApi = errors.New("failed to connect to local ipfs node")
+	// ErrInvalidRef is returned when a ref resolves to an invalid object.
+	ErrInvalidRef = errors.New("ref is not a multiverse object")
 )
 
 // Core contains config and core services.
@@ -50,10 +50,14 @@ func NewCore(ctx context.Context, config *Config) (*Core, error) {
 }
 
 // Checkout copies the tree of the commit with the given path to the local repo directory.
-func (c *Core) Checkout(ctx context.Context, remote path.Path) error {
-	p, err := c.Api.ResolvePath(ctx, remote)
+func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
+	p, err := c.Api.ResolvePath(ctx, ref)
 	if err != nil {
 		return err
+	}
+
+	if p.Cid().Type() != ipldmulti.CommitCodec {
+		return ErrInvalidRef
 	}
 
 	node, err := c.Api.Unixfs().Get(ctx, path.Join(p, "tree"))
@@ -209,5 +213,14 @@ func (c *Core) Status(ctx context.Context) error {
 
 // Publish announces a new version to peers.
 func (c *Core) Publish(ctx context.Context, name string, ref path.Path) (iface.IpnsEntry, error) {
+	p, err := c.Api.ResolvePath(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.Cid().Type() != ipldmulti.CommitCodec {
+		return nil, ErrInvalidRef
+	}
+
 	return c.Api.Name().Publish(ctx, ref, options.Name.Key(name))
 }

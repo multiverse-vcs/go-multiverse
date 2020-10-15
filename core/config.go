@@ -27,13 +27,13 @@ type Config struct {
 }
 
 // InitConfig creates a new config at the given path.
-func InitConfig(path string, head cid.Cid) (*Config, error) {
+func InitConfig(path string) (*Config, error) {
 	_, err := OpenConfig(path)
 	if err == nil {
 		return nil, ErrRepoExists
 	}
 
-	c := Config{path, head, DefaultBranch}
+	c := Config{Path: path, Branch: DefaultBranch}
 	if err := c.Write(); err != nil {
 		return nil, err
 	}

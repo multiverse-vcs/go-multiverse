@@ -9,7 +9,7 @@ import (
 
 var diffCmd = &cobra.Command{
 	Use:          "diff",
-	Short:        "Print changes to the working tree.",
+	Short:        "Print changes to the local repo.",
 	SilenceUsage: true,
 	RunE:         executeDiff,
 }

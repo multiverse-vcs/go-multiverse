@@ -12,7 +12,7 @@ var message string
 
 var commitCmd = &cobra.Command{
 	Use:          "commit",
-	Short:        "Record changes to a repository.",
+	Short:        "Record changes in the local repo.",
 	SilenceUsage: true,
 	RunE:         executeCommit,
 }

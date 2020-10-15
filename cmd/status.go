@@ -9,7 +9,7 @@ import (
 
 var statusCmd = &cobra.Command{
 	Use:          "status",
-	Short:        "Print status of the working tree.",
+	Short:        "Print status of the local repo.",
 	SilenceUsage: true,
 	RunE:         executeStatus,
 }

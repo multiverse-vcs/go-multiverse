@@ -15,7 +15,7 @@ import (
 
 var daemonCmd = &cobra.Command{
 	Use:          "daemon",
-	Short:        "Runs a persistent Multiverse node.",
+	Short:        "Run a persistent Multiverse node.",
 	SilenceUsage: true,
 	RunE:         executeDaemon,
 }

@@ -10,7 +10,7 @@ import (
 
 var checkoutCmd = &cobra.Command{
 	Use:          "checkout [ref]",
-	Short:        "Checkout a commit.",
+	Short:        "Checkout files from a different commit.",
 	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
 	RunE:         executeCheckout,

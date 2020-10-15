@@ -13,16 +13,15 @@ Usage:
   multi [command]
 
 Available Commands:
-  checkout    Checkout a commit.
-  clone       Copy an existing repository.
-  commit      Record changes to a repository.
-  daemon      Runs a persistent Multiverse node.
-  diff        Print changes to the working tree.
+  checkout    Checkout files from a different commit.
+  commit      Record changes in the local repo.
+  daemon      Run a persistent Multiverse node.
+  diff        Print changes to the local repo.
   help        Help about any command
-  init        Create a new empty repo.
+  init        Create a new empty repo or copy an existing repo.
   log         Print change history.
   publish     Announce a new version to peers.
-  status      Print status of the working tree.
+  status      Print status of the local repo.
 
 Flags:
   -h, --help   help for multi
