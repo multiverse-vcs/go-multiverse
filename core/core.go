@@ -15,7 +15,6 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/yondero/go-ipld-multiverse"
-	"github.com/yondero/go-multiverse/file"
 	"github.com/yondero/go-multiverse/ipfs"
 )
 
@@ -49,6 +48,21 @@ func NewCore(ctx context.Context, config *Config) (*Core, error) {
 	return &Core{config, api}, nil
 }
 
+// Tree returns the current working tree files node.
+func (c *Core) Tree() (files.Node, error) {
+	info, err := os.Stat(c.Config.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	filter, err := files.NewFilter("", DefaultIgnore, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return files.NewSerialFileWithFilter(c.Config.Path, filter, info)
+}
+
 // Checkout copies the tree of the commit with the given path to the local repo directory.
 func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
 	p, err := c.Api.ResolvePath(ctx, ref)
@@ -65,9 +79,20 @@ func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
 		return err
 	}
 
-	entries := node.(files.Directory).Entries()
-	if err := file.WriteEntries(entries, c.Config.Path); err != nil {
+	tree, err := c.Tree()
+	if err != nil {
 		return err
+	}
+
+	diffs, err := BuildDiffs(tree, node)
+	if err != nil {
+		return err
+	}
+
+	for _, diff := range diffs {
+		if err := diff.Apply(c.Config.Path); err != nil {
+			return err
+		}
 	}
 
 	c.Config.Head = p.Root()
@@ -138,68 +163,21 @@ func (c *Core) Log(ctx context.Context, id cid.Cid) error {
 	return c.Log(ctx, commit.Parents[0])
 }
 
-// Tree returns the current working tree files node.
-func (c *Core) Tree() (files.Node, error) {
-	info, err := os.Stat(c.Config.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	filter, err := files.NewFilter("", DefaultIgnore, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return files.NewSerialFileWithFilter(c.Config.Path, filter, info)
-}
-
-// Diff prints differences between two commits.
-func (c *Core) Diff(ctx context.Context) error {
-	head := path.IpfsPath(c.Config.Head)
-
-	nodeA, err := c.Api.Unixfs().Get(ctx, path.Join(head, "tree"))
-	if err != nil {
-		return err
-	}
-
-	nodeB, err := c.Tree()
-	if err != nil {
-		return err
-	}
-
-	diffs, err := file.Diff(nodeA, nodeB)
-	if err != nil {
-		return err
-	}
-
-	for _, diff := range diffs {
-		patch, err := diff.Patch()
-		if err != nil {
-			return err
-		}
-
-		color.Bold.Println(diff.Path)
-		fmt.Println(patch)
-	}
-
-	return nil
-}
-
 // Status prints the differences between the working directory and remote.
 func (c *Core) Status(ctx context.Context) error {
 	head := path.IpfsPath(c.Config.Head)
 
-	nodeA, err := c.Api.Unixfs().Get(ctx, path.Join(head, "tree"))
+	node, err := c.Api.Unixfs().Get(ctx, path.Join(head, "tree"))
 	if err != nil {
 		return err
 	}
 
-	nodeB, err := c.Tree()
+	tree, err := c.Tree()
 	if err != nil {
 		return err
 	}
 
-	diffs, err := file.Diff(nodeA, nodeB)
+	diffs, err := BuildDiffs(node, tree)
 	if err != nil {
 		return err
 	}

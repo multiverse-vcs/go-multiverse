@@ -9,7 +9,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "multi",
 	Short: "Decentralized version control system.",
-	Long:  `Multiverse is a decentralized version control system
+	Long: `Multiverse is a decentralized version control system
 that enables peer-to-peer software development.`,
 }
 
