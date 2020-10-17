@@ -11,6 +11,7 @@ require (
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.1.0
 	github.com/ipfs/go-ipld-format v0.2.0
+	github.com/ipfs/go-merkledag v0.3.2
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-sockaddr v0.1.0 // indirect

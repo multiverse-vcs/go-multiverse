@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
 )
@@ -34,5 +35,5 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return c.Status(cmd.Context())
+	return c.Diff(cmd.Context(), path.IpfsPath(c.Config.Head))
 }

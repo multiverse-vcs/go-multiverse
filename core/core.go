@@ -11,6 +11,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -25,6 +26,8 @@ var (
 	ErrRepoNotFound = errors.New("repo not found")
 	// ErrInvalidRef is returned when a ref resolves to an invalid object.
 	ErrInvalidRef = errors.New("ref is not a multiverse object")
+	// ErrInvalidFile is returned when an invalid file is encountered.
+	ErrInvalidFile = errors.New("invalid file type")
 )
 
 // Core contains config and core services.
@@ -61,42 +64,6 @@ func (c *Core) Tree() (files.Node, error) {
 	}
 
 	return files.NewSerialFileWithFilter(c.Config.Path, filter, info)
-}
-
-// Checkout copies the tree of the commit with the given path to the local repo directory.
-func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
-	p, err := c.Api.ResolvePath(ctx, ref)
-	if err != nil {
-		return err
-	}
-
-	if p.Cid().Type() != ipldmulti.CommitCodec {
-		return ErrInvalidRef
-	}
-
-	node, err := c.Api.Unixfs().Get(ctx, path.Join(p, "tree"))
-	if err != nil {
-		return err
-	}
-
-	tree, err := c.Tree()
-	if err != nil {
-		return err
-	}
-
-	diffs, err := BuildDiffs(tree, node)
-	if err != nil {
-		return err
-	}
-
-	for _, diff := range diffs {
-		if err := diff.Apply(c.Config.Path); err != nil {
-			return err
-		}
-	}
-
-	c.Config.Head = p.Root()
-	return c.Config.Write()
 }
 
 // Commit records changes to the working directory.
@@ -163,11 +130,18 @@ func (c *Core) Log(ctx context.Context, id cid.Cid) error {
 	return c.Log(ctx, commit.Parents[0])
 }
 
-// Status prints the differences between the working directory and remote.
-func (c *Core) Status(ctx context.Context) error {
-	head := path.IpfsPath(c.Config.Head)
+// Diff prints the differences between the working directory and remote.
+func (c *Core) Diff(ctx context.Context, ref path.Path) error {
+	p, err := c.Api.ResolvePath(ctx, ref)
+	if err != nil {
+		return err
+	}
 
-	node, err := c.Api.Unixfs().Get(ctx, path.Join(head, "tree"))
+	if p.Cid().Type() != ipldmulti.CommitCodec {
+		return ErrInvalidRef
+	}
+
+	nodeA, err := c.Api.ResolveNode(ctx, path.Join(p, "tree"))
 	if err != nil {
 		return err
 	}
@@ -177,7 +151,17 @@ func (c *Core) Status(ctx context.Context) error {
 		return err
 	}
 
-	diffs, err := BuildDiffs(node, tree)
+	p, err = c.Api.Unixfs().Add(ctx, tree)
+	if err != nil {
+		return err
+	}
+
+	nodeB, err := c.Api.ResolveNode(ctx, p)
+	if err != nil {
+		return err
+	}
+
+	diffs, err := dagutils.Diff(ctx, c.Api.Dag(), nodeA, nodeB)
 	if err != nil {
 		return err
 	}
