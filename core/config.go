@@ -9,12 +9,8 @@ import (
 	"github.com/ipfs/go-cid"
 )
 
-const (
-	// DefaultConfig is the name of the default repo config file.
-	DefaultConfig = "multi.json"
-	// DefaultBranch is the name of the default repo branch.
-	DefaultBranch = "default"
-)
+// DefaultConfig is the name of the default repo config file.
+const DefaultConfig = ".multiverse.json"
 
 // Config contains local repo info.
 type Config struct {
@@ -22,8 +18,6 @@ type Config struct {
 	Path string `json:"-"`
 	// Head is the CID of latest commit.
 	Head cid.Cid `json:"head"`
-	// Branch is the name of the current branch.
-	Branch string `json:"branch"`
 }
 
 // InitConfig creates a new config at the given path.
@@ -33,7 +27,7 @@ func InitConfig(path string) (*Config, error) {
 		return nil, ErrRepoExists
 	}
 
-	c := Config{Path: path, Branch: DefaultBranch}
+	c := Config{Path: path}
 	if err := c.Write(); err != nil {
 		return nil, err
 	}

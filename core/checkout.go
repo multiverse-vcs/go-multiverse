@@ -35,6 +35,7 @@ func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
 	return c.Config.Write()
 }
 
+// checkoutNode writes a files node to the local repo.
 func checkoutNode(node files.Node, root string) error {
 	dir, ok := node.(files.Directory)
 	if ok {
@@ -49,6 +50,7 @@ func checkoutNode(node files.Node, root string) error {
 	return ErrInvalidFile
 }
 
+// checkoutFile writes a file to the local repo.
 func checkoutFile(node files.File, root string) error {
 	b, err := ioutil.ReadAll(node)
 	if err != nil {
@@ -58,6 +60,7 @@ func checkoutFile(node files.File, root string) error {
 	return ioutil.WriteFile(root, b, 0644)
 }
 
+// checkoutDirectory writes a directory to the local repo.
 func checkoutDirectory(node files.Directory, root string) error {
 	if err := os.MkdirAll(root, 0755); err != nil {
 		return err
@@ -66,6 +69,7 @@ func checkoutDirectory(node files.Directory, root string) error {
 	return checkoutEntries(node.Entries(), root)
 }
 
+// checkoutEntries recursively writes nodes from entries to the local repo.
 func checkoutEntries(entries files.DirIterator, root string) error {
 	if !entries.Next() {
 		return entries.Err()
