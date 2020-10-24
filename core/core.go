@@ -175,15 +175,15 @@ func (c *Core) Diff(ctx context.Context, ref path.Path) error {
 
 // Log prints the commit history of the repo.
 func (c *Core) Log(ctx context.Context, id cid.Cid) error {
-	cb := func(commit *ipldmulti.Commit) error {
-		color.Yellow.Printf("commit %s\n", id.String())
+	var callback HistoryCallback = func(commit *ipldmulti.Commit) error {
+		color.Yellow.Printf("commit %s\n", commit.Cid().String())
 		fmt.Printf("Peer: %s\n", commit.PeerID.String())
 		fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
 		fmt.Printf("\n\t%s\n\n", commit.Message)
 		return nil
 	}
 
-	return c.NewCommitIter(id).ForEach(ctx, cb)
+	return c.NewHistory(id).ForEach(ctx, callback)
 }
 
 // Publish announces a new version to peers.

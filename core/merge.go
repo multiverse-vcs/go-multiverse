@@ -20,18 +20,22 @@ func (c *Core) Merge(ctx context.Context, ref path.Path) error {
 		return ErrInvalidRef
 	}
 
-	base, err := c.MergeBase(ctx, c.Config.Head, p.Cid())
+	bases, err := c.MergeBase(ctx, c.Config.Head, p.Cid())
 	if err != nil {
-		return nil
+		return err
 	}
 
-	fmt.Println(base.Cid())
+	if len(bases) == 0 {
+		return ErrMergeBase
+	}
+
+	fmt.Println(bases[0].Cid().String())
 	return nil
 }
 
-// MergeBase returns the best common ancestor for merging.
-func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (*ipldmulti.Commit, error) {
-	history, err := c.History(ctx, local)
+// MergeBase returns a list of possible merge bases for local and remote.
+func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) ([]*ipldmulti.Commit, error) {
+	history, err := c.NewHistory(local).Flatten(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -40,42 +44,27 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (*ipldmulti
 		return nil, ErrMergeAhead
 	}
 
-	var filter CommitFilter = func(commit *ipldmulti.Commit) bool {
+	var filter HistoryFilter = func(commit *ipldmulti.Commit) bool {
 		return history[commit.Cid().KeyString()]
 	}
 
-	iter := c.NewCommitIter(remote).WithFilter(&filter).WithLimit(&filter)
+	bases := make([]*ipldmulti.Commit, 0)
 
-	base, err := iter.Next(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if base == nil {
-		return nil, ErrMergeBase
-	}
-
-	return base, iter.ForEach(ctx, func(commit *ipldmulti.Commit) error {
-		ancestor, err := c.IsAncestor(ctx, commit.Cid(), base.Cid())
-		if err != nil {
-			return err
-		}
-
-		if !ancestor {
-			base = commit
-		}
-
+	var callback HistoryCallback = func(commit *ipldmulti.Commit) error {
+		bases = append(bases, commit)
 		return nil
-	})
+	}
+
+	return bases, c.NewFilterHistory(remote, &filter, &filter).ForEach(ctx, callback)
 }
 
 // IsAncestor checks if child is an ancestor of parent.
 func (c *Core) IsAncestor(ctx context.Context, child, parent cid.Cid) (bool, error) {
-	var filter CommitFilter = func(commit *ipldmulti.Commit) bool {
+	var filter HistoryFilter = func(commit *ipldmulti.Commit) bool {
 		return commit.Cid().Equals(child)
 	}
 
-	commit, err := c.NewCommitIter(parent).WithFilter(&filter).Next(ctx)
+	commit, err := c.NewFilterHistory(parent, &filter, &filter).Next(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -86,15 +75,3 @@ func (c *Core) IsAncestor(ctx context.Context, child, parent cid.Cid) (bool, err
 
 	return true, nil
 }
-
-// History returns a flattened map of the commit history.
-func (c *Core) History(ctx context.Context, id cid.Cid) (map[string]bool, error) {
-	history := make(map[string]bool)
-	iter := c.NewCommitIter(c.Config.Head)
-
-	return history, iter.ForEach(ctx, func(commit *ipldmulti.Commit) error {
-		history[commit.Cid().KeyString()] = true
-		return nil
-	})
-}
-
