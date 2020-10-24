@@ -20,15 +20,22 @@ import (
 )
 
 var (
+	// ErrInvalidFile is returned when an invalid file is encountered.
+	ErrInvalidFile = errors.New("invalid file")
+	// ErrInvalidRef is returned when a ref resolves to an invalid object.
+	ErrInvalidRef = errors.New("invalid ref")
+	// ErrMergeBase is returned when a merge base is not found.
+	ErrMergeBase = errors.New("merge base not found")
+	// ErrMergeAhead is returned when merge histories are equivalent.
+	ErrMergeAhead = errors.New("local is ahead of remote")
 	// ErrRepoExists is returned when a repo already exists.
 	ErrRepoExists = errors.New("repo already exists")
 	// ErrRepoNotFound is returned when a repo cannot be found.
 	ErrRepoNotFound = errors.New("repo not found")
-	// ErrInvalidRef is returned when a ref resolves to an invalid object.
-	ErrInvalidRef = errors.New("ref is not a multiverse object")
-	// ErrInvalidFile is returned when an invalid file is encountered.
-	ErrInvalidFile = errors.New("invalid file type")
 )
+
+// DefaultIgnore contains default ignore rules.
+var DefaultIgnore = []string{DefaultConfig, ".git"}
 
 // Core contains config and core services.
 type Core struct {
@@ -37,9 +44,6 @@ type Core struct {
 	// Api is an IPFS core api.
 	Api iface.CoreAPI
 }
-
-// DefaultIgnore contains default ignore rules.
-var DefaultIgnore = []string{DefaultConfig, ".git"}
 
 // NewCore returns a new core api.
 func NewCore(ctx context.Context, config *Config) (*Core, error) {
@@ -51,8 +55,8 @@ func NewCore(ctx context.Context, config *Config) (*Core, error) {
 	return &Core{config, api}, nil
 }
 
-// Tree returns the current working tree files node.
-func (c *Core) Tree() (files.Node, error) {
+// Worktree returns the current working tree files node.
+func (c *Core) Worktree() (files.Node, error) {
 	info, err := os.Stat(c.Config.Path)
 	if err != nil {
 		return nil, err
@@ -66,9 +70,33 @@ func (c *Core) Tree() (files.Node, error) {
 	return files.NewSerialFileWithFilter(c.Config.Path, filter, info)
 }
 
+// Checkout copies the tree of the commit with the given path to the local repo directory.
+func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
+	p, err := c.Api.ResolvePath(ctx, ref)
+	if err != nil {
+		return err
+	}
+
+	if p.Cid().Type() != ipldmulti.CommitCodec {
+		return ErrInvalidRef
+	}
+
+	node, err := c.Api.Unixfs().Get(ctx, path.Join(p, "tree"))
+	if err != nil {
+		return err
+	}
+
+	if err := writeNode(node, c.Config.Path); err != nil {
+		return err
+	}
+
+	c.Config.Head = p.Root()
+	return c.Config.Write()
+}
+
 // Commit records changes to the working directory.
 func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, error) {
-	tree, err := c.Tree()
+	tree, err := c.Worktree()
 	if err != nil {
 		return nil, err
 	}
@@ -102,34 +130,6 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 	return &commit, c.Config.Write()
 }
 
-// Log prints the commit history of the repo.
-func (c *Core) Log(ctx context.Context, id cid.Cid) error {
-	if !id.Defined() {
-		return nil
-	}
-
-	node, err := c.Api.Dag().Get(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	commit, ok := node.(*ipldmulti.Commit)
-	if !ok {
-		return nil
-	}
-
-	color.Yellow.Printf("commit %s\n", id.String())
-	fmt.Printf("Peer: %s\n", commit.PeerID.String())
-	fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
-	fmt.Printf("\n\t%s\n\n", commit.Message)
-
-	if len(commit.Parents) == 0 {
-		return nil
-	}
-
-	return c.Log(ctx, commit.Parents[0])
-}
-
 // Diff prints the differences between the working directory and remote.
 func (c *Core) Diff(ctx context.Context, ref path.Path) error {
 	p, err := c.Api.ResolvePath(ctx, ref)
@@ -146,7 +146,7 @@ func (c *Core) Diff(ctx context.Context, ref path.Path) error {
 		return err
 	}
 
-	tree, err := c.Tree()
+	tree, err := c.Worktree()
 	if err != nil {
 		return err
 	}
@@ -171,6 +171,19 @@ func (c *Core) Diff(ctx context.Context, ref path.Path) error {
 	}
 
 	return nil
+}
+
+// Log prints the commit history of the repo.
+func (c *Core) Log(ctx context.Context, id cid.Cid) error {
+	cb := func(commit *ipldmulti.Commit) error {
+		color.Yellow.Printf("commit %s\n", id.String())
+		fmt.Printf("Peer: %s\n", commit.PeerID.String())
+		fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
+		fmt.Printf("\n\t%s\n\n", commit.Message)
+		return nil
+	}
+
+	return c.NewCommitIter(id).ForEach(ctx, cb)
 }
 
 // Publish announces a new version to peers.
