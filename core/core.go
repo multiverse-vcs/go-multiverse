@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gookit/color"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/go-merkledag/dagutils"
@@ -130,6 +129,21 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 	return &commit, c.Config.Write()
 }
 
+// Publish announces a new version to peers.
+func (c *Core) Publish(ctx context.Context, name string, ref path.Path) (iface.IpnsEntry, error) {
+	p, err := c.Api.ResolvePath(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.Cid().Type() != ipldmulti.CommitCodec {
+		return nil, ErrInvalidRef
+	}
+
+	return c.Api.Name().Publish(ctx, ref, options.Name.Key(name))
+}
+
+
 // Diff prints the differences between the working directory and remote.
 func (c *Core) Diff(ctx context.Context, ref path.Path) error {
 	p, err := c.Api.ResolvePath(ctx, ref)
@@ -173,29 +187,69 @@ func (c *Core) Diff(ctx context.Context, ref path.Path) error {
 	return nil
 }
 
-// Log prints the commit history of the repo.
-func (c *Core) Log(ctx context.Context, id cid.Cid) error {
-	var callback HistoryCallback = func(commit *ipldmulti.Commit) error {
-		color.Yellow.Printf("commit %s\n", commit.Cid().String())
-		fmt.Printf("Peer: %s\n", commit.PeerID.String())
-		fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
-		fmt.Printf("\n\t%s\n\n", commit.Message)
-		return nil
+// Merge combines the repo histories of the local and remote commits.
+func (c *Core) Merge(ctx context.Context, ref path.Path) error {
+	p, err := c.Api.ResolvePath(ctx, ref)
+	if err != nil {
+		return err
 	}
 
-	return c.NewHistory(id).ForEach(ctx, callback)
+	if p.Cid().Type() != ipldmulti.CommitCodec {
+		return ErrInvalidRef
+	}
+
+	bases, err := c.MergeBase(ctx, c.Config.Head, p.Cid())
+	if err != nil {
+		return err
+	}
+
+	if len(bases) == 0 {
+		return ErrMergeBase
+	}
+
+	fmt.Println(bases[0].Cid().String())
+	return nil
 }
 
-// Publish announces a new version to peers.
-func (c *Core) Publish(ctx context.Context, name string, ref path.Path) (iface.IpnsEntry, error) {
-	p, err := c.Api.ResolvePath(ctx, ref)
+// MergeBase returns a list of possible merge bases for local and remote.
+func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) ([]*ipldmulti.Commit, error) {
+	history, err := c.NewHistory(local).Flatten(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if p.Cid().Type() != ipldmulti.CommitCodec {
-		return nil, ErrInvalidRef
+	if history[remote.KeyString()] {
+		return nil, ErrMergeAhead
 	}
 
-	return c.Api.Name().Publish(ctx, ref, options.Name.Key(name))
+	var filter HistoryFilter = func(commit *ipldmulti.Commit) bool {
+		return history[commit.Cid().KeyString()]
+	}
+
+	bases := make([]*ipldmulti.Commit, 0)
+
+	var callback HistoryCallback = func(commit *ipldmulti.Commit) error {
+		bases = append(bases, commit)
+		return nil
+	}
+
+	return bases, c.NewFilterHistory(remote, &filter, &filter).ForEach(ctx, callback)
+}
+
+// IsAncestor checks if child is an ancestor of parent.
+func (c *Core) IsAncestor(ctx context.Context, child, parent cid.Cid) (bool, error) {
+	var filter HistoryFilter = func(commit *ipldmulti.Commit) bool {
+		return commit.Cid().Equals(child)
+	}
+
+	commit, err := c.NewFilterHistory(parent, &filter, &filter).Next(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	if commit == nil {
+		return false, nil
+	}
+
+	return true, nil
 }
