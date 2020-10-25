@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/ipfs/interface-go-ipfs-core/path"
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
 )
@@ -35,5 +36,21 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return c.Diff(cmd.Context(), path.IpfsPath(c.Config.Head))
+	diffs, err := c.Status(cmd.Context())
+	if err != nil {
+		return err
+	}
+
+	for _, d := range diffs {
+		switch d.Type {
+		case dagutils.Add:
+			fmt.Printf("%s+ %s%s\n", ColorGreen, d.Path, ColorReset)
+		case dagutils.Remove:
+			fmt.Printf("%s- %s%s\n", ColorRed, d.Path, ColorReset)
+		case dagutils.Mod:
+			fmt.Printf("%s~ %s%s\n", ColorYellow, d.Path, ColorReset)
+		}
+	}
+
+	return nil
 }

@@ -16,10 +16,10 @@ Available Commands:
   checkout    Checkout files from a different commit.
   commit      Record changes in the local repo.
   daemon      Run a persistent Multiverse node.
-  diff        Print changes to the local repo.
   help        Help about any command
+  history     Print change history.
   init        Create a new empty repo or copy an existing repo.
-  log         Print change history.
+  merge       Merge changes from a peer into the local repo.
   publish     Announce a new version to peers.
   status      Print status of the local repo.
 

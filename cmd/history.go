@@ -4,24 +4,23 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-ipld-multiverse"
 	"github.com/yondero/go-multiverse/core"
 )
 
-var logCmd = &cobra.Command{
-	Use:          "log",
+var historyCmd = &cobra.Command{
+	Use:          "history",
 	Short:        "Print change history.",
 	SilenceUsage: true,
-	RunE:         executeLog,
+	RunE:         executeHistory,
 }
 
 func init() {
-	rootCmd.AddCommand(logCmd)
+	rootCmd.AddCommand(historyCmd)
 }
 
-func executeLog(cmd *cobra.Command, args []string) error {
+func executeHistory(cmd *cobra.Command, args []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -38,7 +37,7 @@ func executeLog(cmd *cobra.Command, args []string) error {
 	}
 
 	var callback core.HistoryCallback = func(commit *ipldmulti.Commit) error {
-		color.Yellow.Printf("commit %s\n", commit.Cid().String())
+		fmt.Printf("%sCID:  %s%s\n", ColorCyan, commit.Cid().String(), ColorReset)
 		fmt.Printf("Peer: %s\n", commit.PeerID.String())
 		fmt.Printf("Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
 		fmt.Printf("\n\t%s\n\n", commit.Message)
