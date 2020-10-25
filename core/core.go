@@ -24,6 +24,8 @@ var (
 	ErrInvalidFile = errors.New("invalid file")
 	// ErrInvalidRef is returned when a ref resolves to an invalid object.
 	ErrInvalidRef = errors.New("invalid ref")
+	// ErrInvalidKey is returned when an invalid key is used.
+	ErrInvalidKey = errors.New("invalid key")
 	// ErrMergeBase is returned when a merge base is not found.
 	ErrMergeBase = errors.New("merge base not found")
 	// ErrMergeAhead is returned when merge histories are equivalent.
@@ -110,7 +112,7 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 	return &commit, c.Config.Write()
 }
 
-// Diff returns the differences between two commits.
+// Diff returns the differences between two commit working trees.
 func (c *Core) Diff(ctx context.Context, refA, refB path.Path) ([]*dagutils.Change, error) {
 	nodeA, err := c.Api.ResolveNode(ctx, path.Join(refA, "tree"))
 	if err != nil {
@@ -219,7 +221,11 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (path.Resol
 }
 
 // Publish announces a new version to peers.
-func (c *Core) Publish(ctx context.Context, name string, ref path.Path) (iface.IpnsEntry, error) {
+func (c *Core) Publish(ctx context.Context, key string, ref path.Path) (iface.IpnsEntry, error) {
+	if key == "self" {
+		return nil, ErrInvalidKey
+	}
+
 	p, err := c.Api.ResolvePath(ctx, ref)
 	if err != nil {
 		return nil, err
@@ -229,7 +235,7 @@ func (c *Core) Publish(ctx context.Context, name string, ref path.Path) (iface.I
 		return nil, ErrInvalidRef
 	}
 
-	return c.Api.Name().Publish(ctx, ref, options.Name.Key(name))
+	return c.Api.Name().Publish(ctx, ref, options.Name.Key(key))
 }
 
 // Status returns changes between local repo and head.

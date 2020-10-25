@@ -10,21 +10,20 @@ import (
 )
 
 var (
-	name string
+	key string
 	ref  string
 )
 
 var publishCmd = &cobra.Command{
-	Use:          "publish",
+	Use:          "publish [key] [ref]",
 	Short:        "Announce a new version to peers.",
+	Args:         cobra.RangeArgs(1, 2),
 	SilenceUsage: true,
 	RunE:         executePublish,
 }
 
 func init() {
 	rootCmd.AddCommand(publishCmd)
-	publishCmd.Flags().StringVarP(&name, "name", "n", "self", "name to publish under")
-	publishCmd.Flags().StringVarP(&ref, "ref", "r", "", "reference to publish")
 }
 
 func executePublish(cmd *cobra.Command, args []string) error {
@@ -44,11 +43,11 @@ func executePublish(cmd *cobra.Command, args []string) error {
 	}
 
 	var p path.Path = path.IpfsPath(config.Head)
-	if len(ref) > 0 {
-		p = path.New(ref)
+	if len(args) > 1 {
+		p = path.New(args[1])
 	}
 
-	entry, err := c.Publish(cmd.Context(), name, p)
+	entry, err := c.Publish(cmd.Context(), args[0], p)
 	if err != nil {
 		return err
 	}
