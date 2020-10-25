@@ -22,14 +22,16 @@ import (
 var (
 	// ErrInvalidFile is returned when an invalid file is encountered.
 	ErrInvalidFile = errors.New("invalid file")
-	// ErrInvalidRef is returned when a ref resolves to an invalid object.
-	ErrInvalidRef = errors.New("invalid ref")
 	// ErrInvalidKey is returned when an invalid key is used.
 	ErrInvalidKey = errors.New("invalid key")
+	// ErrInvalidRef is returned when a ref resolves to an invalid object.
+	ErrInvalidRef = errors.New("invalid ref")
 	// ErrMergeBase is returned when a merge base is not found.
 	ErrMergeBase = errors.New("merge base not found")
 	// ErrMergeAhead is returned when merge histories are equivalent.
 	ErrMergeAhead = errors.New("local is ahead of remote")
+	// ErrNoChanges is returned when there are no changes to commit.
+	ErrNoChanges = errors.New("no changes to commit")
 	// ErrRepoExists is returned when a repo already exists.
 	ErrRepoExists = errors.New("repo already exists")
 	// ErrRepoNotFound is returned when a repo cannot be found.
@@ -83,9 +85,20 @@ func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
 
 // Commit records changes to the working directory.
 func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, error) {
-	tree, err := c.WorkTree(ctx)
+	head := path.IpfsPath(c.Config.Head)
+
+	old, err := c.Api.ResolvePath(ctx, path.Join(head, "tree"))
 	if err != nil {
 		return nil, err
+	}
+
+	new, err := c.WorkTree(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if old.Cid().Equals(new.Cid()) {
+		return nil, ErrNoChanges
 	}
 
 	key, err := c.Api.Key().Self(ctx)
@@ -97,7 +110,7 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 		Date:     time.Now(),
 		Message:  message,
 		PeerID:   key.ID(),
-		WorkTree: tree.Root(),
+		WorkTree: new.Root(),
 	}
 
 	if c.Config.Head.Defined() {
