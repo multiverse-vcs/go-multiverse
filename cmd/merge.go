@@ -36,5 +36,11 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return c.Merge(cmd.Context(), path.New(args[0]))
+	commit, err := c.Merge(cmd.Context(), path.New(args[0]))
+	if err != nil {
+		return err
+	}
+
+	config.Head = commit.Cid()
+	return config.Write()
 }

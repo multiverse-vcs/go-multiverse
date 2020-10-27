@@ -11,7 +11,7 @@ import (
 
 var (
 	key string
-	ref  string
+	ref string
 )
 
 var publishCmd = &cobra.Command{

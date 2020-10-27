@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -38,11 +37,11 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	commit, err := c.Commit(cmd.Context(), message)
+	commit, err := c.Commit(cmd.Context(), message, config.Head)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(commit.Cid().String())
-	return nil
+	config.Head = commit.Cid()
+	return config.Write()
 }

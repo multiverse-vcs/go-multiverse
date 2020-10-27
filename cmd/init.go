@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -37,11 +36,15 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Repo initialized successfully at %s\n", config.Path)
-
-	if len(args) > 0 {
-		return c.Checkout(cmd.Context(), path.New(args[0]))
+	if len(args) == 0 {
+		return nil
 	}
 
-	return nil
+	commit, err := c.Checkout(cmd.Context(), path.New(args[0]))
+	if err != nil {
+		return err
+	}
+
+	config.Head = commit.Cid()
+	return config.Write()
 }

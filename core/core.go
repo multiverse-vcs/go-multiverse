@@ -11,7 +11,9 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
+	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/ipfs/go-unixfs/file"
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -60,45 +62,34 @@ func NewCore(ctx context.Context, config *Config) (*Core, error) {
 }
 
 // Checkout copies the tree of the commit with the given path to the local repo directory.
-func (c *Core) Checkout(ctx context.Context, ref path.Path) error {
-	p, err := c.Api.ResolvePath(ctx, ref)
+func (c *Core) Checkout(ctx context.Context, ref path.Path) (*ipldmulti.Commit, error) {
+	node, err := c.Api.ResolveNode(ctx, ref)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if p.Cid().Type() != ipldmulti.CommitCodec {
-		return ErrInvalidRef
+	commit, ok := node.(*ipldmulti.Commit)
+	if !ok {
+		return nil, ErrInvalidRef
 	}
 
-	node, err := c.Api.Unixfs().Get(ctx, path.Join(p, "tree"))
+	tree, err := c.Api.Unixfs().Get(ctx, path.Join(ref, "tree"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := writeNode(node, c.Config.Path); err != nil {
-		return err
+	if err := writeNode(tree, c.Config.Path); err != nil {
+		return nil, err
 	}
 
-	c.Config.Head = p.Root()
-	return c.Config.Write()
+	return commit, nil
 }
 
 // Commit records changes to the working directory.
-func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, error) {
-	head := path.IpfsPath(c.Config.Head)
-
-	old, err := c.Api.ResolvePath(ctx, path.Join(head, "tree"))
+func (c *Core) Commit(ctx context.Context, message string, parents ...cid.Cid) (*ipldmulti.Commit, error) {
+	tree, err := c.WorkTree(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	new, err := c.WorkTree(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if old.Cid().Equals(new.Cid()) {
-		return nil, ErrNoChanges
 	}
 
 	key, err := c.Api.Key().Self(ctx)
@@ -109,20 +100,16 @@ func (c *Core) Commit(ctx context.Context, message string) (*ipldmulti.Commit, e
 	commit := ipldmulti.Commit{
 		Date:     time.Now(),
 		Message:  message,
+		Parents:  parents,
 		PeerID:   key.ID(),
-		WorkTree: new.Root(),
-	}
-
-	if c.Config.Head.Defined() {
-		commit.Parents = append(commit.Parents, c.Config.Head)
+		WorkTree: tree.Cid(),
 	}
 
 	if err := c.Api.Dag().Pinning().Add(ctx, &commit); err != nil {
 		return nil, err
 	}
 
-	c.Config.Head = commit.Cid()
-	return &commit, c.Config.Write()
+	return &commit, nil
 }
 
 // Diff returns the differences between two commit working trees.
@@ -159,19 +146,19 @@ func (c *Core) IsAncestor(ctx context.Context, child, parent cid.Cid) (bool, err
 }
 
 // Merge combines the repo histories of the local and remote commits.
-func (c *Core) Merge(ctx context.Context, ref path.Path) error {
+func (c *Core) Merge(ctx context.Context, ref path.Path) (*ipldmulti.Commit, error) {
 	p, err := c.Api.ResolvePath(ctx, ref)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if p.Cid().Type() != ipldmulti.CommitCodec {
-		return ErrInvalidRef
+		return nil, ErrInvalidRef
 	}
 
 	base, err := c.MergeBase(ctx, c.Config.Head, p.Cid())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if base.Cid().Equals(c.Config.Head) {
@@ -180,20 +167,25 @@ func (c *Core) Merge(ctx context.Context, ref path.Path) error {
 
 	local, err := c.Diff(ctx, base, path.IpfsPath(c.Config.Head))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	remote, err := c.Diff(ctx, base, p)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	diffs, _ := dagutils.MergeDiffs(local, remote)
-	for _, d := range diffs {
-		fmt.Println(d.String())
+	changes, conflicts := dagutils.MergeDiffs(local, remote)
+	if err := c.MergeChanges(ctx, base, changes); err != nil {
+		return nil, err
 	}
 
-	return nil
+	if err := c.MergeConflicts(ctx, conflicts); err != nil {
+		return nil, err
+	}
+
+	message := fmt.Sprintf("merge %s", p.Cid().String())
+	return c.Commit(ctx, message, c.Config.Head, p.Cid())
 }
 
 // MergeBase returns the best merge base for local and remote.
@@ -211,7 +203,8 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (path.Resol
 		return history[commit.Cid().KeyString()]
 	}
 
-	bases := make([]*ipldmulti.Commit, 0)
+	var bases []*ipldmulti.Commit
+
 	var callback HistoryCallback = func(commit *ipldmulti.Commit) error {
 		bases = append(bases, commit)
 		return nil
@@ -231,6 +224,36 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (path.Resol
 	})
 
 	return path.IpfsPath(bases[0].Cid()), nil
+}
+
+// MergeChanges merges the changes into the working tree and writes them to the local repo.
+func (c *Core) MergeChanges(ctx context.Context, ref path.Path, changes []*dagutils.Change) error {
+	base, err := c.Api.ResolveNode(ctx, path.Join(ref, "tree"))
+	if err != nil {
+		return err
+	}
+
+	proto, ok := base.(*merkledag.ProtoNode)
+	if !ok {
+		return ErrInvalidRef
+	}
+
+	node, err := dagutils.ApplyChange(ctx, c.Api.Dag(), proto, changes)
+	if err != nil {
+		return err
+	}
+
+	tree, err := unixfile.NewUnixfsFile(ctx, c.Api.Dag(), node)
+	if err != nil {
+		return err
+	}
+
+	return writeNode(tree, c.Config.Path)
+}
+
+// MergeConflicts writes the conflicts to the local repo so they can be resolved manually.
+func (c *Core) MergeConflicts(ctx context.Context, conflicts []dagutils.Conflict) error {
+	return nil
 }
 
 // Publish announces a new version to peers.
@@ -255,12 +278,12 @@ func (c *Core) Publish(ctx context.Context, key string, ref path.Path) (iface.Ip
 func (c *Core) Status(ctx context.Context) ([]*dagutils.Change, error) {
 	head := path.IpfsPath(c.Config.Head)
 
-	tree, err := c.WorkTree(ctx)
+	nodeA, err := c.Api.ResolveNode(ctx, path.Join(head, "tree"))
 	if err != nil {
 		return nil, err
 	}
 
-	nodeA, err := c.Api.ResolveNode(ctx, path.Join(head, "tree"))
+	tree, err := c.WorkTree(ctx)
 	if err != nil {
 		return nil, err
 	}
