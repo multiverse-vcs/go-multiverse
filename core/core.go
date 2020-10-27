@@ -87,6 +87,15 @@ func (c *Core) Checkout(ctx context.Context, ref path.Path) (*ipldmulti.Commit, 
 
 // Commit records changes to the working directory.
 func (c *Core) Commit(ctx context.Context, message string, parents ...cid.Cid) (*ipldmulti.Commit, error) {
+	changes, err := c.Status(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(changes) == 0 {
+		return nil, ErrNoChanges
+	}
+
 	tree, err := c.WorkTree(ctx)
 	if err != nil {
 		return nil, err
