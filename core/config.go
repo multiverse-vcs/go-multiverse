@@ -57,12 +57,11 @@ func ReadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	var c Config
+	c := Config{Path: path}
 	if err := json.Unmarshal(data, &c); err != nil {
 		return nil, err
 	}
 
-	c.Path = path
 	return &c, nil
 }
 

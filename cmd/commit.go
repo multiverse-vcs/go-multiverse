@@ -7,18 +7,16 @@ import (
 	"github.com/yondero/go-multiverse/core"
 )
 
-var message string
-
 var commitCmd = &cobra.Command{
-	Use:          "commit",
+	Use:          "commit [message]",
 	Short:        "Record changes in the local repo.",
+	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
 	RunE:         executeCommit,
 }
 
 func init() {
 	rootCmd.AddCommand(commitCmd)
-	commitCmd.Flags().StringVarP(&message, "message", "m", "", "description of changes")
 }
 
 func executeCommit(cmd *cobra.Command, args []string) error {
@@ -37,7 +35,7 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	commit, err := c.Commit(cmd.Context(), message, config.Head)
+	commit, err := c.Commit(cmd.Context(), args[0], config.Head)
 	if err != nil {
 		return err
 	}
