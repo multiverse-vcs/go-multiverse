@@ -72,5 +72,6 @@ func (c *Config) Write() error {
 		return err
 	}
 
-	return ioutil.WriteFile(filepath.Join(c.Path, DefaultConfig), data, 0644)
+	name := filepath.Join(c.Path, DefaultConfig)
+	return ioutil.WriteFile(name, data, 0644)
 }

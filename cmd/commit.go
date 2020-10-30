@@ -35,7 +35,12 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	commit, err := c.Commit(cmd.Context(), args[0], config.Head)
+	tree, err := c.WorkTree(cmd.Context())
+	if err != nil {
+		return err
+	}
+
+	commit, err := c.Commit(cmd.Context(), tree, args[0], config.Head)
 	if err != nil {
 		return err
 	}

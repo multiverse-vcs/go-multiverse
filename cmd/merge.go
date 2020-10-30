@@ -9,9 +9,9 @@ import (
 )
 
 var mergeCmd = &cobra.Command{
-	Use:          "merge [ref]",
+	Use:          "merge [ref] [message]",
 	Short:        "Merge changes from a peer into the local repo.",
-	Args:         cobra.ExactArgs(1),
+	Args:         cobra.ExactArgs(2),
 	SilenceUsage: true,
 	RunE:         executeMerge,
 }
@@ -36,7 +36,7 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	commit, err := c.Merge(cmd.Context(), path.New(args[0]))
+	commit, err := c.Merge(cmd.Context(), path.New(args[0]), args[1])
 	if err != nil {
 		return err
 	}
