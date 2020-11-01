@@ -43,8 +43,12 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	commit, err := c.Checkout(ctx, path.New(args[0]), config.Path)
+	commit, err := c.Reference(ctx, path.New(args[0]))
 	if err != nil {
+		return err
+	}
+
+	if err := c.Checkout(ctx, commit, config.Path); err != nil {
 		return err
 	}
 

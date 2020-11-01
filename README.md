@@ -4,11 +4,12 @@
 
 ### About
 
-Multiverse is a decentralized version control system.
+Multiverse is a decentralized version control system that enables peer-to-peer software development.
 
 ### Usage
 
 ```
+
 Usage:
   multi [command]
 
@@ -17,8 +18,9 @@ Available Commands:
   commit      Record changes in the local repo.
   daemon      Run a persistent Multiverse node.
   help        Help about any command
-  history     Print change history.
+  ignore      Ignore changes to files matching pattern.
   init        Create a new empty repo or copy an existing repo.
+  log         Print change history.
   merge       Merge changes from a peer into the local repo.
   publish     Announce a new version to peers.
   status      Print status of the local repo.

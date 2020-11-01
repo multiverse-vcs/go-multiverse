@@ -11,7 +11,7 @@ import (
 )
 
 var mergeCmd = &cobra.Command{
-	Use:          "merge [ref] [msg]",
+	Use:          "merge [ref] [message]",
 	Short:        "Merge changes from a peer into the local repo.",
 	Args:         cobra.ExactArgs(2),
 	SilenceUsage: true,
@@ -63,8 +63,13 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 	}
 
 	// TODO make commit optional
+
 	commit, err := c.Commit(ctx, &opts)
 	if err != nil {
+		return err
+	}
+
+	if err := c.Checkout(ctx, commit, config.Path); err != nil {
 		return err
 	}
 

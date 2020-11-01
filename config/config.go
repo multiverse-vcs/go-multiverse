@@ -27,6 +27,8 @@ type Config struct {
 	Path string `json:"-"`
 	// Head is the CID of latest commit.
 	Head cid.Cid `json:"head"`
+	// Ignore contains a list of file patterns to ignore.
+	Ignore []string `json:"ignore"`
 }
 
 // Init creates a new config at the given path.

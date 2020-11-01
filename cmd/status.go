@@ -40,7 +40,7 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	diffs, err := c.Status(ctx, path.IpfsPath(config.Head), config.Path)
+	diffs, err := c.Status(ctx, path.IpfsPath(config.Head), config.Path, config.Ignore...)
 	if err != nil {
 		return err
 	}

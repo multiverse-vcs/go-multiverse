@@ -125,8 +125,6 @@ func (c *Core) MergeDiffs(ctx context.Context, local, remote, base *ipldmulti.Co
 	}
 
 	changes, conflicts := dagutils.MergeDiffs(ours, theirs)
-
-	// resolve conflicts by merging them into changes
 	for _, conflict := range conflicts {
 		change, err := c.MergeConflict(ctx, conflict)
 		if err != nil {

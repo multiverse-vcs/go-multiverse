@@ -39,7 +39,7 @@ var (
 )
 
 // DefaultIgnore contains default ignore rules.
-var DefaultIgnore = []string{config.DefaultConfig, ".git"}
+var DefaultIgnore = []string{config.DefaultConfig}
 
 // Core contains core services.
 type Core struct {
@@ -70,32 +70,27 @@ func NewCore(ctx context.Context) (*Core, error) {
 }
 
 // Checkout copies the tree of the commit with the given ref to the local repo directory.
-func (c *Core) Checkout(ctx context.Context, ref path.Path, root string) (*ipldmulti.Commit, error) {
-	commit, err := c.Reference(ctx, ref)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Core) Checkout(ctx context.Context, commit *ipldmulti.Commit, root string) error {
 	link, _, err := commit.ResolveLink([]string{"tree"})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	tree, err := link.GetNode(ctx, c.Api.Dag())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	node, ok := tree.(files.Node)
 	if !ok {
-		return nil, ErrInvalidTree
+		return ErrInvalidTree
 	}
 
 	if err := writeNode(node, root); err != nil {
-		return nil, err
+		return err
 	}
 
-	return commit, nil
+	return nil
 }
 
 // Commit creates a new commit containing a working tree and metadata.
@@ -211,7 +206,7 @@ func (c *Core) Reference(ctx context.Context, ref path.Path) (*ipldmulti.Commit,
 }
 
 // Status returns changes between local repo and head.
-func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagutils.Change, error) {
+func (c *Core) Status(ctx context.Context, ref path.Path, root string, ignore ...string) ([]*dagutils.Change, error) {
 	commit, err := c.Reference(ctx, ref)
 	if err != nil {
 		return nil, err
@@ -222,17 +217,17 @@ func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagut
 		return nil, err
 	}
 
-	treeA, err := c.WorkTree(ctx, root)
+	tree, err := c.WorkTree(ctx, root, ignore...)
 	if err != nil {
 		return nil, err
 	}
 
-	nodeA, err := c.Api.ResolveNode(ctx, treeA)
+	nodeA, err := link.GetNode(ctx, c.Api.Dag())
 	if err != nil {
 		return nil, err
 	}
 
-	nodeB, err := link.GetNode(ctx, c.Api.Dag())
+	nodeB, err := c.Api.ResolveNode(ctx, tree)
 	if err != nil {
 		return nil, err
 	}
@@ -241,13 +236,13 @@ func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagut
 }
 
 // WorkTree creates a tree from the given path and returns its cid.
-func (c *Core) WorkTree(ctx context.Context, root string) (path.Resolved, error) {
+func (c *Core) WorkTree(ctx context.Context, root string, ignore ...string) (path.Resolved, error) {
 	info, err := os.Stat(root)
 	if err != nil {
 		return nil, err
 	}
 
-	filter, err := files.NewFilter("", DefaultIgnore, true)
+	filter, err := files.NewFilter("", append(DefaultIgnore, ignore...), true)
 	if err != nil {
 		return nil, err
 	}
