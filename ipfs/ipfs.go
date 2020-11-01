@@ -116,8 +116,7 @@ func NewApi(ctx context.Context) (iface.CoreAPI, error) {
 		return httpapi.NewApi(HttpApiAddress)
 	}
 
-	_, err = LoadPlugins()
-	if err != nil {
+	if _, err = LoadPlugins(); err != nil {
 		return nil, err
 	}
 

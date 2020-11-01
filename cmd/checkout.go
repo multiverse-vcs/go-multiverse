@@ -6,6 +6,7 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
+	"github.com/yondero/go-multiverse/config"
 )
 
 var checkoutCmd = &cobra.Command{
@@ -21,22 +22,24 @@ func init() {
 }
 
 func executeCheckout(cmd *cobra.Command, args []string) error {
+	ctx := cmd.Context()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	config, err := core.OpenConfig(cwd)
+	config, err := config.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	c, err := core.NewCore(cmd.Context(), config)
+	c, err := core.NewCore(ctx)
 	if err != nil {
 		return err
 	}
 
-	commit, err := c.Checkout(cmd.Context(), path.New(args[0]))
+	commit, err := c.Checkout(ctx, path.New(args[0]), config.Path)
 	if err != nil {
 		return err
 	}

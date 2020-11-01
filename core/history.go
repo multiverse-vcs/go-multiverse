@@ -5,14 +5,23 @@ import (
 	"io"
 
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/yondero/go-ipld-multiverse"
 )
+
+// stack is a first in last out data structure.
+type stack []cid.Cid
+
+// pop removes and returns the last item from the stack.
+func (s stack) pop() (cid.Cid, stack) {
+	return s[len(s)-1], s[:len(s)-1]
+}
 
 // History is a commit history iterator.
 type History struct {
 	core  *Core
 	seen  map[string]bool
-	stack []cid.Cid
+	stack stack
 	valid HistoryFilter
 	limit HistoryFilter
 }
@@ -28,44 +37,33 @@ func (c *Core) NewHistory(id cid.Cid) *History {
 	return &History{
 		core:  c,
 		seen:  map[string]bool{},
-		stack: []cid.Cid{id},
+		stack: stack{id},
 	}
 }
 
-// NewFilterHistory returns a new filtered history starting at id and stopping at limit.
-func (c *Core) NewFilterHistory(id cid.Cid, valid *HistoryFilter, limit *HistoryFilter) *History {
-	return &History{
-		core:  c,
-		seen:  map[string]bool{},
-		stack: []cid.Cid{id},
-		valid: *valid,
-		limit: *limit,
-	}
+// WithFilter returns a filtered history using valid and limit.
+func (h *History) WithFilter(valid, limit *HistoryFilter) *History {
+	h.valid = *valid
+	h.limit = *limit
+	return h
 }
 
 // Next returns the next commit.
 func (h *History) Next(ctx context.Context) (*ipldmulti.Commit, error) {
 	for {
-		index := len(h.stack) - 1
-		if index < 0 {
+		var id cid.Cid
+		if len(h.stack) == 0 {
 			return nil, io.EOF
 		}
-
-		id := h.stack[index]
-
-		h.stack = h.stack[:index]
+		
+		id, h.stack = h.stack.pop()
 		if h.seen[id.KeyString()] {
 			continue
 		}
 
-		node, err := h.core.Api.Dag().Get(ctx, id)
+		commit, err := h.core.Reference(ctx, path.IpfsPath(id))
 		if err != nil {
 			return nil, err
-		}
-
-		commit, ok := node.(*ipldmulti.Commit)
-		if !ok {
-			return nil, ErrInvalidRef
 		}
 
 		h.seen[id.KeyString()] = true

@@ -7,31 +7,34 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-ipld-multiverse"
 	"github.com/yondero/go-multiverse/core"
+	"github.com/yondero/go-multiverse/config"
 )
 
-var historyCmd = &cobra.Command{
-	Use:          "history",
+var logCmd = &cobra.Command{
+	Use:          "log",
 	Short:        "Print change history.",
 	SilenceUsage: true,
-	RunE:         executeHistory,
+	RunE:         executeLog,
 }
 
 func init() {
-	rootCmd.AddCommand(historyCmd)
+	rootCmd.AddCommand(logCmd)
 }
 
-func executeHistory(cmd *cobra.Command, args []string) error {
+func executeLog(cmd *cobra.Command, args []string) error {
+	ctx := cmd.Context()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	config, err := core.OpenConfig(cwd)
+	config, err := config.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	c, err := core.NewCore(cmd.Context(), config)
+	c, err := core.NewCore(ctx)
 	if err != nil {
 		return err
 	}
@@ -44,5 +47,5 @@ func executeHistory(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	return c.NewHistory(config.Head).ForEach(cmd.Context(), callback)
+	return c.NewHistory(config.Head).ForEach(ctx, callback)
 }

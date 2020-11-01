@@ -1,7 +1,9 @@
-package core
+// Package config contains methods for reading and writing configurations.
+package config
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,6 +14,13 @@ import (
 // DefaultConfig is the name of the default repo config file.
 const DefaultConfig = ".multiverse.json"
 
+var (
+	// ErrRepoExists is returned when a repo already exists.
+	ErrRepoExists = errors.New("repo already exists")
+	// ErrRepoNotFound is returned when a repo cannot be found.
+	ErrRepoNotFound = errors.New("repo not found")
+)
+
 // Config contains local repo info.
 type Config struct {
 	// Path repo root directory.
@@ -20,9 +29,9 @@ type Config struct {
 	Head cid.Cid `json:"head"`
 }
 
-// InitConfig creates a new config at the given path.
-func InitConfig(path string) (*Config, error) {
-	_, err := OpenConfig(path)
+// Init creates a new config at the given path.
+func Init(path string) (*Config, error) {
+	_, err := Open(path)
 	if err == nil {
 		return nil, ErrRepoExists
 	}
@@ -35,11 +44,11 @@ func InitConfig(path string) (*Config, error) {
 	return &c, nil
 }
 
-// OpenConfig reads a config in the current or parent directories.
-func OpenConfig(path string) (*Config, error) {
+// Open reads a config in the path or parent directories.
+func Open(path string) (*Config, error) {
 	_, err := os.Stat(filepath.Join(path, DefaultConfig))
 	if err == nil {
-		return ReadConfig(path)
+		return Read(path)
 	}
 
 	parent := filepath.Dir(path)
@@ -47,11 +56,11 @@ func OpenConfig(path string) (*Config, error) {
 		return nil, ErrRepoNotFound
 	}
 
-	return OpenConfig(parent)
+	return Open(parent)
 }
 
-// ReadConfig reads a config in the current directory.
-func ReadConfig(path string) (*Config, error) {
+// Readreads a config in the current directory.
+func Read(path string) (*Config, error) {
 	data, err := ioutil.ReadFile(filepath.Join(path, DefaultConfig))
 	if err != nil {
 		return nil, err

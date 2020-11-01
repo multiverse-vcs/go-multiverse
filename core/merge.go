@@ -15,49 +15,28 @@ import (
 	"github.com/yondero/go-xdiff"
 )
 
-// Merge combines the repo histories of two commits.
-func (c *Core) Merge(ctx context.Context, ref path.Path, message string) (*ipldmulti.Commit, error) {
-	local := path.IpfsPath(c.Config.Head)
-
-	remote, err := c.Api.ResolvePath(ctx, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	if remote.Cid().Type() != ipldmulti.CommitCodec {
-		return nil, ErrInvalidRef
-	}
-
+// Merge combines the repo histories of two commits into a single tree and returns the root node.
+func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (*merkledag.ProtoNode, error) {
 	base, err := c.MergeBase(ctx, local.Cid(), remote.Cid())
 	if err != nil {
 		return nil, err
 	}
 
 	if base.Cid() == local.Cid() {
-		return c.Checkout(ctx, ref)
+		return nil, ErrMergeBehind
 	}
 
-	ours, err := c.Diff(ctx, base, local)
+	changes, err := c.MergeDiffs(ctx, local, remote, base)
 	if err != nil {
 		return nil, err
 	}
 
-	theirs, err := c.Diff(ctx, base, remote)
+	link, _, err := base.ResolveLink([]string{"tree"})
 	if err != nil {
 		return nil, err
 	}
 
-	changes, conflicts := dagutils.MergeDiffs(ours, theirs)
-	for _, conflict := range conflicts {
-		change, err := c.MergeConflict(ctx, conflict)
-		if err != nil {
-			return nil, err
-		}
-
-		changes = append(changes, change)
-	}
-
-	tree, err := c.Api.ResolveNode(ctx, path.Join(ref, "tree"))
+	tree, err := link.GetNode(ctx, c.Api.Dag())
 	if err != nil {
 		return nil, err
 	}
@@ -67,22 +46,16 @@ func (c *Core) Merge(ctx context.Context, ref path.Path, message string) (*ipldm
 		return nil, ErrInvalidRef
 	}
 
-	merge, err := dagutils.ApplyChange(ctx, c.Api.Dag(), proto, changes)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.Commit(ctx, path.IpfsPath(merge.Cid()), message, local.Cid(), remote.Cid())
+	return dagutils.ApplyChange(ctx, c.Api.Dag(), proto, changes)
 }
 
 // MergeBase returns the best merge base for local and remote.
-func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (path.Resolved, error) {
+func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (*ipldmulti.Commit, error) {
 	history, err := c.NewHistory(local).Flatten(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// local is ahead of remote
 	if history[remote.KeyString()] {
 		return nil, ErrMergeAhead
 	}
@@ -97,7 +70,7 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (path.Resol
 		return nil
 	}
 
-	iter := c.NewFilterHistory(remote, &filter, &filter)
+	iter := c.NewHistory(remote).WithFilter(&filter, &filter)
 	if err := iter.ForEach(ctx, callback); err != nil {
 		return nil, err
 	}
@@ -111,7 +84,7 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (path.Resol
 		return bases[i].Date.After(bases[j].Date)
 	})
 
-	return path.IpfsPath(bases[0].Cid()), nil
+	return bases[0], nil
 }
 
 // MergeConflict creates a new change that resolves the conflicting changes.
@@ -137,6 +110,33 @@ func (c *Core) MergeConflict(ctx context.Context, conflict dagutils.Conflict) (*
 	}
 
 	return &change, nil
+}
+
+// MergeDiffs merges the changes from local and remote using base as a common ancestor.
+func (c *Core) MergeDiffs(ctx context.Context, local, remote, base *ipldmulti.Commit) ([]*dagutils.Change, error) {
+	ours, err := c.DiffWorkTrees(ctx, base, local)
+	if err != nil {
+		return nil, err
+	}
+
+	theirs, err := c.DiffWorkTrees(ctx, base, remote)
+	if err != nil {
+		return nil, err
+	}
+
+	changes, conflicts := dagutils.MergeDiffs(ours, theirs)
+
+	// resolve conflicts by merging them into changes
+	for _, conflict := range conflicts {
+		change, err := c.MergeConflict(ctx, conflict)
+		if err != nil {
+			return nil, err
+		}
+
+		changes = append(changes, change)
+	}
+
+	return changes, nil
 }
 
 // MergeFiles creates a new file by performing a three way merge using base, local, and remote.

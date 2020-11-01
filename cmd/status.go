@@ -5,8 +5,10 @@ import (
 	"os"
 
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/yondero/go-multiverse/core"
+	"github.com/yondero/go-multiverse/config"
 )
 
 var statusCmd = &cobra.Command{
@@ -21,22 +23,24 @@ func init() {
 }
 
 func executeStatus(cmd *cobra.Command, args []string) error {
+	ctx := cmd.Context()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	config, err := core.OpenConfig(cwd)
+	config, err := config.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	c, err := core.NewCore(cmd.Context(), config)
+	c, err := core.NewCore(ctx)
 	if err != nil {
 		return err
 	}
 
-	diffs, err := c.Status(cmd.Context())
+	diffs, err := c.Status(ctx, path.IpfsPath(config.Head), config.Path)
 	if err != nil {
 		return err
 	}
