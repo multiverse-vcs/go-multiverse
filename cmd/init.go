@@ -5,8 +5,8 @@ import (
 
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
-	"github.com/yondero/go-multiverse/core"
-	"github.com/yondero/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/config"
 )
 
 var initCmd = &cobra.Command{

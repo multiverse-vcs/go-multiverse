@@ -6,7 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/yondero/go-ipld-multiverse"
+	"github.com/multiverse-vcs/go-ipld-multiverse"
 )
 
 // stack is a first in last out data structure.

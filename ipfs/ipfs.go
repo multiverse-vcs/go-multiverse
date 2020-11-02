@@ -16,7 +16,7 @@ import (
 	"github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/yondero/go-ipld-multiverse"
+	"github.com/multiverse-vcs/go-ipld-multiverse"
 )
 
 // HttpApiAddress is the multiaddress of the commands API.

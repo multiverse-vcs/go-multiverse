@@ -10,8 +10,8 @@ import (
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/yondero/go-ipld-multiverse"
-	"github.com/yondero/go-xdiff"
+	"github.com/multiverse-vcs/go-ipld-multiverse"
+	"github.com/multiverse-vcs/go-xdiff"
 )
 
 // Merge combines the repo histories of two commits into a single tree and returns the root node.

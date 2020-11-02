@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/yondero/go-ipld-multiverse"
-	"github.com/yondero/go-multiverse/core"
-	"github.com/yondero/go-multiverse/config"
+	"github.com/multiverse-vcs/go-ipld-multiverse"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/config"
 )
 
 var logCmd = &cobra.Command{

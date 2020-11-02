@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/yondero/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/config"
 )
 
 var ignoreCmd = &cobra.Command{

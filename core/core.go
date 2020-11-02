@@ -14,9 +14,9 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/yondero/go-ipld-multiverse"
-	"github.com/yondero/go-multiverse/config"
-	"github.com/yondero/go-multiverse/ipfs"
+	"github.com/multiverse-vcs/go-ipld-multiverse"
+	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/ipfs"
 )
 
 var (
