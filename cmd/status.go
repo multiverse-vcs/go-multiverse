@@ -48,11 +48,11 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 	for _, d := range diffs {
 		switch d.Type {
 		case dagutils.Add:
-			fmt.Printf("%s+ %s%s\n", ColorGreen, d.Path, ColorReset)
+			fmt.Printf("%sadded:   %s%s\n", ColorGreen, d.Path, ColorReset)
 		case dagutils.Remove:
-			fmt.Printf("%s- %s%s\n", ColorRed, d.Path, ColorReset)
+			fmt.Printf("%sremoved: %s%s\n", ColorRed, d.Path, ColorReset)
 		case dagutils.Mod:
-			fmt.Printf("%s~ %s%s\n", ColorYellow, d.Path, ColorReset)
+			fmt.Printf("%schanged: %s%s\n", ColorYellow, d.Path, ColorReset)
 		}
 	}
 

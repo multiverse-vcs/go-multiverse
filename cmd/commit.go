@@ -48,10 +48,9 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		Message:  args[0],
 		Parents:  []cid.Cid{config.Head},
 		Pin:      true,
-		WorkTree: tree.Cid(),
 	}
 
-	commit, err := c.Commit(ctx, &opts)
+	commit, err := c.Commit(ctx, tree.Cid(), &opts)
 	if err != nil {
 		return err
 	}

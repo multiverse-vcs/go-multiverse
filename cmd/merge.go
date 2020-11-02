@@ -59,12 +59,11 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		Message:  args[0],
 		Parents:  []cid.Cid{local.Cid(), remote.Cid()},
 		Pin:      true,
-		WorkTree: merge.Cid(),
 	}
 
 	// TODO make commit optional
 
-	commit, err := c.Commit(ctx, &opts)
+	commit, err := c.Commit(ctx, merge.Cid(), &opts)
 	if err != nil {
 		return err
 	}

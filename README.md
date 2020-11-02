@@ -2,9 +2,9 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/yondero/go-multiverse)](https://goreportcard.com/report/github.com/yondero/go-multiverse)
 
-### About
-
 Multiverse is a decentralized version control system that enables peer-to-peer software development.
+
+It builds on top of [IPFS](https://ipfs.io) to provide a secure, resilient, and censorship resistent developer network.
 
 ### Usage
 
@@ -30,6 +30,12 @@ Flags:
 
 Use "multi [command] --help" for more information about a command.
 ```
+
+### Contributing
+
+Found a bug or have a feature request? [Open an issue](https://github.com/yondero/go-multiverse/issues/new).
+
+Multiverse follows the [Contributor Covenant](https://contributor-covenant.org/version/2/0/code_of_conduct/) Code of Conduct.
 
 ### License
 

@@ -55,8 +55,6 @@ type CommitOptions struct {
 	Pin      bool
 	// Parents are the ids of the parent commits.
 	Parents  []cid.Cid
-	// WorkTree is the id of the changes in the commit.
-	WorkTree cid.Cid
 }
 
 // NewCore returns a new core api.
@@ -94,8 +92,8 @@ func (c *Core) Checkout(ctx context.Context, commit *ipldmulti.Commit, root stri
 }
 
 // Commit creates a new commit containing a working tree and metadata.
-func (c *Core) Commit(ctx context.Context, opts *CommitOptions) (*ipldmulti.Commit, error) {
-	if !opts.WorkTree.Defined() {
+func (c *Core) Commit(ctx context.Context, tree cid.Cid, opts *CommitOptions) (*ipldmulti.Commit, error) {
+	if !tree.Defined() {
 		return nil, ErrInvalidTree
 	}
 
@@ -109,7 +107,7 @@ func (c *Core) Commit(ctx context.Context, opts *CommitOptions) (*ipldmulti.Comm
 		Message:  opts.Message,
 		Parents:  opts.Parents,
 		PeerID:   key.ID(),
-		WorkTree: opts.WorkTree,
+		WorkTree: tree,
 	}
 
 	var adder format.NodeAdder = c.Api.Dag()

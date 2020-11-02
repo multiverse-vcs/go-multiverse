@@ -1208,6 +1208,8 @@ github.com/yondero/go-ipld-multiverse v0.0.4 h1:R+/rObMmZjuL3PbtUCmFKEcmD7K9Gkc8
 github.com/yondero/go-ipld-multiverse v0.0.4/go.mod h1:jHQuSc8s4fpwCK3cI59gae87Ga1jV30epdoNVSiwlRo=
 github.com/yondero/go-xdiff v0.0.1 h1:MnGDnBiGxqd4t8rdAGIUz9WWZff6yAwuN8FtOfP2ijI=
 github.com/yondero/go-xdiff v0.0.1/go.mod h1:ZEy2FfWGBsJL9k7J5JOC7vtUyXlvnxc6O61yPHO8Hdw=
+github.com/yondero/go-xdiff v0.0.2 h1:OH3aqxfWGmKwNNSTgkcKgwN4l2UXUjyhKkhgqsPuKEY=
+github.com/yondero/go-xdiff v0.0.2/go.mod h1:ZEy2FfWGBsJL9k7J5JOC7vtUyXlvnxc6O61yPHO8Hdw=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.opencensus.io v0.18.0/go.mod h1:vKdFvxhtzZ9onBp9VKHK8z/sRpBMnKAsufL7wlDrCOA=

@@ -1,9 +1,8 @@
 package core
 
 import (
-	"bytes"
 	"context"
-	"io"
+	"io/ioutil"
 	"sort"
 
 	"github.com/ipfs/go-cid"
@@ -139,17 +138,17 @@ func (c *Core) MergeDiffs(ctx context.Context, local, remote, base *ipldmulti.Co
 
 // MergeFiles creates a new file by performing a three way merge using base, local, and remote.
 func (c *Core) MergeFiles(ctx context.Context, base, local, remote cid.Cid) (path.Resolved, error) {
-	original, err := c.nodeReader(ctx, base)
+	original, err := c.readChange(ctx, base)
 	if err != nil {
 		return nil, err
 	}
 
-	ours, err := c.nodeReader(ctx, local)
+	ours, err := c.readChange(ctx, local)
 	if err != nil {
 		return nil, err
 	}
 
-	theirs, err := c.nodeReader(ctx, remote)
+	theirs, err := c.readChange(ctx, remote)
 	if err != nil {
 		return nil, err
 	}
@@ -162,21 +161,26 @@ func (c *Core) MergeFiles(ctx context.Context, base, local, remote cid.Cid) (pat
 	return c.Api.Unixfs().Add(ctx, files.NewBytesFile([]byte(merge)))
 }
 
-// nodeReader returns a reader for the contents of the file node with the given id.
-func (c *Core) nodeReader(ctx context.Context, id cid.Cid) (io.Reader, error) {
+// readChange returns a the contents of a change.
+func (c *Core) readChange(ctx context.Context, id cid.Cid) (string, error) {
 	if !id.Defined() {
-		return bytes.NewReader(nil), nil
+		return "", nil
 	}
 
 	node, err := c.Api.Unixfs().Get(ctx, path.IpfsPath(id))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	file, ok := node.(files.File)
 	if !ok {
-		return nil, ErrInvalidFile
+		return "", ErrInvalidFile
 	}
 
-	return file, nil
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
 }
