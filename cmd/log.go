@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/multiverse-vcs/go-ipld-multiverse"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/spf13/cobra"
 )
 
 var logCmd = &cobra.Command{

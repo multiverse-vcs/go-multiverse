@@ -6,9 +6,9 @@ import (
 
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/spf13/cobra"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/spf13/cobra"
 )
 
 var statusCmd = &cobra.Command{

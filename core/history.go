@@ -55,7 +55,7 @@ func (h *History) Next(ctx context.Context) (*ipldmulti.Commit, error) {
 		if len(h.stack) == 0 {
 			return nil, io.EOF
 		}
-		
+
 		id, h.stack = h.stack.pop()
 		if h.seen[id.KeyString()] {
 			continue

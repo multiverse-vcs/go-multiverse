@@ -9,8 +9,8 @@ import (
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/corehttp"
 	"github.com/multiformats/go-multiaddr/net"
-	"github.com/spf13/cobra"
 	"github.com/multiverse-vcs/go-multiverse/ipfs"
+	"github.com/spf13/cobra"
 )
 
 var daemonCmd = &cobra.Command{

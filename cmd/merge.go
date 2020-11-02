@@ -5,9 +5,9 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/spf13/cobra"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/spf13/cobra"
 )
 
 var mergeCmd = &cobra.Command{
@@ -56,9 +56,9 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 	}
 
 	opts := core.CommitOptions{
-		Message:  args[0],
-		Parents:  []cid.Cid{local.Cid(), remote.Cid()},
-		Pin:      true,
+		Message: args[0],
+		Parents: []cid.Cid{local.Cid(), remote.Cid()},
+		Pin:     true,
 	}
 
 	// TODO make commit optional

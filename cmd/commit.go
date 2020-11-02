@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/ipfs/go-cid"
-	"github.com/spf13/cobra"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/spf13/cobra"
 )
 
 var commitCmd = &cobra.Command{
@@ -45,9 +45,9 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 	}
 
 	opts := core.CommitOptions{
-		Message:  args[0],
-		Parents:  []cid.Cid{config.Head},
-		Pin:      true,
+		Message: args[0],
+		Parents: []cid.Cid{config.Head},
+		Pin:     true,
 	}
 
 	commit, err := c.Commit(ctx, tree.Cid(), &opts)

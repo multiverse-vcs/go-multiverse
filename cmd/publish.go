@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/spf13/cobra"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/spf13/cobra"
 )
 
 var publishCmd = &cobra.Command{
@@ -24,7 +24,7 @@ func init() {
 
 func executePublish(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err

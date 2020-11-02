@@ -50,11 +50,11 @@ type Core struct {
 // CommitOptions are used set options when committing.
 type CommitOptions struct {
 	// Message describes the changes in the commit.
-	Message  string
+	Message string
 	// Pin specifies if the commit should be pinned.
-	Pin      bool
+	Pin bool
 	// Parents are the ids of the parent commits.
-	Parents  []cid.Cid
+	Parents []cid.Cid
 }
 
 // NewCore returns a new core api.
