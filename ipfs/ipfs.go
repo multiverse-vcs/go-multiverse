@@ -1,4 +1,4 @@
-// Package IPFS contains methods for running an IPFS node.
+// Package ipfs contains methods for running an IPFS node.
 package ipfs
 
 import (
@@ -19,6 +19,9 @@ import (
 	"github.com/multiverse-vcs/go-ipld-multiverse"
 )
 
+// DefaultRoot is the name of the default root directory.
+const DefaultRoot = ".multiverse"
+
 // HttpApiAddress is the multiaddress of the commands API.
 var HttpApiAddress = multiaddr.StringCast("/ip4/127.0.0.1/tcp/5001")
 
@@ -35,7 +38,7 @@ func RootPath() (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(home, ".multi"), nil
+	return filepath.Join(home, DefaultRoot), nil
 }
 
 // LoadPlugins loads and initializes plugins.
@@ -100,7 +103,7 @@ func NewNode(ctx context.Context) (*core.IpfsNode, error) {
 }
 
 // NewApi returns a new IPFS core API.
-// Falls back to an HTTP API if repo is locked.
+// Uses an HTTP API if repo is locked.
 func NewApi(ctx context.Context) (iface.CoreAPI, error) {
 	root, err := RootPath()
 	if err != nil {

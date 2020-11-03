@@ -25,7 +25,7 @@ func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (*mer
 		return nil, ErrMergeBehind
 	}
 
-	changes, err := c.MergeDiffs(ctx, local, remote, base)
+	changes, err := c.MergeDiffs(ctx, base, local, remote)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (*mer
 		return nil, err
 	}
 
-	tree, err := link.GetNode(ctx, c.Api.Dag())
+	tree, err := link.GetNode(ctx, c.api.Dag())
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (*mer
 		return nil, ErrInvalidRef
 	}
 
-	return dagutils.ApplyChange(ctx, c.Api.Dag(), proto, changes)
+	return dagutils.ApplyChange(ctx, c.api.Dag(), proto, changes)
 }
 
 // MergeBase returns the best merge base for local and remote.
@@ -112,13 +112,13 @@ func (c *Core) MergeConflict(ctx context.Context, conflict dagutils.Conflict) (*
 }
 
 // MergeDiffs merges the changes from local and remote using base as a common ancestor.
-func (c *Core) MergeDiffs(ctx context.Context, local, remote, base *ipldmulti.Commit) ([]*dagutils.Change, error) {
-	ours, err := c.DiffWorkTrees(ctx, base, local)
+func (c *Core) MergeDiffs(ctx context.Context, base, local, remote *ipldmulti.Commit) ([]*dagutils.Change, error) {
+	ours, err := c.Diff(ctx, base, local)
 	if err != nil {
 		return nil, err
 	}
 
-	theirs, err := c.DiffWorkTrees(ctx, base, remote)
+	theirs, err := c.Diff(ctx, base, remote)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (c *Core) MergeFiles(ctx context.Context, base, local, remote cid.Cid) (pat
 		return nil, err
 	}
 
-	return c.Api.Unixfs().Add(ctx, files.NewBytesFile([]byte(merge)))
+	return c.api.Unixfs().Add(ctx, files.NewBytesFile([]byte(merge)))
 }
 
 // readChange returns a the contents of a change.
@@ -167,7 +167,7 @@ func (c *Core) readChange(ctx context.Context, id cid.Cid) (string, error) {
 		return "", nil
 	}
 
-	node, err := c.Api.Unixfs().Get(ctx, path.IpfsPath(id))
+	node, err := c.api.Unixfs().Get(ctx, path.IpfsPath(id))
 	if err != nil {
 		return "", err
 	}

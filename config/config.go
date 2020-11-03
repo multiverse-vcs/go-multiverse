@@ -23,12 +23,10 @@ var (
 
 // Config contains local repo info.
 type Config struct {
-	// Path repo root directory.
+	// Path is the repo root directory.
 	Path string `json:"-"`
 	// Head is the CID of latest commit.
 	Head cid.Cid `json:"head"`
-	// Ignore contains a list of file patterns to ignore.
-	Ignore []string `json:"ignore"`
 }
 
 // Init creates a new config at the given path.
@@ -61,7 +59,7 @@ func Open(path string) (*Config, error) {
 	return Open(parent)
 }
 
-// Readreads a config in the current directory.
+// Read reads a config in the current directory.
 func Read(path string) (*Config, error) {
 	data, err := ioutil.ReadFile(filepath.Join(path, DefaultConfig))
 	if err != nil {

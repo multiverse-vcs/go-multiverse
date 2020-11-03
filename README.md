@@ -6,10 +6,34 @@ Multiverse is a decentralized version control system that enables peer-to-peer s
 
 It builds on top of [IPFS](https://ipfs.io) to provide a secure, resilient, and censorship resistent developer network.
 
+### Install
+
+To build and install Multiverse from source run the following.
+
+```bash
+$ git clone https://github.com/multiverse-vcs/go-multiverse.git
+$ cd go-multiverse
+$ go build -o multi
+$ sudo mv multi /usr/local/bin/
+```
+
+### Concepts
+
+Multiverse implements common version control tasks while attempting to abstract the complexities of peer-to-peer networking.
+
+#### References
+
+A reference is a path that can be resolved to the unique identifier of a commit.
+
+Multiverse can resolve references of the following formats.
+
+- [CID](https://docs.ipfs.io/concepts/content-addressing/)
+- [IPNS](https://docs.ipfs.io/concepts/ipns/)
+- [DNSLink](https://docs.ipfs.io/concepts/dnslink/)
+
 ### Usage
 
 ```
-
 Usage:
   multi [command]
 
@@ -18,17 +42,56 @@ Available Commands:
   commit      Record changes in the local repo.
   daemon      Run a persistent Multiverse node.
   help        Help about any command
-  ignore      Ignore changes to files matching pattern.
   init        Create a new empty repo or copy an existing repo.
   log         Print change history.
   merge       Merge changes from a peer into the local repo.
-  publish     Announce a new version to peers.
   status      Print status of the local repo.
 
 Flags:
   -h, --help   help for multi
 
 Use "multi [command] --help" for more information about a command.
+```
+
+#### Create a new empty repo
+
+Inside your project root run the following.
+
+```bash
+multi init
+```
+
+#### Copy an existing repo
+
+Replace *ref* with a reference to the repo you want to copy.
+
+```bash
+multi init ref
+```
+
+#### Ignore files
+
+Create a file named `.multiverse.ignore` in your repo root.
+
+```
+# ignore executable files
+*.exe
+```
+
+#### Record changes
+
+Changes are stored locally until you are ready to share.
+
+```bash
+multi commit "initial"
+```
+
+#### Share with peers
+
+Your work will be shared across the public IPFS network.
+
+```bash
+multi daemon
 ```
 
 ### Contributing
