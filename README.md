@@ -58,7 +58,7 @@ Use "multi [command] --help" for more information about a command.
 Inside your project root run the following.
 
 ```bash
-multi init
+$ multi init
 ```
 
 #### Copy an existing repo
@@ -66,7 +66,7 @@ multi init
 Replace *ref* with a reference to the repo you want to copy.
 
 ```bash
-multi init ref
+$ multi init ref
 ```
 
 #### Ignore files
@@ -83,7 +83,7 @@ Create a file named `.multiverse.ignore` in your repo root.
 Changes are stored locally until you are ready to share.
 
 ```bash
-multi commit "initial"
+$ multi commit "initial"
 ```
 
 #### Share with peers
@@ -91,7 +91,7 @@ multi commit "initial"
 Your work will be shared across the public IPFS network.
 
 ```bash
-multi daemon
+$ multi daemon
 ```
 
 ### Contributing
