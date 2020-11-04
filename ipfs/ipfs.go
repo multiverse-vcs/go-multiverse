@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-config"
 	"github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/go-ipfs/core"
@@ -26,9 +25,7 @@ const DefaultRoot = ".multiverse"
 var HttpApiAddress = multiaddr.StringCast("/ip4/127.0.0.1/tcp/5001")
 
 func init() {
-	cid.Codecs["multi-commit"] = ipldmulti.CommitCodec
-	cid.CodecToStr[ipldmulti.CommitCodec] = "multi-commit"
-	format.Register(ipldmulti.CommitCodec, ipldmulti.DecodeCommit)
+	format.Register(ipldmulti.CommitCodec, ipldmulti.DecodeCommitBlock)
 }
 
 // RootPath returns the path to the root of the IPFS directory.

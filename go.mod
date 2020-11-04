@@ -15,7 +15,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-sockaddr v0.1.0 // indirect
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/multiverse-vcs/go-ipld-multiverse v0.0.5
+	github.com/multiverse-vcs/go-ipld-multiverse v0.0.7
 	github.com/multiverse-vcs/go-xdiff v0.0.3
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/spf13/cobra v1.0.0
