@@ -30,7 +30,12 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, err := config.Open(cwd)
+	cfg, err := config.Open(cwd)
+	if err != nil {
+		return err
+	}
+
+	head, err := cfg.Head()
 	if err != nil {
 		return err
 	}
@@ -40,19 +45,19 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	diffs, err := c.Status(ctx, path.IpfsPath(config.Head), config.Path)
+	changes, err := c.Status(ctx, path.IpfsPath(head), cfg.Path)
 	if err != nil {
 		return err
 	}
 
-	for _, d := range diffs {
-		switch d.Type {
+	for _, change := range changes {
+		switch change.Type {
 		case dagutils.Add:
-			fmt.Printf("%sadded:   %s%s\n", ColorGreen, d.Path, ColorReset)
+			fmt.Printf("%sAdd:    %s%s\n", colorGreen, change.Path, colorReset)
 		case dagutils.Remove:
-			fmt.Printf("%sremoved: %s%s\n", ColorRed, d.Path, ColorReset)
+			fmt.Printf("%sRemove: %s%s\n", colorRed, change.Path, colorReset)
 		case dagutils.Mod:
-			fmt.Printf("%schanged: %s%s\n", ColorYellow, d.Path, ColorReset)
+			fmt.Printf("%sModify: %s%s\n", colorYellow, change.Path, colorReset)
 		}
 	}
 

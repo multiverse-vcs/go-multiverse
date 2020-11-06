@@ -11,7 +11,7 @@ import (
 
 var commitCmd = &cobra.Command{
 	Use:          "commit [message]",
-	Short:        "Record changes in the local repo.",
+	Short:        "Record changes to the local repo.",
 	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
 	RunE:         executeCommit,
@@ -29,8 +29,12 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, err := config.Open(cwd)
+	cfg, err := config.Open(cwd)
 	if err != nil {
+		return err
+	}
+
+	if err := cfg.Detached(); err != nil {
 		return err
 	}
 
@@ -39,15 +43,19 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tree, err := c.WorkTree(ctx, config.Path)
+	tree, err := c.WorkTree(ctx, cfg.Path)
+	if err != nil {
+		return err
+	}
+
+	head, err := cfg.Head()
 	if err != nil {
 		return err
 	}
 
 	opts := core.CommitOptions{
 		Message: args[0],
-		Parents: []cid.Cid{config.Head},
-		Pin:     true,
+		Parents: []cid.Cid{head},
 	}
 
 	commit, err := c.Commit(ctx, tree.Cid(), &opts)
@@ -55,6 +63,7 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config.Head = commit.Cid()
-	return config.Write()
+	cfg.Base = commit.Cid()
+	cfg.Branches[cfg.Branch] = commit.Cid()
+	return cfg.Write()
 }

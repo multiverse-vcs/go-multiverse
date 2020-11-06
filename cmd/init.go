@@ -29,7 +29,7 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, err := config.Init(cwd)
+	cfg, err := config.Init(cwd)
 	if err != nil {
 		return err
 	}
@@ -48,10 +48,11 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := c.Checkout(ctx, commit, config.Path); err != nil {
+	if err := c.Checkout(ctx, commit, cfg.Path); err != nil {
 		return err
 	}
 
-	config.Head = commit.Cid()
-	return config.Write()
+	cfg.Base = commit.Cid()
+	cfg.Branches[cfg.Branch] = commit.Cid()
+	return cfg.Write()
 }

@@ -4,14 +4,12 @@ package core
 import (
 	"context"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -40,7 +38,7 @@ var (
 )
 
 // IgnoreRules contains default ignore rules.
-var IgnoreRules = []string{config.DefaultConfig}
+var IgnoreRules = []string{config.ConfigFile}
 
 // IgnoreFile is the name of the ignore file.
 const IgnoreFile = ".multiverse.ignore"
@@ -54,8 +52,6 @@ type Core struct {
 type CommitOptions struct {
 	// Message describes the changes in the commit.
 	Message string
-	// Pin specifies if the commit should be pinned.
-	Pin bool
 	// Parents are the ids of the parent commits.
 	Parents []cid.Cid
 }
@@ -87,7 +83,7 @@ func (c *Core) Checkout(ctx context.Context, commit *ipldmulti.Commit, root stri
 		return ErrInvalidTree
 	}
 
-	return WriteTree(node, root)
+	return WriteTo(node, root)
 }
 
 // Commit creates a new commit containing a working tree and metadata.
@@ -109,11 +105,7 @@ func (c *Core) Commit(ctx context.Context, tree cid.Cid, opts *CommitOptions) (*
 		WorkTree: tree,
 	}
 
-	var adder format.NodeAdder = c.api.Dag()
-	if opts.Pin {
-		adder = c.api.Dag().Pinning()
-	}
-
+	adder := c.api.Dag().Pinning()
 	if err := adder.Add(ctx, &commit); err != nil {
 		return nil, err
 	}
@@ -241,35 +233,4 @@ func (c *Core) WorkTree(ctx context.Context, root string) (path.Resolved, error)
 	}
 
 	return c.api.Unixfs().Add(ctx, node)
-}
-
-// WriteTree writes the given node to the local repo root.
-func WriteTree(node files.Node, root string) error {
-	switch node := node.(type) {
-	case *files.Symlink:
-		return os.Symlink(node.Target, root)
-	case files.File:
-		b, err := ioutil.ReadAll(node)
-		if err != nil {
-			return err
-		}
-
-		return ioutil.WriteFile(root, b, 0644)
-	case files.Directory:
-		if err := os.MkdirAll(root, 0777); err != nil {
-			return err
-		}
-
-		entries := node.Entries()
-		for entries.Next() {
-			child := filepath.Join(root, entries.Name())
-			if err := WriteTree(entries.Node(), child); err != nil {
-				return err
-			}
-		}
-
-		return entries.Err()
-	default:
-		return ErrInvalidFile
-	}
 }

@@ -30,7 +30,16 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, err := config.Open(cwd)
+	cfg, err := config.Open(cwd)
+	if err != nil {
+		return err
+	}
+
+	if err := cfg.Detached(); err != nil {
+		return err
+	}
+
+	head, err := cfg.Head()
 	if err != nil {
 		return err
 	}
@@ -40,7 +49,7 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	local, err := c.Reference(ctx, path.IpfsPath(config.Head))
+	local, err := c.Reference(ctx, path.IpfsPath(head))
 	if err != nil {
 		return err
 	}
@@ -56,22 +65,20 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 	}
 
 	opts := core.CommitOptions{
-		Message: args[0],
+		Message: args[1],
 		Parents: []cid.Cid{local.Cid(), remote.Cid()},
-		Pin:     true,
 	}
-
-	// TODO make commit optional
 
 	commit, err := c.Commit(ctx, merge.Cid(), &opts)
 	if err != nil {
 		return err
 	}
 
-	if err := c.Checkout(ctx, commit, config.Path); err != nil {
+	if err := c.Checkout(ctx, commit, cfg.Path); err != nil {
 		return err
 	}
 
-	config.Head = commit.Cid()
-	return config.Write()
+	cfg.Base = commit.Cid()
+	cfg.Branches[cfg.Branch] = commit.Cid()
+	return cfg.Write()
 }

@@ -9,20 +9,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var checkoutCmd = &cobra.Command{
-	Use:          "checkout [ref]",
-	Short:        "Copy changes from a commit to the local repo.",
+var switchCmd = &cobra.Command{
+	Use:          "switch [name]",
+	Short:        "Change to a different branch.",
 	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
-	RunE:         executeCheckout,
+	RunE:         executeSwitch,
 }
 
 func init() {
-	rootCmd.AddCommand(checkoutCmd)
+	rootCmd.AddCommand(switchCmd)
 }
 
-func executeCheckout(cmd *cobra.Command, args []string) error {
+func executeSwitch(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
+	name := args[0]
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -39,7 +40,12 @@ func executeCheckout(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	commit, err := c.Reference(ctx, path.New(args[0]))
+	id, ok := cfg.Branches[name]
+	if !ok {
+		return config.ErrBranchNotFound
+	}
+
+	commit, err := c.Reference(ctx, path.IpfsPath(id))
 	if err != nil {
 		return err
 	}
@@ -48,6 +54,7 @@ func executeCheckout(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg.Base = commit.Cid()
+	cfg.Base = id
+	cfg.Branch = name
 	return cfg.Write()
 }
