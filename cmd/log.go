@@ -34,7 +34,7 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	head, err := cfg.Head()
+	head, err := cfg.Branches.Head(cfg.Branch)
 	if err != nil {
 		return err
 	}

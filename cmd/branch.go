@@ -8,42 +8,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var branchDelete bool
+
 var branchCmd = &cobra.Command{
-	Use:          "branch",
-	Short:        "Create, delete, or list branches.",
-}
-
-var branchCreateCmd = &cobra.Command{
-	Use:          "add [name]",
-	Short:        "Create a new branch.",
-	Args:         cobra.ExactArgs(1),
+	Use:   "branch",
+	Short: "List, create, or delete branches.",
+	Args:         cobra.MaximumNArgs(1),
 	SilenceUsage: true,
-	RunE:         executeBranchCreate,
-}
-
-var branchDeleteCmd = &cobra.Command{
-	Use:          "rm [name]",
-	Short:        "Delete an existing branch.",
-	Args:         cobra.ExactArgs(1),
-	SilenceUsage: true,
-	RunE:         executeBranchDelete,
-}
-
-var branchListCmd = &cobra.Command{
-	Use:          "ls",
-	Short:        "Print all branches.",
-	SilenceUsage: true,
-	RunE:         executeBranchList,
+	RunE:         executeBranch,
 }
 
 func init() {
-	branchCmd.AddCommand(branchListCmd)
-	branchCmd.AddCommand(branchCreateCmd)
-	branchCmd.AddCommand(branchDeleteCmd)
+	branchCmd.Flags().BoolVarP(&branchDelete, "delete", "d", false, "delete branch")
 	rootCmd.AddCommand(branchCmd)
 }
 
-func executeBranchCreate(cmd *cobra.Command, args []string) error {
+func executeBranch(cmd *cobra.Command, args []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -54,58 +34,45 @@ func executeBranchCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	name := args[0]
-	if _, ok := cfg.Branches[name]; ok {
-		return fmt.Errorf("branch already exists")
+	switch {
+	case len(args) == 0:
+		return executeBranchList(cfg)
+	case branchDelete:
+		return executeBranchDelete(cfg, args[0])
+	default:
+		return executeBranchCreate(cfg, args[0])
 	}
 
-	cfg.Branches[name] = cfg.Base
+	return nil
+}
+
+func executeBranchCreate(cfg *config.Config, name string) error {
+	if err := cfg.Branches.Add(name, cfg.Base); err != nil {
+		return nil
+	}
+
 	return cfg.Write()
 }
 
-func executeBranchDelete(cmd *cobra.Command, args []string) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	cfg, err := config.Open(cwd)
-	if err != nil {
-		return err
-	}
-
-	name := args[0]
-	if _, ok := cfg.Branches[name]; ok {
-		return fmt.Errorf("branch does not exists")
-	}
-
+func executeBranchDelete(cfg *config.Config, name string) error {
 	if name == cfg.Branch {
 		return fmt.Errorf("cannot delete current branch")
 	}
 
-	delete(cfg.Branches, name)
+	if err := cfg.Branches.Remove(name); err != nil {
+		return nil
+	}
+
 	return cfg.Write()
 }
 
-func executeBranchList(cmd *cobra.Command, args []string) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	cfg, err := config.Open(cwd)
-	if err != nil {
-		return err
-	}
-
+func executeBranchList(cfg *config.Config) error {
 	for name := range cfg.Branches {
-		fmt.Printf("%s%s", colorYellow, name)
-
 		if name == cfg.Branch {
-			fmt.Printf(" (%sCURRENT%s)", colorGreen, colorYellow)
+			fmt.Printf("* %s%s%s\n", colorGreen, name, colorReset)
+		} else {
+			fmt.Printf("%s%s%s\n", colorYellow, name, colorReset)
 		}
-
-		fmt.Printf("%s\n", colorReset)
 	}
 
 	return nil

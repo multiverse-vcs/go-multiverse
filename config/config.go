@@ -23,10 +23,8 @@ var (
 	ErrRepoExists = errors.New("repo already exists")
 	// ErrRepoNotFound is returned when a repo does not exist.
 	ErrRepoNotFound = errors.New("repo not found")
-	// ErrBranchNotFound is returned when a branch does not exist.
-	ErrBranchNotFound = errors.New("branch does not exist")
-	// ErrBranchDetached is returned when base is behind head.
-	ErrBranchDetached = errors.New("branch is detached")
+	// ErrRepoDetached is returned when base is behind head.
+	ErrRepoDetached = errors.New("repo base is behind head")
 )
 
 // Config contains local repo info.
@@ -38,7 +36,7 @@ type Config struct {
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
 	// Branches is a map of branch heads.
-	Branches map[string]cid.Cid `json:"branches"`
+	Branches Branches `json:"branches"`
 }
 
 // Init creates a new config at the given path.
@@ -90,26 +88,16 @@ func Read(path string) (*Config, error) {
 
 // Detached returns an error when base is not equal to head.
 func (c *Config) Detached() error {
-	head, err := c.Head()
+	head, err := c.Branches.Head(c.Branch)
 	if err != nil {
 		return err
 	}
 
 	if head != c.Base {
-		return ErrBranchDetached
+		return ErrRepoDetached
 	}
 
 	return nil
-}
-
-// Head returns the tip of the current branch.
-func (c *Config) Head() (cid.Cid, error) {
-	head, ok := c.Branches[c.Branch]
-	if !ok {
-		return cid.Cid{}, ErrBranchNotFound
-	}
-
-	return head, nil
 }
 
 // Write writes the config to the root directory.

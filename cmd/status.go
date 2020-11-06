@@ -35,7 +35,7 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	head, err := cfg.Head()
+	head, err := cfg.Branches.Head(cfg.Branch)
 	if err != nil {
 		return err
 	}
@@ -50,14 +50,18 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	fmt.Printf("Tracking changes on branch %s:\n", cfg.Branch)
+	fmt.Printf("  (all files are automatically considered for commit)\n")
+	fmt.Printf("  (to stop tracking files add to '%s')\n", core.IgnoreFile)
+
 	for _, change := range changes {
 		switch change.Type {
 		case dagutils.Add:
-			fmt.Printf("%sAdd:    %s%s\n", colorGreen, change.Path, colorReset)
+			fmt.Printf("\t%sadded:    %s%s\n", colorGreen, change.Path, colorReset)
 		case dagutils.Remove:
-			fmt.Printf("%sRemove: %s%s\n", colorRed, change.Path, colorReset)
+			fmt.Printf("\t%sremoved:  %s%s\n", colorRed, change.Path, colorReset)
 		case dagutils.Mod:
-			fmt.Printf("%sModify: %s%s\n", colorYellow, change.Path, colorReset)
+			fmt.Printf("\t%smodified: %s%s\n", colorYellow, change.Path, colorReset)
 		}
 	}
 
