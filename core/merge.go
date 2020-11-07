@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"sort"
 
@@ -9,13 +10,23 @@ import (
 	"github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/ipfs/go-unixfs/file"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiverse-vcs/go-ipld-multiverse"
 	"github.com/multiverse-vcs/go-xdiff"
 )
 
+var (
+	// ErrMergeBase is returned when a merge base is not found.
+	ErrMergeBase = errors.New("merge base not found")
+	// ErrMergeAhead is returned when local contains remote changes.
+	ErrMergeAhead = errors.New("local is ahead of remote")
+	// ErrMergeBehind is returned when  remote contains local changes.
+	ErrMergeBehind = errors.New("local is behind remote")
+)
+
 // Merge combines the repo histories of two commits into a single tree and returns the root node.
-func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (*merkledag.ProtoNode, error) {
+func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (files.Node, error) {
 	base, err := c.MergeBase(ctx, local.Cid(), remote.Cid())
 	if err != nil {
 		return nil, err
@@ -45,7 +56,12 @@ func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (*mer
 		return nil, ErrInvalidRef
 	}
 
-	return dagutils.ApplyChange(ctx, c.api.Dag(), proto, changes)
+	merge, err := dagutils.ApplyChange(ctx, c.api.Dag(), proto, changes)
+	if err != nil {
+		return nil, err
+	}
+
+	return unixfile.NewUnixfsFile(ctx, c.api.Dag(), merge)
 }
 
 // MergeBase returns the best merge base for local and remote.

@@ -1,6 +1,8 @@
-package core
+// Package util contains helpers that don't belong elsewhere.
+package util
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,7 +10,7 @@ import (
 	"github.com/ipfs/go-ipfs-files"
 )
 
-// WriteTo writes the given node to the local repo root.
+// WriteTo writes the files node to the root path.
 func WriteTo(node files.Node, root string) error {
 	switch node := node.(type) {
 	case *files.Symlink:
@@ -35,6 +37,6 @@ func WriteTo(node files.Node, root string) error {
 
 		return entries.Err()
 	default:
-		return ErrInvalidFile
+		return fmt.Errorf("invalid file type")
 	}
 }

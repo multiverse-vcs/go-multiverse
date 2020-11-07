@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ func executeSwitch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg, err := config.Open(cwd)
+	r, err := repo.Open(cwd)
 	if err != nil {
 		return err
 	}
@@ -40,21 +40,22 @@ func executeSwitch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	id, ok := cfg.Branches[name]
-	if !ok {
-		return config.ErrBranchNotFound
-	}
-
-	commit, err := c.Reference(ctx, path.IpfsPath(id))
+	id, err := r.Branches.Head(name)
 	if err != nil {
 		return err
 	}
 
-	if err := c.Checkout(ctx, commit, cfg.Path); err != nil {
+	_, err = c.Reference(ctx, path.IpfsPath(id))
+	if err != nil {
 		return err
 	}
 
-	cfg.Base = id
-	cfg.Branch = name
-	return cfg.Write()
+	// TODO do not update tree if base is the same
+	// if err := util.WriteTo(tree, r.Path); err != nil {
+	// 	return err
+	// }
+
+	r.Base = id
+	r.Branch = name
+	return r.Write()
 }

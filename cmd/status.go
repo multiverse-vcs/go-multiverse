@@ -6,8 +6,8 @@ import (
 
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/spf13/cobra"
 )
 
@@ -30,12 +30,12 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg, err := config.Open(cwd)
+	r, err := repo.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	head, err := cfg.Branches.Head(cfg.Branch)
+	head, err := r.Branches.Head(r.Branch)
 	if err != nil {
 		return err
 	}
@@ -45,21 +45,26 @@ func executeStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	changes, err := c.Status(ctx, path.IpfsPath(head), cfg.Path)
+	tree, err := r.Tree()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Tracking changes on branch %s:\n", cfg.Branch)
+	changes, err := c.Status(ctx, path.IpfsPath(head), tree)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Tracking changes on branch %s:\n", r.Branch)
 	fmt.Printf("  (all files are automatically considered for commit)\n")
-	fmt.Printf("  (to stop tracking files add to '%s')\n", core.IgnoreFile)
+	fmt.Printf("  (to stop tracking files add to '%s')\n", repo.IgnoreFile)
 
 	for _, change := range changes {
 		switch change.Type {
 		case dagutils.Add:
-			fmt.Printf("\t%sadded:    %s%s\n", colorGreen, change.Path, colorReset)
+			fmt.Printf("\t%snew file: %s%s\n", colorGreen, change.Path, colorReset)
 		case dagutils.Remove:
-			fmt.Printf("\t%sremoved:  %s%s\n", colorRed, change.Path, colorReset)
+			fmt.Printf("\t%sdeleted:  %s%s\n", colorRed, change.Path, colorReset)
 		case dagutils.Mod:
 			fmt.Printf("\t%smodified: %s%s\n", colorYellow, change.Path, colorReset)
 		}

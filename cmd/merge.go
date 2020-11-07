@@ -5,8 +5,9 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/repo"
+	"github.com/multiverse-vcs/go-multiverse/util"
 	"github.com/spf13/cobra"
 )
 
@@ -30,16 +31,16 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg, err := config.Open(cwd)
+	r, err := repo.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	if err := cfg.Detached(); err != nil {
+	if err := r.Detached(); err != nil {
 		return err
 	}
 
-	head, err := cfg.Branches.Head(cfg.Branch)
+	head, err := r.Branches.Head(r.Branch)
 	if err != nil {
 		return err
 	}
@@ -69,16 +70,16 @@ func executeMerge(cmd *cobra.Command, args []string) error {
 		Parents: []cid.Cid{local.Cid(), remote.Cid()},
 	}
 
-	commit, err := c.Commit(ctx, merge.Cid(), &opts)
+	commit, err := c.Commit(ctx, merge, &opts)
 	if err != nil {
 		return err
 	}
 
-	if err := c.Checkout(ctx, commit, cfg.Path); err != nil {
+	if err := util.WriteTo(merge, r.Path); err != nil {
 		return err
 	}
 
-	cfg.Base = commit.Cid()
-	cfg.Branches[cfg.Branch] = commit.Cid()
-	return cfg.Write()
+	r.Base = commit.Cid()
+	r.Branches[r.Branch] = commit.Cid()
+	return r.Write()
 }

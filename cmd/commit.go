@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/ipfs/go-cid"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/spf13/cobra"
 )
 
@@ -29,12 +29,12 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg, err := config.Open(cwd)
+	r, err := repo.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	if err := cfg.Detached(); err != nil {
+	if err := r.Detached(); err != nil {
 		return err
 	}
 
@@ -43,12 +43,12 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tree, err := c.WorkTree(ctx, cfg.Path)
+	tree, err := r.Tree()
 	if err != nil {
 		return err
 	}
 
-	head, err := cfg.Branches.Head(cfg.Branch)
+	head, err := r.Branches.Head(r.Branch)
 	if err != nil {
 		return err
 	}
@@ -58,12 +58,12 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 		Parents: []cid.Cid{head},
 	}
 
-	commit, err := c.Commit(ctx, tree.Cid(), &opts)
+	commit, err := c.Commit(ctx, tree, &opts)
 	if err != nil {
 		return err
 	}
 
-	cfg.Base = commit.Cid()
-	cfg.Branches[cfg.Branch] = commit.Cid()
-	return cfg.Write()
+	r.Base = commit.Cid()
+	r.Branches[r.Branch] = commit.Cid()
+	return r.Write()
 }

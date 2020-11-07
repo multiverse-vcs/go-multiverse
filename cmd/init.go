@@ -4,8 +4,9 @@ import (
 	"os"
 
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/repo"
+	"github.com/multiverse-vcs/go-multiverse/util"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +30,7 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg, err := config.Init(cwd)
+	r, err := repo.Init(cwd)
 	if err != nil {
 		return err
 	}
@@ -48,11 +49,16 @@ func executeInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := c.Checkout(ctx, commit, cfg.Path); err != nil {
+	tree, err := c.Tree(ctx, commit)
+	if err != nil {
 		return err
 	}
 
-	cfg.Base = commit.Cid()
-	cfg.Branches[cfg.Branch] = commit.Cid()
-	return cfg.Write()
+	if err := util.WriteTo(tree, r.Path); err != nil {
+		return err
+	}
+
+	r.Base = commit.Cid()
+	r.Branches[r.Branch] = commit.Cid()
+	return r.Write()
 }

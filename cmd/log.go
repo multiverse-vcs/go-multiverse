@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/multiverse-vcs/go-ipld-multiverse"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/spf13/cobra"
 )
 
@@ -29,12 +29,12 @@ func executeLog(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg, err := config.Open(cwd)
+	r, err := repo.Open(cwd)
 	if err != nil {
 		return err
 	}
 
-	head, err := cfg.Branches.Head(cfg.Branch)
+	head, err := r.Branches.Head(r.Branch)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func executeLog(cmd *cobra.Command, args []string) error {
 			fmt.Printf(" (%sHEAD%s)", colorRed, colorYellow)
 		}
 
-		if commit.Cid() == cfg.Base {
+		if commit.Cid() == r.Base {
 			fmt.Printf(" (%sBASE%s)", colorGreen, colorYellow)
 		}
 

@@ -4,8 +4,6 @@ package core
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -14,7 +12,6 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiverse-vcs/go-ipld-multiverse"
-	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/ipfs"
 )
 
@@ -26,22 +23,8 @@ var (
 	// ErrInvalidRef is returned when a ref resolves to an invalid object.
 	ErrInvalidRef = errors.New("invalid ref")
 	// ErrInvalidTree is returned when a commit has an invalid work tree.
-	ErrInvalidTree = errors.New("work tree is invalid")
-	// ErrMergeBase is returned when a merge base is not found.
-	ErrMergeBase = errors.New("merge base not found")
-	// ErrMergeAhead is returned when local contains remote changes.
-	ErrMergeAhead = errors.New("local is ahead of remote")
-	// ErrMergeBehind is returned when  remote contains local changes.
-	ErrMergeBehind = errors.New("local is behind remote")
-	// ErrNoChanges is returned when there are no changes to commit.
-	ErrNoChanges = errors.New("no changes to commit")
+	ErrInvalidTree = errors.New("invalid tree")
 )
-
-// IgnoreRules contains default ignore rules.
-var IgnoreRules = []string{config.ConfigFile}
-
-// IgnoreFile is the name of the ignore file.
-const IgnoreFile = ".multiverse.ignore"
 
 // Core contains core services.
 type Core struct {
@@ -66,33 +49,14 @@ func NewCore(ctx context.Context) (*Core, error) {
 	return &Core{api}, nil
 }
 
-// Checkout copies the tree of the commit with the given ref to the local repo directory.
-func (c *Core) Checkout(ctx context.Context, commit *ipldmulti.Commit, root string) error {
-	link, _, err := commit.ResolveLink([]string{"tree"})
-	if err != nil {
-		return err
-	}
-
-	tree, err := link.GetNode(ctx, c.api.Dag())
-	if err != nil {
-		return err
-	}
-
-	node, ok := tree.(files.Node)
-	if !ok {
-		return ErrInvalidTree
-	}
-
-	return WriteTo(node, root)
-}
-
 // Commit creates a new commit containing a working tree and metadata.
-func (c *Core) Commit(ctx context.Context, tree cid.Cid, opts *CommitOptions) (*ipldmulti.Commit, error) {
-	if !tree.Defined() {
-		return nil, ErrInvalidTree
+func (c *Core) Commit(ctx context.Context, tree files.Node, opts *CommitOptions) (*ipldmulti.Commit, error) {
+	key, err := c.api.Key().Self(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	key, err := c.api.Key().Self(ctx)
+	p, err := c.api.Unixfs().Add(ctx, tree)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +66,7 @@ func (c *Core) Commit(ctx context.Context, tree cid.Cid, opts *CommitOptions) (*
 		Message:  opts.Message,
 		Parents:  opts.Parents,
 		PeerID:   key.ID(),
-		WorkTree: tree,
+		WorkTree: p.Cid(),
 	}
 
 	adder := c.api.Dag().Pinning()
@@ -138,24 +102,6 @@ func (c *Core) Diff(ctx context.Context, commitA, commitB *ipldmulti.Commit) ([]
 	return dagutils.Diff(ctx, c.api.Dag(), treeA, treeB)
 }
 
-// IsAncestor checks if child is an ancestor of parent.
-func (c *Core) IsAncestor(ctx context.Context, child, parent cid.Cid) (bool, error) {
-	var filter HistoryFilter = func(commit *ipldmulti.Commit) bool {
-		return commit.Cid().Equals(child)
-	}
-
-	commit, err := c.NewHistory(parent).WithFilter(&filter, &filter).Next(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	if commit == nil {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 // Reference resolves the commit from the given ref.
 func (c *Core) Reference(ctx context.Context, ref path.Path) (*ipldmulti.Commit, error) {
 	res, err := c.api.ResolvePath(ctx, ref)
@@ -181,7 +127,7 @@ func (c *Core) Reference(ctx context.Context, ref path.Path) (*ipldmulti.Commit,
 }
 
 // Status returns changes between local repo and head.
-func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagutils.Change, error) {
+func (c *Core) Status(ctx context.Context, ref path.Path, tree files.Node) ([]*dagutils.Change, error) {
 	commit, err := c.Reference(ctx, ref)
 	if err != nil {
 		return nil, err
@@ -192,7 +138,7 @@ func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagut
 		return nil, err
 	}
 
-	tree, err := c.WorkTree(ctx, root)
+	p, err := c.api.Unixfs().Add(ctx, tree)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +148,7 @@ func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagut
 		return nil, err
 	}
 
-	nodeB, err := c.api.ResolveNode(ctx, tree)
+	nodeB, err := c.api.ResolveNode(ctx, p)
 	if err != nil {
 		return nil, err
 	}
@@ -210,27 +156,22 @@ func (c *Core) Status(ctx context.Context, ref path.Path, root string) ([]*dagut
 	return dagutils.Diff(ctx, c.api.Dag(), nodeA, nodeB)
 }
 
-// WorkTree creates a tree from the given path and returns its cid.
-func (c *Core) WorkTree(ctx context.Context, root string) (path.Resolved, error) {
-	info, err := os.Stat(root)
+// Tree returns the work tree of the commit.
+func (c *Core) Tree(ctx context.Context, commit *ipldmulti.Commit) (files.Node, error) {
+	link, _, err := commit.ResolveLink([]string{"tree"})
 	if err != nil {
 		return nil, err
 	}
 
-	ignore := filepath.Join(root, IgnoreFile)
-	if _, err := os.Stat(ignore); err != nil {
-		ignore = ""
-	}
-
-	filter, err := files.NewFilter(ignore, IgnoreRules, true)
+	tree, err := link.GetNode(ctx, c.api.Dag())
 	if err != nil {
 		return nil, err
 	}
 
-	node, err := files.NewSerialFileWithFilter(root, filter, info)
-	if err != nil {
-		return nil, err
+	node, ok := tree.(files.Node)
+	if !ok {
+		return nil, ErrInvalidTree
 	}
 
-	return c.api.Unixfs().Add(ctx, node)
+	return node, nil
 }
