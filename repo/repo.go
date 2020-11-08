@@ -104,24 +104,29 @@ func (r *Repo) Detached() error {
 	return nil
 }
 
-// Tree returns the repo working tree.
+// Ignore returns a files.Filter that is used to ignore files.
+func (r *Repo) Ignore() (*files.Filter, error) {
+	ignore := filepath.Join(r.Path, IgnoreFile)
+	if _, err := os.Stat(ignore); err != nil {
+		ignore = ""
+	}
+
+	return files.NewFilter(ignore, IgnoreRules, true)
+}
+
+// Tree returns the repo working tree files.Node.
 func (r *Repo) Tree() (files.Node, error) {
 	info, err := os.Stat(r.Path)
 	if err != nil {
 		return nil, err
 	}
 
-	ignore := filepath.Join(r.Path, IgnoreFile)
-	if _, err := os.Stat(ignore); err != nil {
-		ignore = ""
-	}
-
-	filter, err := files.NewFilter(ignore, IgnoreRules, true)
+	ignore, err := r.Ignore()
 	if err != nil {
 		return nil, err
 	}
 
-	return files.NewSerialFileWithFilter(r.Path, filter, info)
+	return files.NewSerialFileWithFilter(r.Path, ignore, info)
 }
 
 // Write writes the config to the root directory.

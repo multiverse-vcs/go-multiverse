@@ -12,7 +12,7 @@ import (
 // stack is a first in last out data structure.
 type stack []cid.Cid
 
-// pop removes and returns the last item from the stack.
+// pop removes the last item from the stack.
 func (s stack) pop() (cid.Cid, stack) {
 	return s[len(s)-1], s[:len(s)-1]
 }
@@ -20,6 +20,7 @@ func (s stack) pop() (cid.Cid, stack) {
 // History is a commit history iterator.
 type History struct {
 	core  *Core
+	curr  cid.Cid
 	seen  map[string]bool
 	stack stack
 	valid HistoryFilter
@@ -51,22 +52,21 @@ func (h *History) WithFilter(valid, limit *HistoryFilter) *History {
 // Next returns the next commit.
 func (h *History) Next(ctx context.Context) (*ipldmulti.Commit, error) {
 	for {
-		var id cid.Cid
 		if len(h.stack) == 0 {
 			return nil, io.EOF
 		}
 
-		id, h.stack = h.stack.pop()
-		if h.seen[id.KeyString()] {
+		h.curr, h.stack = h.stack.pop()
+		if h.seen[h.curr.KeyString()] {
 			continue
 		}
 
-		commit, err := h.core.Reference(ctx, path.IpfsPath(id))
+		commit, err := h.core.Reference(ctx, path.IpfsPath(h.curr))
 		if err != nil {
 			return nil, err
 		}
 
-		h.seen[id.KeyString()] = true
+		h.seen[h.curr.KeyString()] = true
 		if h.limit == nil || !h.limit(commit) {
 			h.stack = append(h.stack, commit.Parents...)
 		}
