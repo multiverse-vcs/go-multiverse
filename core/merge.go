@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"io/ioutil"
 	"sort"
 
 	"github.com/ipfs/go-cid"
@@ -36,7 +35,7 @@ func (c *Core) Merge(ctx context.Context, local, remote *ipldmulti.Commit) (file
 		return nil, ErrMergeBehind
 	}
 
-	changes, err := c.MergeDiffs(ctx, base, local, remote)
+	changes, err := c.MergeChanges(ctx, base, local, remote)
 	if err != nil {
 		return nil, err
 	}
@@ -102,33 +101,8 @@ func (c *Core) MergeBase(ctx context.Context, local, remote cid.Cid) (*ipldmulti
 	return bases[0], nil
 }
 
-// MergeConflict creates a new change that resolves the conflicting changes.
-func (c *Core) MergeConflict(ctx context.Context, conflict dagutils.Conflict) (*dagutils.Change, error) {
-	if conflict.A.Type == dagutils.Remove && conflict.B.Type == dagutils.Remove {
-		return conflict.A, nil
-	}
-
-	merge, err := c.MergeFiles(ctx, conflict.A.Before, conflict.A.After, conflict.B.After)
-	if err != nil {
-		return nil, err
-	}
-
-	change := dagutils.Change{
-		Type:   dagutils.Mod,
-		Path:   conflict.A.Path,
-		Before: conflict.A.Before,
-		After:  merge.Cid(),
-	}
-
-	if conflict.A.Type == dagutils.Add && conflict.B.Type == dagutils.Add {
-		change.Type = dagutils.Add
-	}
-
-	return &change, nil
-}
-
-// MergeDiffs merges the changes from local and remote using base as a common ancestor.
-func (c *Core) MergeDiffs(ctx context.Context, base, local, remote *ipldmulti.Commit) ([]*dagutils.Change, error) {
+// MergeChanges merges the changes from local and remote using base as a common ancestor.
+func (c *Core) MergeChanges(ctx context.Context, base, local, remote *ipldmulti.Commit) ([]*dagutils.Change, error) {
 	ours, err := c.Diff(ctx, base, local)
 	if err != nil {
 		return nil, err
@@ -140,6 +114,8 @@ func (c *Core) MergeDiffs(ctx context.Context, base, local, remote *ipldmulti.Co
 	}
 
 	changes, conflicts := dagutils.MergeDiffs(ours, theirs)
+
+	// resolve conflicts and append to changes
 	for _, conflict := range conflicts {
 		change, err := c.MergeConflict(ctx, conflict)
 		if err != nil {
@@ -152,51 +128,64 @@ func (c *Core) MergeDiffs(ctx context.Context, base, local, remote *ipldmulti.Co
 	return changes, nil
 }
 
-// MergeFiles creates a new file by performing a three way merge using base, local, and remote.
-func (c *Core) MergeFiles(ctx context.Context, base, local, remote cid.Cid) (path.Resolved, error) {
-	original, err := c.readChange(ctx, base)
+// MergeConflict creates a new change that resolves the conflicting changes.
+func (c *Core) MergeConflict(ctx context.Context, conflict dagutils.Conflict) (*dagutils.Change, error) {
+	if conflict.A.Type == dagutils.Remove && conflict.B.Type == dagutils.Remove {
+		return conflict.A, nil
+	}
+
+	merge, err := c.MergeFiles(ctx, conflict.A.Before, conflict.A.After, conflict.B.After)
 	if err != nil {
 		return nil, err
 	}
 
-	ours, err := c.readChange(ctx, local)
+	p, err := c.api.Unixfs().Add(ctx, files.NewBytesFile([]byte(merge)))
 	if err != nil {
 		return nil, err
 	}
 
-	theirs, err := c.readChange(ctx, remote)
-	if err != nil {
-		return nil, err
+	change := dagutils.Change{
+		Type:   dagutils.Mod,
+		Path:   conflict.A.Path,
+		Before: conflict.A.Before,
+		After:  p.Cid(),
 	}
 
-	merge, err := xdiff.Merge(original, ours, theirs, &xdiff.DefaultMergeOptions)
-	if err != nil {
-		return nil, err
+	if conflict.A.Type == dagutils.Add && conflict.B.Type == dagutils.Add {
+		change.Type = dagutils.Add
 	}
 
-	return c.api.Unixfs().Add(ctx, files.NewBytesFile([]byte(merge)))
+	return &change, nil
 }
 
-// readChange returns a the contents of a change.
-func (c *Core) readChange(ctx context.Context, id cid.Cid) (string, error) {
-	if !id.Defined() {
-		return "", nil
+// MergeFiles merges the contents of local and remote into base.
+func (c *Core) MergeFiles(ctx context.Context, base, local, remote cid.Cid) (string, error) {
+	var err error
+	var original, ours, theirs string
+
+	if base.Defined() {
+		original, err = c.ReadFile(ctx, path.IpfsPath(base))
 	}
 
-	node, err := c.api.Unixfs().Get(ctx, path.IpfsPath(id))
 	if err != nil {
 		return "", err
 	}
 
-	file, ok := node.(files.File)
-	if !ok {
-		return "", ErrInvalidFile
+	if local.Defined() {
+		ours, err = c.ReadFile(ctx, path.IpfsPath(local))
 	}
 
-	b, err := ioutil.ReadAll(file)
 	if err != nil {
 		return "", err
 	}
 
-	return string(b), nil
+	if remote.Defined() {
+		theirs, err = c.ReadFile(ctx, path.IpfsPath(remote))
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return xdiff.Merge(original, ours, theirs, &xdiff.DefaultMergeOptions)
 }

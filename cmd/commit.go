@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/ipfs/go-cid"
@@ -62,6 +63,8 @@ func executeCommit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	defer fmt.Println(commit.Cid().String())
 
 	r.Base = commit.Cid()
 	r.Branches[r.Branch] = commit.Cid()

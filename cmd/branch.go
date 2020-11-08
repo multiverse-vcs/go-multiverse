@@ -36,44 +36,30 @@ func executeBranch(cmd *cobra.Command, args []string) error {
 
 	switch {
 	case len(args) == 0:
-		return executeBranchList(r)
-	case branchDelete:
-		return executeBranchDelete(r, args[0])
-	default:
-		return executeBranchCreate(r, args[0])
-	}
-
-	return nil
-}
-
-func executeBranchCreate(r *repo.Repo, name string) error {
-	if err := r.Branches.Add(name, r.Base); err != nil {
-		return nil
-	}
-
-	return r.Write()
-}
-
-func executeBranchDelete(r *repo.Repo, name string) error {
-	if name == r.Branch {
-		return fmt.Errorf("cannot delete current branch")
-	}
-
-	if err := r.Branches.Remove(name); err != nil {
-		return nil
-	}
-
-	return r.Write()
-}
-
-func executeBranchList(r *repo.Repo) error {
-	for name := range r.Branches {
-		if name == r.Branch {
-			fmt.Printf("* %s%s%s\n", colorGreen, name, colorReset)
-		} else {
-			fmt.Printf("%s%s%s\n", colorYellow, name, colorReset)
+		for name := range r.Branches {
+			if name == r.Branch {
+				fmt.Printf("* %s%s%s\n", colorGreen, name, colorReset)
+			} else {
+				fmt.Printf("%s%s%s\n", colorYellow, name, colorReset)
+			}
 		}
-	}
 
-	return nil
+		return nil
+	case branchDelete:
+		if args[0] == r.Branch {
+			return fmt.Errorf("cannot delete current branch")
+		}
+
+		if err := r.Branches.Remove(args[0]); err != nil {
+			return nil
+		}
+
+		return r.Write()
+	default:
+		if err := r.Branches.Add(args[0], r.Base); err != nil {
+			return nil
+		}
+
+		return r.Write()
+	}
 }

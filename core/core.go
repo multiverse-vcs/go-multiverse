@@ -4,6 +4,7 @@ package core
 import (
 	"context"
 	"errors"
+	"io/ioutil"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -16,14 +17,14 @@ import (
 )
 
 var (
-	// ErrInvalidFile is returned when an invalid file is encountered.
-	ErrInvalidFile = errors.New("invalid file")
 	// ErrInvalidKey is returned when an invalid key is used.
 	ErrInvalidKey = errors.New("invalid key")
 	// ErrInvalidRef is returned when a ref resolves to an invalid object.
 	ErrInvalidRef = errors.New("invalid ref")
 	// ErrInvalidTree is returned when a commit has an invalid work tree.
 	ErrInvalidTree = errors.New("invalid tree")
+	// ErrInvalidFile is returned when an invalid file is encountered.
+	ErrInvalidFile = errors.New("invalid file")
 )
 
 // Core contains core services.
@@ -100,6 +101,26 @@ func (c *Core) Diff(ctx context.Context, commitA, commitB *ipldmulti.Commit) ([]
 	}
 
 	return dagutils.Diff(ctx, c.api.Dag(), treeA, treeB)
+}
+
+// ReadFile returns the contents of the file at the given path.
+func (c *Core) ReadFile(ctx context.Context, path path.Path) (string, error) {
+	node, err := c.api.Unixfs().Get(ctx, path)
+	if err != nil {
+		return "", err
+	}
+
+	file, ok := node.(files.File)
+	if !ok {
+		return "", ErrInvalidFile
+	}
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
 }
 
 // Reference resolves the commit from the given ref.
