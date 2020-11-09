@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/ipfs/go-unixfs/file"
 	"github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiverse-vcs/go-ipld-multiverse"
@@ -189,10 +190,5 @@ func (c *Core) Tree(ctx context.Context, commit *ipldmulti.Commit) (files.Node, 
 		return nil, err
 	}
 
-	node, ok := tree.(files.Node)
-	if !ok {
-		return nil, ErrInvalidTree
-	}
-
-	return node, nil
+	return unixfile.NewUnixfsFile(ctx, c.api.Dag(), tree)
 }

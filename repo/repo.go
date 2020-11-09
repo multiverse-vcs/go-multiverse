@@ -45,6 +45,15 @@ type Repo struct {
 	Branches Branches `json:"branches"`
 }
 
+// NewRepo returns a new repo with default values.
+func NewRepo(path string) *Repo {
+	return &Repo{
+		Path: path, 
+		Branch: DefaultBranch,
+		Branches: Branches{},
+	}
+}
+
 // Init creates a new repo at the given path.
 func Init(path string) (*Repo, error) {
 	_, err := Open(path)
@@ -52,12 +61,12 @@ func Init(path string) (*Repo, error) {
 		return nil, ErrRepoExists
 	}
 
-	r := Repo{Path: path, Branch: DefaultBranch}
+	r := NewRepo(path)
 	if err := r.Write(); err != nil {
 		return nil, err
 	}
 
-	return &r, nil
+	return r, nil
 }
 
 // Open searches for a repo in the path or parent directories.

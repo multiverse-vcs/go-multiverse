@@ -6,30 +6,19 @@ Multiverse is a decentralized version control system that enables peer-to-peer s
 
 It builds on top of [IPFS](https://ipfs.io) to provide a secure, resilient, and censorship resistent developer network.
 
-### Install
+### Building
 
-To build and install Multiverse from source run the following.
+To build Multiverse from source run the following.
 
 ```bash
-$ git clone https://github.com/multiverse-vcs/go-multiverse.git
-$ cd go-multiverse
-$ go build -o multi
-$ sudo mv multi /usr/local/bin/
+$ make
 ```
 
-### Concepts
+Then copy the executable to your local bin directory.
 
-Multiverse implements common version control tasks while attempting to abstract the complexities of peer-to-peer networking.
-
-#### References
-
-A reference is a path that can be resolved to the unique identifier of a commit.
-
-Multiverse can resolve references of the following formats.
-
-- [CID](https://docs.ipfs.io/concepts/content-addressing/)
-- [IPNS](https://docs.ipfs.io/concepts/ipns/)
-- [DNSLink](https://docs.ipfs.io/concepts/dnslink/)
+```bash
+$ sudo mv multi /usr/local/bin/
+```
 
 ### Usage
 
@@ -38,60 +27,22 @@ Usage:
   multi [command]
 
 Available Commands:
-  checkout    Checkout files from a different commit.
-  commit      Record changes in the local repo.
+  branch      List, create, or delete branches.
+  checkout    Copy changes from a commit to the local repo.
+  commit      Record changes to the local repo.
   daemon      Run a persistent Multiverse node.
   help        Help about any command
+  import      Import a repo from an external VCS.
   init        Create a new empty repo or copy an existing repo.
   log         Print change history.
   merge       Merge changes from a peer into the local repo.
   status      Print status of the local repo.
+  switch      Change to a different branch.
 
 Flags:
   -h, --help   help for multi
 
 Use "multi [command] --help" for more information about a command.
-```
-
-#### Create a new empty repo
-
-Inside your project root run the following.
-
-```bash
-$ multi init
-```
-
-#### Copy an existing repo
-
-Replace *ref* with a reference to the repo you want to copy.
-
-```bash
-$ multi init ref
-```
-
-#### Ignore files
-
-Create a file named `.multiverse.ignore` in your repo root.
-
-```
-# ignore executable files
-*.exe
-```
-
-#### Record changes
-
-Changes are stored locally until you are ready to share.
-
-```bash
-$ multi commit "initial"
-```
-
-#### Share with peers
-
-Your work will be shared across the public IPFS network.
-
-```bash
-$ multi daemon
 ```
 
 ### Contributing

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/davidlazar/go-crypto v0.0.0-20190912175916-7055855a373f // indirect
+	github.com/go-git/go-git/v5 v5.2.0
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-ipfs v0.7.0
 	github.com/ipfs/go-ipfs-config v0.9.0
@@ -20,5 +21,6 @@ require (
 	github.com/multiverse-vcs/go-xdiff v0.0.3
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/spf13/cobra v1.0.0
+	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )

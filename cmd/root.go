@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/multiverse-vcs/go-multiverse/util"
 	"github.com/spf13/cobra"
 )
 
@@ -24,5 +25,9 @@ that enables peer-to-peer software development.`,
 
 // Execute runs the root command.
 func Execute() error {
+	if err := util.SetFileLimit(2048, 8192); err != nil {
+		return err
+	}
+
 	return rootCmd.Execute()
 }
