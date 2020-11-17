@@ -16,28 +16,14 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-const (
-	DefaultChunker = "buzhash"
-)
-
-var (
-	ErrInvalidFile = errors.New("invalid file type")
-)
+// DefaultChunker is the name of the default chunker algorithm.
+const DefaultChunker = "buzhash"
 
 // Add adds a file to the merkle dag.
 func (c *Context) Add(file files.Node) (ipld.Node, error) {
-	prefix, err := merkledag.PrefixForCidVersion(1)
+	adder, err := c.newAdder()
 	if err != nil {
 		return nil, err
-	}
-
-	prefix.MhType = multihash.SHA2_256
-	prefix.MhLength = -1
-
-	adder := &adder{
-		ctx:     c.ctx,
-		dag:     c.dag,
-		builder: &prefix,
 	}
 
 	node, err := adder.addNode(file)
@@ -56,6 +42,22 @@ type adder struct {
 	ctx     context.Context
 	dag     ipld.DAGService
 	builder cid.Builder
+}
+
+func (c *Context) newAdder() (*adder, error) {
+	prefix, err := merkledag.PrefixForCidVersion(1)
+	if err != nil {
+		return nil, err
+	}
+
+	prefix.MhType = multihash.SHA2_256
+	prefix.MhLength = -1
+
+	return &adder{
+		ctx:     c.ctx,
+		dag:     c.dag,
+		builder: &prefix,
+	}, nil
 }
 
 func (adder *adder) addNode(file files.Node) (ipld.Node, error) {
@@ -79,7 +81,7 @@ func (adder *adder) addNode(file files.Node) (ipld.Node, error) {
 	case files.File:
 		return adder.addFile(node)
 	default:
-		return nil, ErrInvalidFile
+		return nil, errors.New("invalid file type")
 	}
 }
 
@@ -110,6 +112,10 @@ func (adder *adder) addEntries(entries files.DirIterator, dir ufsio.Directory) e
 
 	node, err := adder.addNode(entries.Node())
 	if err != nil {
+		return err
+	}
+
+	if err := adder.dag.Add(adder.ctx, node); err != nil {
 		return err
 	}
 
