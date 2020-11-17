@@ -11,6 +11,7 @@ import (
 
 // Config contains common configuration info.
 type Config struct {
+	Base cid.Cid
 	Head cid.Cid
 }
 

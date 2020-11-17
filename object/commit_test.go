@@ -54,7 +54,7 @@ func TestDecodeCommit(t *testing.T) {
 		t.Error("peer id does not match")
 	}
 
-	if commit.WorkTree.String() != "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ" {
+	if commit.Worktree.String() != "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ" {
 		t.Error("work tree does not match")
 	}
 }
@@ -445,5 +445,26 @@ func TestCommitLinks(t *testing.T) {
 
 	if links[1].Cid.String() != "bagaybqabciqeutn2u7n3zuk5b4ykgfwpkekb7ctgnlwik5zfr6bcukvknj2jtpa" {
 		t.Error("link cid does not match")
+	}
+}
+
+func TestCommitParentLinks(t *testing.T) {
+	id, err := cid.Parse(id)
+	if err != nil {
+		t.Fatal("failed to parse cid")
+	}
+
+	commit, err := DecodeCommit(id, data)
+	if err != nil {
+		t.Fatal("failed to decode commit")
+	}
+
+	links := commit.ParentLinks()
+	if len(links) != 1 {
+		t.Error("expected parent links len to be 1")
+	}
+
+	if links[0].Cid.String() != "bagaybqabciqeutn2u7n3zuk5b4ykgfwpkekb7ctgnlwik5zfr6bcukvknj2jtpa" {
+		t.Error("parent link cid does not match")
 	}
 }

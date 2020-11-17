@@ -7,16 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipld-format"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multihash"
-)
-
-const (
-	// CommitCodec is the multicodec id for commits.
-	CommitCodec = 0x300001
 )
 
 var (
@@ -37,7 +31,7 @@ type Commit struct {
 	// Parents contains the CIDs of parent commits.
 	Parents []cid.Cid `json:"parents"`
 	// PeerID is the hash of the author's public key.
-	PeerID peer.ID `json:"peer_id"`
+	PeerID peer.ID `json:"peer_id,omitempty"`
 	// Worktree is the current state of the repo files.
 	Worktree cid.Cid `json:"tree"`
 
@@ -48,17 +42,9 @@ type Commit struct {
 // Static (compile time) check that Commit satisfies the format.Node interface.
 var _ format.Node = (*Commit)(nil)
 
-// Static (compile time) check that DecodeBlockFunc satisfies format.DecodeBlockFunc.
-var _ format.DecodeBlockFunc = DecodeCommitBlock
-
-// DecodeCommitBlock decodes a commit from a block.
-func DecodeCommitBlock(b blocks.Block) (format.Node, error) {
-	return DecodeCommit(b.Cid(), b.RawData())
-}
-
 // DecodeCommit decodes a commit from a cid and data.
 func DecodeCommit(cid cid.Cid, data []byte) (*Commit, error) {
-	if cid.Prefix().Codec != CommitCodec {
+	if cid.Prefix().Codec != MCommit {
 		return nil, ErrInvalidCodec
 	}
 
@@ -146,6 +132,17 @@ func (c *Commit) Links() []*format.Link {
 	return out
 }
 
+// ParentLinks is a helper function that returns parent links.
+func (c *Commit) ParentLinks() []*format.Link {
+	out := []*format.Link{}
+
+	for _, p := range c.Parents {
+		out = append(out, &format.Link{Cid: p})
+	}
+
+	return out
+}
+
 // RawData returns the block raw contents as a byte slice.
 func (c *Commit) RawData() []byte {
 	if c.data != nil {
@@ -172,7 +169,7 @@ func (c *Commit) Cid() cid.Cid {
 		panic("failed to hash commit")
 	}
 
-	c.cid = cid.NewCidV1(CommitCodec, hash)
+	c.cid = cid.NewCidV1(MCommit, hash)
 	return c.cid
 }
 

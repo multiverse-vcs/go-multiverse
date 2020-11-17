@@ -3,7 +3,6 @@ package core
 import (
 	"time"
 
-	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/object"
 )
 
@@ -22,8 +21,11 @@ func (c *Context) Commit(message string) (*object.Commit, error) {
 	commit := object.Commit{
 		Date:     time.Now(),
 		Message:  message,
-		Parents:  []cid.Cid{c.config.Head},
 		Worktree: node.Cid(),
+	}
+
+	if c.config.Head.Defined() {
+		commit.Parents = append(commit.Parents, c.config.Head)
 	}
 
 	if err := c.dag.Add(c.ctx, &commit); err != nil {
@@ -31,6 +33,7 @@ func (c *Context) Commit(message string) (*object.Commit, error) {
 	}
 
 	c.config.Head = commit.Cid()
+	// TODO write config
 
 	return &commit, nil
 }
