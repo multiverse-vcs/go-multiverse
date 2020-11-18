@@ -15,13 +15,8 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 		return nil, err
 	}
 
-	nodeB, err := c.Add(tree)
-	if err != nil {
-		return nil, err
-	}
-
 	if !c.config.Head.Defined() {
-		return dagutils.Diff(c.ctx, c.dag, &merkledag.ProtoNode{}, nodeB)
+		return dagutils.Diff(c.ctx, c.dag, &merkledag.ProtoNode{}, tree)
 	}
 
 	node, err := c.dag.Get(c.ctx, c.config.Head)
@@ -44,5 +39,5 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 		return nil, err
 	}
 
-	return dagutils.Diff(c.ctx, c.dag, nodeA, nodeB)
+	return dagutils.Diff(c.ctx, c.dag, nodeA, tree)
 }

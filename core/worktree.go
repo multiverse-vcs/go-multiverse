@@ -1,10 +1,9 @@
 package core
 
 import (
-	"os"
-	"path/filepath"
+	"errors"
 
-	"github.com/ipfs/go-ipfs-files"
+	ipld "github.com/ipfs/go-ipld-format"
 )
 
 // IgnoreFile is the name of ignore files.
@@ -13,22 +12,22 @@ const IgnoreFile = ".multignore"
 // IgnoreRules contains default ignore rules.
 var IgnoreRules = []string{".multiverse"}
 
-// Worktree returns the current working directory.
-func (c *Context) Worktree() (files.Node, error) {
-	info, err := os.Stat(c.root)
+// Worktree adds the current working tree to the merkle dag.
+func (c *Context) Worktree() (ipld.Node, error) {
+	info, err := c.fs.Lstat(c.config.Root)
 	if err != nil {
 		return nil, err
 	}
 
-	ignore := filepath.Join(c.root, IgnoreFile)
-	if _, err := os.Stat(ignore); err != nil {
-		ignore = ""
+	if !info.IsDir() {
+		return nil, errors.New("invalid worktree")
 	}
 
-	filter, err := files.NewFilter(ignore, IgnoreRules, true)
+	adder, err := c.NewAdder()
 	if err != nil {
 		return nil, err
 	}
 
-	return files.NewSerialFileWithFilter(c.root, filter, info)
+	// TODO implement ignore filters
+	return adder.Add(c.config.Root, info)
 }

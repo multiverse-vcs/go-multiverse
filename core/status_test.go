@@ -1,34 +1,29 @@
 package core
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
 
+	fsutil "github.com/go-git/go-billy/v5/util"
 	"github.com/ipfs/go-merkledag/dagutils"
 )
 
 func TestStatusRemove(t *testing.T) {
-	c, err := NewMockContext()
-	if err != nil {
-		t.Fatalf("failed to create context")
+	mock := NewMockContext()
+
+	readme := mock.fs.Join(mock.config.Root, "README.md")
+	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+		t.Fatalf("failed to write file")
 	}
 
-	readme := filepath.Join(c.root, "README.md")
-	if err := ioutil.WriteFile(readme, []byte("hello"), 0644); err != nil {
-		t.Fatalf("failed to write readme file")
-	}
-
-	if _, err := c.Commit("init"); err != nil {
+	if _, err := mock.Commit("init"); err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := os.Remove(readme); err != nil {
+	if err := mock.fs.Remove(readme); err != nil {
 		t.Fatalf("failed to remove readme file")
 	}
 
-	changes, err := c.Status()
+	changes, err := mock.Status()
 	if err != nil {
 		t.Fatalf("failed to get status: %s", err)
 	}
@@ -47,17 +42,14 @@ func TestStatusRemove(t *testing.T) {
 }
 
 func TestStatusBare(t *testing.T) {
-	c, err := NewMockContext()
-	if err != nil {
-		t.Fatalf("failed to create context")
+	mock := NewMockContext()
+
+	readme := mock.fs.Join(mock.config.Root, "README.md")
+	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+		t.Fatalf("failed to write file")
 	}
 
-	readme := filepath.Join(c.root, "README.md")
-	if err := ioutil.WriteFile(readme, []byte("hello"), 0644); err != nil {
-		t.Fatalf("failed to write readme file")
-	}
-
-	changes, err := c.Status()
+	changes, err := mock.Status()
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}

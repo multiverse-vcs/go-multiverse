@@ -3,63 +3,60 @@ package core
 import (
 	"testing"
 
-	"github.com/ipfs/go-ipfs-files"
-	"github.com/ipfs/go-unixfs/file"
+	fsutil "github.com/go-git/go-billy/v5/util"
+	ufsio "github.com/ipfs/go-unixfs/io"
 )
 
 func TestAdd(t *testing.T) {
-	c, err := NewMockContext()
-	if err != nil {
-		t.Fatalf("failed to create context")
+	mock := NewMockContext()
+
+	path1 := mock.fs.Join(mock.config.Root, "1")
+	if err := fsutil.WriteFile(mock.fs, path1, []byte("foo bar"), 0644); err != nil {
+		t.Fatalf("failed to write file")
 	}
 
-	test := files.NewMapDirectory(map[string]files.Node{
-		"1": files.NewBytesFile([]byte("foo bar")),
-		"2": files.NewLinkFile("foo bar", nil),
-		"3": files.NewMapDirectory(map[string]files.Node{}),
-	})
+	path2 := mock.fs.Join(mock.config.Root, "2")
+	if err := mock.fs.Symlink(path1, path2); err != nil {
+		t.Fatalf("failed to write file")
+	}
 
-	node, err := c.Add(test)
+	path3 := mock.fs.Join(mock.config.Root, "3")
+	if err := mock.fs.MkdirAll(path3, 0755); err != nil {
+		t.Fatalf("failed to mkdir")
+	}
+
+	info, err := mock.fs.Lstat(mock.config.Root)
+	if err != nil {
+		t.Fatalf("failed to lstat")
+	}
+
+	adder, err := mock.NewAdder()
+	if err != nil {
+		t.Fatalf("failed to create adder")
+	}
+
+	node, err := adder.Add(mock.config.Root, info)
 	if err != nil {
 		t.Fatalf("failed to add file: %s", err)
 	}
 
-	file, err := unixfile.NewUnixfsFile(c.ctx, c.dag, node)
+	dir, err := ufsio.NewDirectoryFromNode(mock.dag, node)
 	if err != nil {
-		t.Fatalf("failed to read unixfile: %s", err)
+		t.Fatalf("failed to read node")
 	}
 
-	dir, ok := file.(files.Directory)
-	if !ok {
-		t.Fatalf("expected file to be a directory")
+	_, err = dir.Find(mock.ctx, path1)
+	if err != nil {
+		t.Errorf("failed to find file")
 	}
 
-	entries := dir.Entries()
-	if !entries.Next() {
-		t.Fatalf("unexpected entries")
+	_, err = dir.Find(mock.ctx, path2)
+	if err != nil {
+		t.Errorf("failed to find file")
 	}
 
-	if entries.Name() != "1" {
-		t.Errorf("unexpected entry")
-	}
-
-	if !entries.Next() {
-		t.Fatalf("unexpected entries")
-	}
-
-	if entries.Name() != "2" {
-		t.Errorf("unexpected entry")
-	}
-
-	if !entries.Next() {
-		t.Fatalf("unexpected entries")
-	}
-
-	if entries.Name() != "3" {
-		t.Errorf("unexpected entry")
-	}
-
-	if entries.Next() {
-		t.Errorf("unexpected entries")
+	_, err = dir.Find(mock.ctx, path3)
+	if err != nil {
+		t.Errorf("failed to find file")
 	}
 }

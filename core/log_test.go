@@ -5,27 +5,31 @@ import (
 	"io"
 	"io/ioutil"
 	"testing"
+
+	fsutil "github.com/go-git/go-billy/v5/util"
 )
 
 func TestLog(t *testing.T) {
-	c, err := NewMockContext()
-	if err != nil {
-		t.Fatalf("failed to create context")
+	mock := NewMockContext()
+
+	readme := mock.fs.Join(mock.config.Root, "README.md")
+	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+		t.Fatalf("failed to write file")
 	}
 
-	commit1, err := c.Commit("first")
+	commit1, err := mock.Commit("first")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	commit2, err := c.Commit("second")
+	commit2, err := mock.Commit("second")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
 	r, w := io.Pipe()
 	go func() {
-		c.Log(w)
+		mock.Log(w)
 		w.Close()
 	}()
 

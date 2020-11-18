@@ -13,15 +13,10 @@ func (c *Context) Commit(message string) (*object.Commit, error) {
 		return nil, err
 	}
 
-	node, err := c.Add(tree)
-	if err != nil {
-		return nil, err
-	}
-
 	commit := object.Commit{
 		Date:     time.Now(),
 		Message:  message,
-		Worktree: node.Cid(),
+		Worktree: tree.Cid(),
 	}
 
 	if c.config.Head.Defined() {

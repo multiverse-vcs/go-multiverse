@@ -2,15 +2,19 @@ package core
 
 import (
 	"testing"
+
+	fsutil "github.com/go-git/go-billy/v5/util"
 )
 
 func TestCommit(t *testing.T) {
-	c, err := NewMockContext()
-	if err != nil {
-		t.Fatalf("failed to create context")
+	mock := NewMockContext()
+
+	readme := mock.fs.Join(mock.config.Root, "README.md")
+	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+		t.Fatalf("failed to write file")
 	}
 
-	first, err := c.Commit("first")
+	first, err := mock.Commit("first")
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
@@ -23,11 +27,11 @@ func TestCommit(t *testing.T) {
 		t.Fatalf("commit parent does not match")
 	}
 
-	if c.config.Head != first.Cid() {
+	if mock.config.Head != first.Cid() {
 		t.Errorf("config head does not match")
 	}
 
-	second, err := c.Commit("second")
+	second, err := mock.Commit("second")
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
@@ -44,7 +48,7 @@ func TestCommit(t *testing.T) {
 		t.Errorf("commit parent does not match")
 	}
 
-	if c.config.Head != second.Cid() {
+	if mock.config.Head != second.Cid() {
 		t.Errorf("config head does not match")
 	}
 }
