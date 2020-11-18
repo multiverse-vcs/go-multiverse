@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	ipld "github.com/ipfs/go-ipld-format"
+	"github.com/sabhiram/go-gitignore"
 )
 
 // IgnoreFile is the name of ignore files.
@@ -23,11 +24,10 @@ func (c *Context) Worktree() (ipld.Node, error) {
 		return nil, errors.New("invalid worktree")
 	}
 
-	adder, err := c.NewAdder()
+	filter, err := ignore.CompileIgnoreLines(IgnoreRules...)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO implement ignore filters
-	return adder.Add(c.config.Root, info)
+	return c.Add(c.config.Root, info, filter)
 }

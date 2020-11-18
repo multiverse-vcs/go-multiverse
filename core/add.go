@@ -1,13 +1,9 @@
 package core
 
 import (
-	"context"
 	"errors"
-	"io"
 	"os"
 
-	"github.com/go-git/go-billy/v5"
-	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipfs-chunker"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
@@ -15,60 +11,39 @@ import (
 	"github.com/ipfs/go-unixfs/importer/balanced"
 	"github.com/ipfs/go-unixfs/importer/helpers"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/multiformats/go-multihash"
+	"github.com/sabhiram/go-gitignore"
 )
 
 // DefaultChunker is the name of the default chunker algorithm.
 const DefaultChunker = "buzhash"
 
-// Adder is used to add files to the merkle dag.
-type Adder struct {
-	ctx    context.Context
-	dag    ipld.DAGService
-	fs     billy.Filesystem
-	prefix *cid.Prefix
-}
-
-// NewAdder returns an adder with default settings.
-func (c *Context) NewAdder() (*Adder, error) {
-	prefix, err := merkledag.PrefixForCidVersion(1)
-	if err != nil {
-		return nil, err
-	}
-
-	prefix.MhType = multihash.SHA2_256
-	prefix.MhLength = -1
-
-	return &Adder{
-		ctx:    c.ctx,
-		dag:    c.dag,
-		fs:     c.fs,
-		prefix: &prefix,
-	}, nil
-}
-
 // Add creates a node from the file at path and adds it to the merkle dag.
-func (adder *Adder) Add(path string, stat os.FileInfo) (ipld.Node, error) {
+func (c *Context) Add(path string, stat os.FileInfo, filter *ignore.GitIgnore) (ipld.Node, error) {
 	switch mode := stat.Mode(); {
 	case mode.IsRegular():
-		return adder.addFile(path)
-	case mode.IsDir():
-		return adder.addDir(path)
+		return c.addFile(path)
 	case mode&os.ModeSymlink != 0:
-		return adder.addSymlink(path)
+		return c.addSymlink(path)
+	case mode.IsDir():
+		return c.addDir(path, filter)
 	default:
 		return nil, errors.New("invalid file type")
 	}
 }
 
-func (adder *Adder) add(r io.Reader) (ipld.Node, error) {
+func (c *Context) addFile(path string) (ipld.Node, error) {
 	params := helpers.DagBuilderParams{
-		Dagserv:    adder.dag,
-		CidBuilder: adder.prefix,
+		Dagserv:    c.dag,
+		CidBuilder: merkledag.V1CidPrefix(),
 		Maxlinks:   helpers.DefaultLinksPerBlock,
 	}
 
-	chunker, err := chunk.FromString(r, DefaultChunker)
+	file, err := c.fs.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	chunker, err := chunk.FromString(file, DefaultChunker)
 	if err != nil {
 		return nil, err
 	}
@@ -78,25 +53,16 @@ func (adder *Adder) add(r io.Reader) (ipld.Node, error) {
 		return nil, err
 	}
 
-	return balanced.Layout(helper)
-}
-
-func (adder *Adder) addFile(path string) (ipld.Node, error) {
-	file, err := adder.fs.Open(path)
+	node, err := balanced.Layout(helper)
 	if err != nil {
 		return nil, err
 	}
 
-	node, err := adder.add(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return node, adder.dag.Add(adder.ctx, node)
+	return node, c.dag.Add(c.ctx, node)
 }
 
-func (adder *Adder) addSymlink(path string) (ipld.Node, error) {
-	target, err := adder.fs.Readlink(path)
+func (c *Context) addSymlink(path string) (ipld.Node, error) {
+	target, err := c.fs.Readlink(path)
 	if err != nil {
 		return nil, err
 	}
@@ -107,24 +73,28 @@ func (adder *Adder) addSymlink(path string) (ipld.Node, error) {
 	}
 
 	node := merkledag.NodeWithData(data)
-	return node, adder.dag.Add(adder.ctx, node)
+	return node, c.dag.Add(c.ctx, node)
 }
 
-func (adder *Adder) addDir(path string) (ipld.Node, error) {
-	entries, err := adder.fs.ReadDir(path)
+func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+	entries, err := c.fs.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
 
-	dir := ufsio.NewDirectory(adder.dag)
+	dir := ufsio.NewDirectory(c.dag)
 	for _, info := range entries {
-		subpath := adder.fs.Join(path, info.Name())
-		subnode, err := adder.Add(subpath, info)
+		subpath := c.fs.Join(path, info.Name())
+		if filter != nil && filter.MatchesPath(subpath) {
+			continue
+		}
+
+		subnode, err := c.Add(subpath, info, filter)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := dir.AddChild(adder.ctx, info.Name(), subnode); err != nil {
+		if err := dir.AddChild(c.ctx, info.Name(), subnode); err != nil {
 			return nil, err
 		}
 	}
@@ -134,5 +104,5 @@ func (adder *Adder) addDir(path string) (ipld.Node, error) {
 		return nil, err
 	}
 
-	return node, adder.dag.Add(adder.ctx, node)
+	return node, c.dag.Add(c.ctx, node)
 }
