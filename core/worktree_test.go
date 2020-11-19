@@ -30,12 +30,12 @@ func TestWorktree(t *testing.T) {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = dir.Find(mock.ctx, readme)
+	_, err = dir.Find(mock.ctx, "README.md")
 	if err != nil {
 		t.Errorf("failed to find file")
 	}
 
-	_, err = dir.Find(mock.ctx, dot)
+	_, err = dir.Find(mock.ctx, ".multiverse")
 	if err == nil {
 		t.Errorf("expected file to be ignored")
 	}

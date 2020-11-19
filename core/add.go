@@ -18,7 +18,12 @@ import (
 const DefaultChunker = "buzhash"
 
 // Add creates a node from the file at path and adds it to the merkle dag.
-func (c *Context) Add(path string, stat os.FileInfo, filter *ignore.GitIgnore) (ipld.Node, error) {
+func (c *Context) Add(path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+	stat, err := c.fs.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+
 	switch mode := stat.Mode(); {
 	case mode.IsRegular():
 		return c.addFile(path)
@@ -89,7 +94,7 @@ func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, erro
 			continue
 		}
 
-		subnode, err := c.Add(subpath, info, filter)
+		subnode, err := c.Add(subpath, filter)
 		if err != nil {
 			return nil, err
 		}

@@ -17,12 +17,7 @@ func TestAddFile(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	info, err := mock.fs.Lstat(path)
-	if err != nil {
-		t.Fatalf("failed to stat file")
-	}
-
-	node, err := mock.Add(path, info, nil)
+	node, err := mock.Add(path, nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
@@ -45,17 +40,17 @@ func TestAddFile(t *testing.T) {
 func TestAddDir(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.config.Root, "test.txt")
+	dir := mock.fs.Join(mock.config.Root, "test")
+	if err := mock.fs.MkdirAll(dir, 0755); err != nil {
+		t.Fatalf("failed to mkdir")
+	}
+
+	path := mock.fs.Join(dir, "test.txt")
 	if err := fsutil.WriteFile(mock.fs, path, []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	info, err := mock.fs.Lstat(mock.config.Root)
-	if err != nil {
-		t.Fatalf("failed to lstat")
-	}
-
-	node, err := mock.Add(mock.config.Root, info, nil)
+	node, err := mock.Add(dir, nil)
 	if err != nil {
 		t.Fatalf("failed to add")
 	}
@@ -65,7 +60,7 @@ func TestAddDir(t *testing.T) {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = ufsdir.Find(mock.ctx, path)
+	_, err = ufsdir.Find(mock.ctx, "test.txt")
 	if err != nil {
 		t.Errorf("failed to find file")
 	}
@@ -79,12 +74,7 @@ func TestAddSymlink(t *testing.T) {
 		t.Fatalf("failed to create symlink")
 	}
 
-	info, err := mock.fs.Lstat(path)
-	if err != nil {
-		t.Fatalf("failed to lstat")
-	}
-
-	node, err := mock.Add(path, info, nil)
+	node, err := mock.Add(path, nil)
 	if err != nil {
 		t.Fatalf("failed to add")
 	}
