@@ -1,8 +1,6 @@
 package core
 
 import (
-	"errors"
-
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/object"
@@ -24,17 +22,12 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 		return nil, err
 	}
 
-	commit, ok := node.(*object.Commit)
-	if !ok {
-		return nil, errors.New("invalid commit")
-	}
-
-	link, _, err := commit.ResolveLink([]string{"tree"})
+	commit, err := object.CommitFromCBOR(node.RawData())
 	if err != nil {
 		return nil, err
 	}
 
-	nodeA, err := link.GetNode(c.ctx, c.dag)
+	nodeA, err := c.dag.Get(c.ctx, commit.Tree)
 	if err != nil {
 		return nil, err
 	}

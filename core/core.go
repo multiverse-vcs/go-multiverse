@@ -1,3 +1,4 @@
+// Package core implements core Multiverse commands.
 package core
 
 import (

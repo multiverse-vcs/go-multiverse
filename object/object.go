@@ -1,21 +1,28 @@
-// Package object contains ipld definitions for multiverse objects.
+// Package object contains Multiverse object definitions.
 package object
 
 import (
-	"github.com/ipfs/go-block-format"
-	"github.com/ipfs/go-ipld-format"
+	"time"
+
+	"github.com/ipfs/go-ipld-cbor"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
+// timeAtlasEntry allows encoding and decoding of time structs.
+var timeAtlasEntry = atlas.BuildEntry(time.Time{}).
+	Transform().
+	TransformMarshal(atlas.MakeMarshalTransformFunc(
+		func(t time.Time) ([]byte, error) {
+			return t.MarshalText()
+		})).
+	TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+		func(data []byte) (time.Time, error) {
+			return time.Parse(time.RFC3339, string(data))
+		})).
+	Complete()
+
+// register all types here so they can be encoded and decoded
 func init() {
-	format.Register(MCommit, DecodeCommitBlock)
-}
-
-const (
-	// MCommit is the multicodec id for commits.
-	MCommit = 0x300001
-)
-
-// DecodeCommitBlock decodes a commit from a block.
-func DecodeCommitBlock(b blocks.Block) (format.Node, error) {
-	return DecodeCommit(b.Cid(), b.RawData())
+	cbornode.RegisterCborType(timeAtlasEntry)
+	cbornode.RegisterCborType(Commit{})
 }

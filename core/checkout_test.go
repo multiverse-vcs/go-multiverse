@@ -14,7 +14,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	commit, err := mock.Commit("init")
+	id, err := mock.Commit("init")
 	if err != nil {
 		t.Fatalf("failed to create worktree")
 	}
@@ -23,7 +23,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatalf("failed to remove all")
 	}
 
-	if err := mock.Checkout(commit.Cid()); err != nil {
+	if err := mock.Checkout(id); err != nil {
 		t.Fatalf("failed to checkout")
 	}
 

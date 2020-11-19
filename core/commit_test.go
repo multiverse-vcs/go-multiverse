@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	fsutil "github.com/go-git/go-billy/v5/util"
+	"github.com/multiverse-vcs/go-multiverse/object"
 )
 
 func TestCommit(t *testing.T) {
@@ -14,41 +15,61 @@ func TestCommit(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	first, err := mock.Commit("first")
+	idA, err := mock.Commit("first")
 	if err != nil {
-		t.Fatalf("failed to commit: %s", err)
+		t.Fatalf("failed to create commit")
 	}
 
-	if first.Message != "first" {
+	nodeA, err := mock.dag.Get(mock.ctx, idA)
+	if err != nil {
+		t.Fatalf("failed to get commit")
+	}
+
+	commitA, err := object.CommitFromCBOR(nodeA.RawData())
+	if err != nil {
+		t.Fatalf("failed to decode commit")
+	}
+
+	if commitA.Message != "first" {
 		t.Errorf("commit message does not match")
 	}
 
-	if len(first.Parents) != 0 {
+	if len(commitA.Parents) != 0 {
 		t.Fatalf("commit parent does not match")
 	}
 
-	if mock.config.Head != first.Cid() {
+	if mock.config.Head != idA {
 		t.Errorf("config head does not match")
 	}
 
-	second, err := mock.Commit("second")
+	idB, err := mock.Commit("second")
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	if second.Message != "second" {
+	nodeB, err := mock.dag.Get(mock.ctx, idB)
+	if err != nil {
+		t.Fatalf("failed to get commit")
+	}
+
+	commitB, err := object.CommitFromCBOR(nodeB.RawData())
+	if err != nil {
+		t.Fatalf("failed to decode commit")
+	}
+
+	if commitB.Message != "second" {
 		t.Errorf("commit message does not match")
 	}
 
-	if len(second.Parents) != 1 {
+	if len(commitB.Parents) != 1 {
 		t.Fatalf("commit parent does not match")
 	}
 
-	if second.Parents[0] != first.Cid() {
+	if commitB.Parents[0] != idA {
 		t.Errorf("commit parent does not match")
 	}
 
-	if mock.config.Head != second.Cid() {
+	if mock.config.Head != idB {
 		t.Errorf("config head does not match")
 	}
 }

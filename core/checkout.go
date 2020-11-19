@@ -14,17 +14,12 @@ func (c *Context) Checkout(id cid.Cid) error {
 		return err
 	}
 
-	commit, ok := node.(*object.Commit)
-	if !ok {
+	commit, err := object.CommitFromCBOR(node.RawData())
+	if err != nil {
 		return errors.New("invalid commit")
 	}
 
-	link, _, err := commit.ResolveLink([]string{"tree"})
-	if err != nil {
-		return err
-	}
-
-	tree, err := link.GetNode(c.ctx, c.dag)
+	tree, err := c.dag.Get(c.ctx, commit.Tree)
 	if err != nil {
 		return err
 	}

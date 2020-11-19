@@ -3,16 +3,15 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
 	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/multiverse-vcs/go-multiverse/util"
 )
 
+// Log prints commit history starting at the current head.
 func (c *Context) Log(w io.Writer) error {
 	if !c.config.Head.Defined() {
 		return nil
@@ -24,8 +23,8 @@ func (c *Context) Log(w io.Writer) error {
 			return nil, err
 		}
 
-		commit, ok := node.(*object.Commit)
-		if !ok {
+		commit, err := object.CommitFromCBOR(node.RawData())
+		if err != nil {
 			return nil, errors.New("invalid commit")
 		}
 
@@ -38,22 +37,12 @@ func (c *Context) Log(w io.Writer) error {
 			return false
 		}
 
-		commit, ok := node.(*object.Commit)
-		if !ok {
+		commit, err := object.CommitFromCBOR(node.RawData())
+		if err != nil {
 			return false
 		}
 
-		fmt.Fprintf(w, "%scommit %s", util.ColorYellow, commit.Cid().String())
-		if id == c.config.Head {
-			fmt.Fprintf(w, " (%sHEAD%s)", util.ColorRed, util.ColorYellow)
-		}
-		if id == c.config.Base {
-			fmt.Fprintf(w, " (%sBASE%s)", util.ColorGreen, util.ColorYellow)
-		}
-		fmt.Fprintf(w, "%s\n", util.ColorReset)
-		fmt.Fprintf(w, "Peer: %s\n", commit.PeerID.String())
-		fmt.Fprintf(w, "Date: %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
-		fmt.Fprintf(w, "\n\t%s\n\n", commit.Message)
+		commit.Log(w, id, c.config.Head, c.config.Base)
 		return true
 	}
 

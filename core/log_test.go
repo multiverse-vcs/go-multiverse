@@ -17,12 +17,12 @@ func TestLog(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	commit1, err := mock.Commit("first")
+	idA, err := mock.Commit("first")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	commit2, err := mock.Commit("second")
+	idB, err := mock.Commit("second")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -35,16 +35,14 @@ func TestLog(t *testing.T) {
 
 	log, err := ioutil.ReadAll(r)
 	if err != nil {
-		t.Fatalf("failed to read log: %s", err)
+		t.Fatalf("failed to read log")
 	}
 
-	cid1 := commit1.Cid().String()
-	if !bytes.Contains(log, []byte(cid1)) {
+	if !bytes.Contains(log, []byte(idA.String())) {
 		t.Errorf("expected commit cid in log")
 	}
 
-	cid2 := commit2.Cid().String()
-	if !bytes.Contains(log, []byte(cid2)) {
+	if !bytes.Contains(log, []byte(idB.String())) {
 		t.Errorf("expected commit cid in log")
 	}
 }
