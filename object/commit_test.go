@@ -11,7 +11,6 @@ var data = []byte(`{
 	"date": "2020-10-25T15:26:12.168056-07:00",
 	"message": "big changes",
 	"parents": [{"/": "bagaybqabciqeutn2u7n3zuk5b4ykgfwpkekb7ctgnlwik5zfr6bcukvknj2jtpa"}],
-	"peer_id": "QmcSMDFbN4Br31GnqfhNEkqVFj3gyuVVeYriZNqY8kQpDN",
 	"tree": {"/": "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ"}
 }`)
 
