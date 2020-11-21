@@ -3,73 +3,54 @@ package core
 import (
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
+	//fsutil "github.com/go-git/go-billy/v5/util"
 	"github.com/multiverse-vcs/go-multiverse/object"
 )
 
 func TestCommit(t *testing.T) {
 	mock := NewMockContext()
 
-	readme := mock.fs.Join(mock.config.Root, "README.md")
-	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
-		t.Fatalf("failed to write file")
+	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+		t.Fatalf("failed to mkdir")
 	}
 
-	idA, err := mock.Commit("first")
+	parent, err := mock.Commit("init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	nodeA, err := mock.dag.Get(mock.ctx, idA)
-	if err != nil {
-		t.Fatalf("failed to get commit")
-	}
-
-	commitA, err := object.CommitFromCBOR(nodeA.RawData())
-	if err != nil {
-		t.Fatalf("failed to decode commit")
-	}
-
-	if commitA.Message != "first" {
-		t.Errorf("commit message does not match")
-	}
-
-	if len(commitA.Parents) != 0 {
-		t.Fatalf("commit parent does not match")
-	}
-
-	if mock.config.Head != idA {
-		t.Errorf("config head does not match")
-	}
-
-	idB, err := mock.Commit("second")
+	id, err := mock.Commit("changes")
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	nodeB, err := mock.dag.Get(mock.ctx, idB)
+	node, err := mock.dag.Get(mock.ctx, id)
 	if err != nil {
 		t.Fatalf("failed to get commit")
 	}
 
-	commitB, err := object.CommitFromCBOR(nodeB.RawData())
+	commit, err := object.CommitFromCBOR(node.RawData())
 	if err != nil {
 		t.Fatalf("failed to decode commit")
 	}
 
-	if commitB.Message != "second" {
+	if commit.Message != "changes" {
 		t.Errorf("commit message does not match")
 	}
 
-	if len(commitB.Parents) != 1 {
+	if len(commit.Parents) != 1 {
 		t.Fatalf("commit parent does not match")
 	}
 
-	if commitB.Parents[0] != idA {
+	if commit.Parents[0] != parent {
 		t.Errorf("commit parent does not match")
 	}
 
-	if mock.config.Head != idB {
+	if mock.cfg.Head != id {
 		t.Errorf("config head does not match")
+	}
+
+	if mock.cfg.Base != id {
+		t.Errorf("config base does not match")
 	}
 }

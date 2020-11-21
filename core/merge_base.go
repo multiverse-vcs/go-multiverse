@@ -14,7 +14,7 @@ func (c *Context) MergeBase(local, remote cid.Cid) (cid.Cid, error) {
 
 	// local is ahead of remote
 	if _, ok := history[remote.KeyString()]; ok {
-		return local, nil
+		return remote, nil
 	}
 
 	var best cid.Cid
@@ -33,7 +33,7 @@ func (c *Context) MergeBase(local, remote cid.Cid) (cid.Cid, error) {
 		}
 
 		var match bool
-		if match, err0 = c.isAncestor(id, best); match {
+		if match, err0 = c.isAncestor(best, id); !match {
 			best = id
 		}
 

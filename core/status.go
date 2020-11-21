@@ -13,11 +13,11 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 		return nil, err
 	}
 
-	if !c.config.Head.Defined() {
+	if !c.cfg.Head.Defined() {
 		return dagutils.Diff(c.ctx, c.dag, &merkledag.ProtoNode{}, tree)
 	}
 
-	node, err := c.dag.Get(c.ctx, c.config.Head)
+	node, err := c.dag.Get(c.ctx, c.cfg.Head)
 	if err != nil {
 		return nil, err
 	}

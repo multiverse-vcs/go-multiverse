@@ -11,6 +11,10 @@ import (
 
 // Commit creates a new commit.
 func (c *Context) Commit(message string) (cid.Cid, error) {
+	if err := c.cfg.Detached(); err != nil {
+		return cid.Cid{}, err
+	}
+
 	tree, err := c.Worktree()
 	if err != nil {
 		return cid.Cid{}, err
@@ -22,8 +26,8 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		Tree:    tree.Cid(),
 	}
 
-	if c.config.Head.Defined() {
-		commit.Parents = append(commit.Parents, c.config.Head)
+	if c.cfg.Base.Defined() {
+		commit.Parents = append(commit.Parents, c.cfg.Base)
 	}
 
 	node, err := cbornode.WrapObject(&commit, multihash.SHA2_256, -1)
@@ -35,8 +39,12 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		return cid.Cid{}, err
 	}
 
-	c.config.Head = node.Cid()
-	// TODO write config
+	c.cfg.Base = node.Cid()
+	c.cfg.Head = node.Cid()
+
+	if err := c.cfg.Write(); err != nil {
+		return cid.Cid{}, err
+	}
 
 	return node.Cid(), nil
 }

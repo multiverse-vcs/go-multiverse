@@ -12,7 +12,7 @@ import (
 func TestAddFile(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.config.Root, "test.txt")
+	path := mock.fs.Join(mock.fs.Root(), "test.txt")
 	if err := fsutil.WriteFile(mock.fs, path, []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
@@ -40,7 +40,7 @@ func TestAddFile(t *testing.T) {
 func TestAddDir(t *testing.T) {
 	mock := NewMockContext()
 
-	dir := mock.fs.Join(mock.config.Root, "test")
+	dir := mock.fs.Join(mock.fs.Root(), "test")
 	if err := mock.fs.MkdirAll(dir, 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
@@ -69,7 +69,7 @@ func TestAddDir(t *testing.T) {
 func TestAddSymlink(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.config.Root, "link")
+	path := mock.fs.Join(mock.fs.Root(), "link")
 	if err := mock.fs.Symlink("target", path); err != nil {
 		t.Fatalf("failed to create symlink")
 	}

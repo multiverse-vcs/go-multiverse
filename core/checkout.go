@@ -24,5 +24,5 @@ func (c *Context) Checkout(id cid.Cid) error {
 		return err
 	}
 
-	return c.Write(c.config.Root, tree)
+	return c.Write(c.fs.Root(), tree)
 }
