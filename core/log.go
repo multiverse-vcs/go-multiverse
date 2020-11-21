@@ -31,9 +31,6 @@ func (c *Context) Log(w io.Writer) error {
 		return true
 	}
 
-	if _, err := c.Walk(c.cfg.Head, cb); err != nil {
-		return err
-	}
-
-	return nil
+	_, err := c.Walk(c.cfg.Head, cb)
+	return err
 }

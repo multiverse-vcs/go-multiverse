@@ -1,4 +1,3 @@
-// Package core implements core Multiverse commands.
 package core
 
 import (
@@ -13,7 +12,7 @@ import (
 
 // Context contains common data and services.
 type Context struct {
-	ctx context.Context
+	context.Context
 	cfg *config.Config
 	dag ipld.DAGService
 	fs  billy.Filesystem
@@ -22,9 +21,9 @@ type Context struct {
 // NewMockContext returns a context that can be used for testing.
 func NewMockContext() *Context {
 	return &Context{
-		ctx: context.TODO(),
-		cfg: config.NewMockConfig(),
-		dag: dagutils.NewMemoryDagService(),
-		fs:  memfs.New(),
+		Context: context.TODO(),
+		cfg:     &config.Config{},
+		dag:     dagutils.NewMemoryDagService(),
+		fs:      memfs.New(),
 	}
 }

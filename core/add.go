@@ -63,7 +63,7 @@ func (c *Context) addFile(path string) (ipld.Node, error) {
 		return nil, err
 	}
 
-	return node, c.dag.Add(c.ctx, node)
+	return node, c.dag.Add(c, node)
 }
 
 func (c *Context) addSymlink(path string) (ipld.Node, error) {
@@ -78,7 +78,7 @@ func (c *Context) addSymlink(path string) (ipld.Node, error) {
 	}
 
 	node := merkledag.NodeWithData(data)
-	return node, c.dag.Add(c.ctx, node)
+	return node, c.dag.Add(c, node)
 }
 
 func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, error) {
@@ -99,7 +99,7 @@ func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, erro
 			return nil, err
 		}
 
-		if err := dir.AddChild(c.ctx, info.Name(), subnode); err != nil {
+		if err := dir.AddChild(c, info.Name(), subnode); err != nil {
 			return nil, err
 		}
 	}
@@ -109,5 +109,5 @@ func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, erro
 		return nil, err
 	}
 
-	return node, c.dag.Add(c.ctx, node)
+	return node, c.dag.Add(c, node)
 }

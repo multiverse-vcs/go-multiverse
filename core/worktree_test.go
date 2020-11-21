@@ -10,6 +10,16 @@ import (
 func TestWorktree(t *testing.T) {
 	mock := NewMockContext()
 
+	ignore := mock.fs.Join(mock.fs.Root(), IgnoreFile)
+	if err := fsutil.WriteFile(mock.fs, ignore, []byte("*.exe"), 0644); err != nil {
+		t.Fatalf("failed to write file")
+	}
+
+	exe := mock.fs.Join(mock.fs.Root(), "test.exe")
+	if err := fsutil.WriteFile(mock.fs, exe, []byte{0, 0, 0}, 0644); err != nil {
+		t.Fatalf("failed to write file")
+	}
+
 	readme := mock.fs.Join(mock.fs.Root(), "README.md")
 	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
@@ -30,25 +40,23 @@ func TestWorktree(t *testing.T) {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = dir.Find(mock.ctx, "README.md")
+	_, err = dir.Find(mock, "README.md")
 	if err != nil {
 		t.Errorf("failed to find file")
 	}
 
-	_, err = dir.Find(mock.ctx, ".multiverse")
+	_, err = dir.Find(mock, IgnoreFile)
+	if err != nil {
+		t.Errorf("failed to find file")
+	}
+
+	_, err = dir.Find(mock, "test.exe")
 	if err == nil {
 		t.Errorf("expected file to be ignored")
 	}
-}
 
-func TestWorktreeEmpty(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
-	}
-
-	if _, err := mock.Worktree(); err != nil {
-		t.Fatalf("failed to create worktree")
+	_, err = dir.Find(mock, ".multiverse")
+	if err == nil {
+		t.Errorf("expected file to be ignored")
 	}
 }

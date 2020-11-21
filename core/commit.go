@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -11,8 +12,8 @@ import (
 
 // Commit creates a new commit.
 func (c *Context) Commit(message string) (cid.Cid, error) {
-	if err := c.cfg.Detached(); err != nil {
-		return cid.Cid{}, err
+	if c.cfg.Base != c.cfg.Head {
+		return cid.Cid{}, errors.New("base is behind head")
 	}
 
 	tree, err := c.Worktree()
@@ -35,16 +36,12 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		return cid.Cid{}, err
 	}
 
-	if err := c.dag.Add(c.ctx, node); err != nil {
+	if err := c.dag.Add(c, node); err != nil {
 		return cid.Cid{}, err
 	}
 
 	c.cfg.Base = node.Cid()
 	c.cfg.Head = node.Cid()
-
-	if err := c.cfg.Write(); err != nil {
-		return cid.Cid{}, err
-	}
 
 	return node.Cid(), nil
 }

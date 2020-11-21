@@ -28,7 +28,7 @@ func (c *Context) Write(path string, node ipld.Node) error {
 }
 
 func (c *Context) writeFile(path string, node ipld.Node) error {
-	reader, err := ufsio.NewDagReader(c.ctx, node, c.dag)
+	reader, err := ufsio.NewDagReader(c, node, c.dag)
 	if err != nil {
 		return err
 	}
@@ -56,9 +56,9 @@ func (c *Context) writeDir(path string, node ipld.Node) error {
 		return err
 	}
 
-	links, err := dir.Links(c.ctx)
+	links, err := dir.Links(c)
 	for _, link := range links {
-		subnode, err := link.GetNode(c.ctx, c.dag)
+		subnode, err := link.GetNode(c, c.dag)
 		if err != nil {
 			return err
 		}

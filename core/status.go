@@ -14,10 +14,10 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 	}
 
 	if !c.cfg.Head.Defined() {
-		return dagutils.Diff(c.ctx, c.dag, &merkledag.ProtoNode{}, tree)
+		return dagutils.Diff(c, c.dag, &merkledag.ProtoNode{}, tree)
 	}
 
-	node, err := c.dag.Get(c.ctx, c.cfg.Head)
+	node, err := c.dag.Get(c, c.cfg.Head)
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +27,10 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 		return nil, err
 	}
 
-	nodeA, err := c.dag.Get(c.ctx, commit.Tree)
+	nodeA, err := c.dag.Get(c, commit.Tree)
 	if err != nil {
 		return nil, err
 	}
 
-	return dagutils.Diff(c.ctx, c.dag, nodeA, tree)
+	return dagutils.Diff(c, c.dag, nodeA, tree)
 }

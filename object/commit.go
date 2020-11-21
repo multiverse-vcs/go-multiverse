@@ -43,7 +43,7 @@ func CommitFromCBOR(data []byte) (*Commit, error) {
 
 // ParentLinks returns parent ipld links.
 func (c *Commit) ParentLinks() []*ipld.Link {
-	out := []*ipld.Link{}
+	out := make([]*ipld.Link, 0)
 	for _, p := range c.Parents {
 		out = append(out, &ipld.Link{Cid: p})
 	}

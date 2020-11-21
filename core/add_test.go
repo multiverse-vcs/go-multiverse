@@ -22,7 +22,7 @@ func TestAddFile(t *testing.T) {
 		t.Fatalf("failed to add file")
 	}
 
-	r, err := ufsio.NewDagReader(mock.ctx, node, mock.dag)
+	r, err := ufsio.NewDagReader(mock, node, mock.dag)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
@@ -60,7 +60,7 @@ func TestAddDir(t *testing.T) {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = ufsdir.Find(mock.ctx, "test.txt")
+	_, err = ufsdir.Find(mock, "test.txt")
 	if err != nil {
 		t.Errorf("failed to find file")
 	}

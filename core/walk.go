@@ -28,7 +28,7 @@ func (c *Context) Walk(id cid.Cid, cb func(cid.Cid, *object.Commit) bool) (map[s
 			return false
 		}
 
-		node, err := c.dag.Get(c.ctx, id)
+		node, err := c.dag.Get(c, id)
 		if err != nil {
 			return false
 		}
@@ -46,5 +46,5 @@ func (c *Context) Walk(id cid.Cid, cb func(cid.Cid, *object.Commit) bool) (map[s
 		return true
 	}
 
-	return history, merkledag.Walk(c.ctx, getLinks, id, visit)
+	return history, merkledag.Walk(c, getLinks, id, visit)
 }

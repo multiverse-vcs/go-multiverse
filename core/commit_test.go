@@ -3,7 +3,6 @@ package core
 import (
 	"testing"
 
-	//fsutil "github.com/go-git/go-billy/v5/util"
 	"github.com/multiverse-vcs/go-multiverse/object"
 )
 
@@ -24,7 +23,7 @@ func TestCommit(t *testing.T) {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	node, err := mock.dag.Get(mock.ctx, id)
+	node, err := mock.dag.Get(mock, id)
 	if err != nil {
 		t.Fatalf("failed to get commit")
 	}
@@ -52,5 +51,27 @@ func TestCommit(t *testing.T) {
 
 	if mock.cfg.Base != id {
 		t.Errorf("config base does not match")
+	}
+}
+
+func TestCommitDetached(t *testing.T) {
+	mock := NewMockContext()
+
+	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+		t.Fatalf("failed to mkdir")
+	}
+
+	commit, err := mock.Commit("init")
+	if err != nil {
+		t.Fatalf("failed to create commit")
+	}
+
+	if _, err := mock.Commit("second"); err != nil {
+		t.Fatalf("failed to create commit")
+	}
+
+	mock.cfg.Base = commit
+	if _, err := mock.Commit("detached"); err == nil {
+		t.Errorf("expected commit error")
 	}
 }
