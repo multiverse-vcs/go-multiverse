@@ -10,8 +10,8 @@ import (
 func TestStatusRemove(t *testing.T) {
 	mock := NewMockContext()
 
-	readme := mock.fs.Join(mock.fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
+	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
@@ -19,7 +19,7 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := mock.fs.Remove(readme); err != nil {
+	if err := mock.Fs.Remove(readme); err != nil {
 		t.Fatalf("failed to remove readme file")
 	}
 
@@ -44,8 +44,8 @@ func TestStatusRemove(t *testing.T) {
 func TestStatusBare(t *testing.T) {
 	mock := NewMockContext()
 
-	readme := mock.fs.Join(mock.fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
+	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 

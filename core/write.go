@@ -21,19 +21,19 @@ func (c *Context) Write(path string, node ipld.Node) error {
 	case unixfs.TDirectory:
 		return c.writeDir(path, node)
 	case unixfs.TSymlink:
-		return c.fs.Symlink(string(fsnode.Data()), path)
+		return c.Fs.Symlink(string(fsnode.Data()), path)
 	default:
 		return errors.New("invalid file type")
 	}
 }
 
 func (c *Context) writeFile(path string, node ipld.Node) error {
-	reader, err := ufsio.NewDagReader(c, node, c.dag)
+	reader, err := ufsio.NewDagReader(c, node, c.Dag)
 	if err != nil {
 		return err
 	}
 
-	file, err := c.fs.Create(path)
+	file, err := c.Fs.Create(path)
 	if err != nil {
 		return err
 	}
@@ -47,23 +47,23 @@ func (c *Context) writeFile(path string, node ipld.Node) error {
 }
 
 func (c *Context) writeDir(path string, node ipld.Node) error {
-	dir, err := ufsio.NewDirectoryFromNode(c.dag, node)
+	dir, err := ufsio.NewDirectoryFromNode(c.Dag, node)
 	if err != nil {
 		return err
 	}
 
-	if err := c.fs.MkdirAll(path, 0755); err != nil {
+	if err := c.Fs.MkdirAll(path, 0755); err != nil {
 		return err
 	}
 
 	links, err := dir.Links(c)
 	for _, link := range links {
-		subnode, err := link.GetNode(c, c.dag)
+		subnode, err := link.GetNode(c, c.Dag)
 		if err != nil {
 			return err
 		}
 
-		subpath := c.fs.Join(path, link.Name)
+		subpath := c.Fs.Join(path, link.Name)
 		if err := c.Write(subpath, subnode); err != nil {
 			return err
 		}

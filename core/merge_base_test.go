@@ -9,7 +9,7 @@ import (
 func TestMergeBase(t *testing.T) {
 	mock := NewMockContext()
 
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
@@ -23,8 +23,8 @@ func TestMergeBase(t *testing.T) {
 		t.Fatalf("failed to create commit")
 	}
 
-	mock.cfg.Head = base
-	mock.cfg.Base = base
+	mock.Config.Head = base
+	mock.Config.Base = base
 
 	remote, err := mock.Commit("remote")
 	if err != nil {
@@ -44,7 +44,7 @@ func TestMergeBase(t *testing.T) {
 func TestMergeBaseRemoteAhead(t *testing.T) {
 	mock := NewMockContext()
 
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
@@ -75,7 +75,7 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 func TestMergeBaseLocalAhead(t *testing.T) {
 	mock := NewMockContext()
 
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
@@ -106,7 +106,7 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 func TestMergeBaseUnrelated(t *testing.T) {
 	mock := NewMockContext()
 
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
@@ -115,8 +115,8 @@ func TestMergeBaseUnrelated(t *testing.T) {
 		t.Fatalf("failed to create commit")
 	}
 
-	mock.cfg.Head = cid.Cid{}
-	mock.cfg.Base = cid.Cid{}
+	mock.Config.Head = cid.Cid{}
+	mock.Config.Base = cid.Cid{}
 
 	remote, err := mock.Commit("remote")
 	if err != nil {

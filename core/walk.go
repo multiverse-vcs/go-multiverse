@@ -28,7 +28,7 @@ func (c *Context) Walk(id cid.Cid, cb func(cid.Cid, *object.Commit) bool) (map[s
 			return false
 		}
 
-		node, err := c.dag.Get(c, id)
+		node, err := c.Dag.Get(c, id)
 		if err != nil {
 			return false
 		}

@@ -9,7 +9,7 @@ import (
 
 // Checkout writes the tree of the commit to the root.
 func (c *Context) Checkout(id cid.Cid) error {
-	node, err := c.dag.Get(c, id)
+	node, err := c.Dag.Get(c, id)
 	if err != nil {
 		return err
 	}
@@ -19,10 +19,10 @@ func (c *Context) Checkout(id cid.Cid) error {
 		return errors.New("invalid commit")
 	}
 
-	tree, err := c.dag.Get(c, commit.Tree)
+	tree, err := c.Dag.Get(c, commit.Tree)
 	if err != nil {
 		return err
 	}
 
-	return c.Write(c.fs.Root(), tree)
+	return c.Write(c.Fs.Root(), tree)
 }

@@ -12,8 +12,8 @@ import (
 func TestAddFile(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.fs.Root(), "test.txt")
-	if err := fsutil.WriteFile(mock.fs, path, []byte("foo bar"), 0644); err != nil {
+	path := mock.Fs.Join(mock.Fs.Root(), "test.txt")
+	if err := fsutil.WriteFile(mock.Fs, path, []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
@@ -22,7 +22,7 @@ func TestAddFile(t *testing.T) {
 		t.Fatalf("failed to add file")
 	}
 
-	r, err := ufsio.NewDagReader(mock, node, mock.dag)
+	r, err := ufsio.NewDagReader(mock, node, mock.Dag)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
@@ -40,13 +40,13 @@ func TestAddFile(t *testing.T) {
 func TestAddDir(t *testing.T) {
 	mock := NewMockContext()
 
-	dir := mock.fs.Join(mock.fs.Root(), "test")
-	if err := mock.fs.MkdirAll(dir, 0755); err != nil {
+	dir := mock.Fs.Join(mock.Fs.Root(), "test")
+	if err := mock.Fs.MkdirAll(dir, 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
-	path := mock.fs.Join(dir, "test.txt")
-	if err := fsutil.WriteFile(mock.fs, path, []byte("foo bar"), 0644); err != nil {
+	path := mock.Fs.Join(dir, "test.txt")
+	if err := fsutil.WriteFile(mock.Fs, path, []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
@@ -55,7 +55,7 @@ func TestAddDir(t *testing.T) {
 		t.Fatalf("failed to add")
 	}
 
-	ufsdir, err := ufsio.NewDirectoryFromNode(mock.dag, node)
+	ufsdir, err := ufsio.NewDirectoryFromNode(mock.Dag, node)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
@@ -69,8 +69,8 @@ func TestAddDir(t *testing.T) {
 func TestAddSymlink(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.fs.Root(), "link")
-	if err := mock.fs.Symlink("target", path); err != nil {
+	path := mock.Fs.Join(mock.Fs.Root(), "link")
+	if err := mock.Fs.Symlink("target", path); err != nil {
 		t.Fatalf("failed to create symlink")
 	}
 

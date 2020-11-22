@@ -10,8 +10,8 @@ import (
 func TestWriteFile(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.fs.Root(), "test.txt")
-	if err := fsutil.WriteFile(mock.fs, path, []byte("hello"), 0644); err != nil {
+	path := mock.Fs.Join(mock.Fs.Root(), "test.txt")
+	if err := fsutil.WriteFile(mock.Fs, path, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
@@ -20,7 +20,7 @@ func TestWriteFile(t *testing.T) {
 		t.Fatalf("failed to add file")
 	}
 
-	if err := mock.fs.Remove(path); err != nil {
+	if err := mock.Fs.Remove(path); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
@@ -28,7 +28,7 @@ func TestWriteFile(t *testing.T) {
 		t.Fatalf("failed to write node")
 	}
 
-	file, err := mock.fs.Open(path)
+	file, err := mock.Fs.Open(path)
 	if err != nil {
 		t.Fatalf("failed to open file")
 	}
@@ -47,8 +47,8 @@ func TestWriteFile(t *testing.T) {
 func TestWriteSymlink(t *testing.T) {
 	mock := NewMockContext()
 
-	path := mock.fs.Join(mock.fs.Root(), "link")
-	if err := mock.fs.Symlink("target", path); err != nil {
+	path := mock.Fs.Join(mock.Fs.Root(), "link")
+	if err := mock.Fs.Symlink("target", path); err != nil {
 		t.Fatalf("failed to create symlink")
 	}
 
@@ -57,7 +57,7 @@ func TestWriteSymlink(t *testing.T) {
 		t.Fatalf("failed to add")
 	}
 
-	if err := mock.fs.Remove(path); err != nil {
+	if err := mock.Fs.Remove(path); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
@@ -65,7 +65,7 @@ func TestWriteSymlink(t *testing.T) {
 		t.Fatalf("failed to write node")
 	}
 
-	target, err := mock.fs.Readlink(path)
+	target, err := mock.Fs.Readlink(path)
 	if err != nil {
 		t.Fatalf("failed to read symlink")
 	}
@@ -78,13 +78,13 @@ func TestWriteSymlink(t *testing.T) {
 func TestWriteDir(t *testing.T) {
 	mock := NewMockContext()
 
-	dir := mock.fs.Join(mock.fs.Root(), "test")
-	if err := mock.fs.MkdirAll(dir, 0755); err != nil {
+	dir := mock.Fs.Join(mock.Fs.Root(), "test")
+	if err := mock.Fs.MkdirAll(dir, 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
-	path := mock.fs.Join(dir, "test.txt")
-	if err := fsutil.WriteFile(mock.fs, path, []byte("hello"), 0644); err != nil {
+	path := mock.Fs.Join(dir, "test.txt")
+	if err := fsutil.WriteFile(mock.Fs, path, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
@@ -93,7 +93,7 @@ func TestWriteDir(t *testing.T) {
 		t.Fatalf("failed to add file")
 	}
 
-	if err := fsutil.RemoveAll(mock.fs, dir); err != nil {
+	if err := fsutil.RemoveAll(mock.Fs, dir); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
@@ -101,7 +101,7 @@ func TestWriteDir(t *testing.T) {
 		t.Fatalf("failed to write node")
 	}
 
-	if _, err := mock.fs.Lstat(path); err != nil {
+	if _, err := mock.Fs.Lstat(path); err != nil {
 		t.Fatalf("failed to lstat file")
 	}
 }

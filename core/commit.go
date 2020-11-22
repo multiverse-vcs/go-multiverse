@@ -12,7 +12,7 @@ import (
 
 // Commit creates a new commit.
 func (c *Context) Commit(message string) (cid.Cid, error) {
-	if c.cfg.Base != c.cfg.Head {
+	if c.Config.Base != c.Config.Head {
 		return cid.Cid{}, errors.New("base is behind head")
 	}
 
@@ -27,8 +27,8 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		Tree:    tree.Cid(),
 	}
 
-	if c.cfg.Base.Defined() {
-		commit.Parents = append(commit.Parents, c.cfg.Base)
+	if c.Config.Base.Defined() {
+		commit.Parents = append(commit.Parents, c.Config.Base)
 	}
 
 	node, err := cbornode.WrapObject(&commit, multihash.SHA2_256, -1)
@@ -36,12 +36,12 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		return cid.Cid{}, err
 	}
 
-	if err := c.dag.Add(c, node); err != nil {
+	if err := c.Dag.Add(c, node); err != nil {
 		return cid.Cid{}, err
 	}
 
-	c.cfg.Base = node.Cid()
-	c.cfg.Head = node.Cid()
+	c.Config.Base = node.Cid()
+	c.Config.Head = node.Cid()
 
 	return node.Cid(), nil
 }

@@ -9,7 +9,7 @@ import (
 func TestCommit(t *testing.T) {
 	mock := NewMockContext()
 
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
@@ -23,7 +23,7 @@ func TestCommit(t *testing.T) {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	node, err := mock.dag.Get(mock, id)
+	node, err := mock.Dag.Get(mock, id)
 	if err != nil {
 		t.Fatalf("failed to get commit")
 	}
@@ -45,11 +45,11 @@ func TestCommit(t *testing.T) {
 		t.Errorf("commit parent does not match")
 	}
 
-	if mock.cfg.Head != id {
+	if mock.Config.Head != id {
 		t.Errorf("config head does not match")
 	}
 
-	if mock.cfg.Base != id {
+	if mock.Config.Base != id {
 		t.Errorf("config base does not match")
 	}
 }
@@ -57,7 +57,7 @@ func TestCommit(t *testing.T) {
 func TestCommitDetached(t *testing.T) {
 	mock := NewMockContext()
 
-	if err := mock.fs.MkdirAll(mock.fs.Root(), 0755); err != nil {
+	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
@@ -70,7 +70,7 @@ func TestCommitDetached(t *testing.T) {
 		t.Fatalf("failed to create commit")
 	}
 
-	mock.cfg.Base = commit
+	mock.Config.Base = commit
 	if _, err := mock.Commit("detached"); err == nil {
 		t.Errorf("expected commit error")
 	}

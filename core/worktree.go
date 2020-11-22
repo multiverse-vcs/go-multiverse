@@ -1,48 +1,22 @@
 package core
 
 import (
-	"io/ioutil"
-	"strings"
-
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/sabhiram/go-gitignore"
 )
 
-// IgnoreFile is the name of ignore files.
-const IgnoreFile = ".multignore"
-
-// IgnoreRules contains default ignore rules.
-var IgnoreRules = []string{".multiverse"}
-
 // Worktree adds the current working tree to the merkle dag.
+// Optional ignore rules can be used to filter out files.
 func (c *Context) Worktree() (ipld.Node, error) {
-	filter, err := c.ignore()
+	rules, err := c.Ignore()
 	if err != nil {
 		return nil, err
 	}
 
-	return c.Add(c.fs.Root(), filter)
-}
-
-func (c *Context) ignore() (*ignore.GitIgnore, error) {
-	path := c.fs.Join(c.fs.Root(), IgnoreFile)
-	if _, err := c.fs.Lstat(path); err != nil {
-		return ignore.CompileIgnoreLines(IgnoreRules...)
-	}
-
-	file, err := c.fs.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
+	filter, err := ignore.CompileIgnoreLines(rules...)
 	if err != nil {
 		return nil, err
 	}
 
-	lines := strings.Split(string(data), "\n")
-	lines = append(lines, IgnoreRules...)
-
-	return ignore.CompileIgnoreLines(lines...)
+	return c.Add(c.Fs.Root(), filter)
 }

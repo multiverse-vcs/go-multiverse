@@ -9,8 +9,8 @@ import (
 func TestCheckout(t *testing.T) {
 	mock := NewMockContext()
 
-	readme := mock.fs.Join(mock.fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.fs, readme, []byte("hello"), 0644); err != nil {
+	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
+	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
@@ -19,7 +19,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatalf("failed to create worktree")
 	}
 
-	if err := fsutil.RemoveAll(mock.fs, mock.fs.Root()); err != nil {
+	if err := fsutil.RemoveAll(mock.Fs, mock.Fs.Root()); err != nil {
 		t.Fatalf("failed to remove all")
 	}
 
@@ -27,7 +27,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatalf("failed to checkout")
 	}
 
-	if _, err := mock.fs.Lstat(readme); err != nil {
+	if _, err := mock.Fs.Lstat(readme); err != nil {
 		t.Fatalf("failed to lstat file")
 	}
 }

@@ -19,7 +19,7 @@ const DefaultChunker = "buzhash"
 
 // Add creates a node from the file at path and adds it to the merkle dag.
 func (c *Context) Add(path string, filter *ignore.GitIgnore) (ipld.Node, error) {
-	stat, err := c.fs.Lstat(path)
+	stat, err := c.Fs.Lstat(path)
 	if err != nil {
 		return nil, err
 	}
@@ -38,12 +38,12 @@ func (c *Context) Add(path string, filter *ignore.GitIgnore) (ipld.Node, error) 
 
 func (c *Context) addFile(path string) (ipld.Node, error) {
 	params := helpers.DagBuilderParams{
-		Dagserv:    c.dag,
+		Dagserv:    c.Dag,
 		CidBuilder: merkledag.V1CidPrefix(),
 		Maxlinks:   helpers.DefaultLinksPerBlock,
 	}
 
-	file, err := c.fs.Open(path)
+	file, err := c.Fs.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -63,11 +63,11 @@ func (c *Context) addFile(path string) (ipld.Node, error) {
 		return nil, err
 	}
 
-	return node, c.dag.Add(c, node)
+	return node, c.Dag.Add(c, node)
 }
 
 func (c *Context) addSymlink(path string) (ipld.Node, error) {
-	target, err := c.fs.Readlink(path)
+	target, err := c.Fs.Readlink(path)
 	if err != nil {
 		return nil, err
 	}
@@ -78,18 +78,18 @@ func (c *Context) addSymlink(path string) (ipld.Node, error) {
 	}
 
 	node := merkledag.NodeWithData(data)
-	return node, c.dag.Add(c, node)
+	return node, c.Dag.Add(c, node)
 }
 
 func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, error) {
-	entries, err := c.fs.ReadDir(path)
+	entries, err := c.Fs.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
 
-	dir := ufsio.NewDirectory(c.dag)
+	dir := ufsio.NewDirectory(c.Dag)
 	for _, info := range entries {
-		subpath := c.fs.Join(path, info.Name())
+		subpath := c.Fs.Join(path, info.Name())
 		if filter != nil && filter.MatchesPath(subpath) {
 			continue
 		}
@@ -109,5 +109,5 @@ func (c *Context) addDir(path string, filter *ignore.GitIgnore) (ipld.Node, erro
 		return nil, err
 	}
 
-	return node, c.dag.Add(c, node)
+	return node, c.Dag.Add(c, node)
 }

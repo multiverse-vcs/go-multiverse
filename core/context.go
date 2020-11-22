@@ -10,20 +10,20 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/config"
 )
 
-// Context contains common data and services.
+// Context is the context for core commands.
 type Context struct {
 	context.Context
-	cfg *config.Config
-	dag ipld.DAGService
-	fs  billy.Filesystem
+	Config *config.Config
+	Dag    ipld.DAGService
+	Fs     billy.Filesystem
 }
 
 // NewMockContext returns a context that can be used for testing.
 func NewMockContext() *Context {
 	return &Context{
 		Context: context.TODO(),
-		cfg:     &config.Config{},
-		dag:     dagutils.NewMemoryDagService(),
-		fs:      memfs.New(),
+		Config:  &config.Config{},
+		Dag:     dagutils.NewMemoryDagService(),
+		Fs:      memfs.New(),
 	}
 }
