@@ -18,6 +18,10 @@ func NewCommitCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
+			if err := WriteConfig(cmdctx.dot, cmdctx.Config); err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
 			fmt.Printf("%s%s%s\n", ColorYellow, id.String(), ColorReset)
 			return nil
 		},

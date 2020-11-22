@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/urfave/cli/v2"
 )
 
@@ -17,8 +18,7 @@ func NewInitCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			_, err = InitContext(cwd, c.Context)
-			if err != nil {
+			if err = InitContext(osfs.New(cwd), c.Context); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 

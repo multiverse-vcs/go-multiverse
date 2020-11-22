@@ -19,7 +19,7 @@ func NewLogCommand() *cli.Command {
 		Before: BeforeLoadContext,
 		Action: func(c *cli.Context) error {
 			cb := func(id cid.Cid, commit *object.Commit) bool {
-				fmt.Printf("%scommit %s", ColorYellow, id.String())
+				fmt.Printf("%s%s", ColorYellow, id.String())
 
 				if id == cmdctx.Config.Head {
 					fmt.Printf(" (%sHEAD%s)", ColorRed, ColorYellow)

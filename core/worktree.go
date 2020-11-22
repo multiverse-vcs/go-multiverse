@@ -18,5 +18,5 @@ func (c *Context) Worktree() (ipld.Node, error) {
 		return nil, err
 	}
 
-	return c.Add(c.Fs.Root(), filter)
+	return c.Add("", filter)
 }

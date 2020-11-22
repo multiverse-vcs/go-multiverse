@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	"os"
-	"path/filepath"
+	"io/ioutil"
 
-	"github.com/go-git/go-billy/v5/osfs"
+	"github.com/go-git/go-billy/v5"
+	fsutil "github.com/go-git/go-billy/v5/util"
 	"github.com/ipfs/go-blockservice"
+	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ipfs-blockstore"
 	"github.com/ipfs/go-ipfs-exchange-offline"
@@ -17,70 +19,137 @@ import (
 )
 
 const (
-	// RootDir is the name of the root directory.
-	RootDir = ".multiverse"
+	// DotDir is the name of the dot directory.
+	DotDir = ".multiverse"
 	// DatastoreName is the name of the datastore directory.
 	DatastoreDir = "datastore"
+	// ConfigFile is the name of the config file.
+	ConfigFile = "config.json"
 )
 
 func init() {
-	core.IgnoreRules = append(core.IgnoreRules, RootDir)
+	core.IgnoreRules = append(core.IgnoreRules, DotDir, ".git")
 }
 
 // Context is the context for cli commands.
 type Context struct {
 	core.Context
+
+	dot billy.Filesystem
 }
 
 // NewContext is used internally to create a command context.
-func NewContext(root string, ctx context.Context) (*Context, error) {
-	path := filepath.Join(root, RootDir, DatastoreDir)
+func NewContext(fs billy.Filesystem, ctx context.Context) (*Context, error) {
+	dot, err := fs.Chroot(DotDir)
+	if err != nil {
+		return nil, err
+	}
 
-	dstore, err := badger.NewDatastore(path, &badger.DefaultOptions)
+	cfg, err := ReadConfig(dot)
+	if err != nil {
+		return nil, err
+	}
+
+	dstore, err := NewDatastore(dot)
 	if err != nil {
 		return nil, err
 	}
 
 	bstore := blockstore.NewBlockstore(dstore)
 	bserv := blockservice.New(bstore, offline.Exchange(bstore))
+	dserv := merkledag.NewDAGService(bserv)
 
 	corectx := core.Context{
 		Context: ctx,
-		Config:  &config.Config{},
-		Dag:     merkledag.NewDAGService(bserv),
-		Fs:      osfs.New(root),
+		Config:  cfg,
+		Dag:     dserv,
+		Fs:      fs,
 	}
 
-	return &Context{corectx}, nil
+	return &Context{
+		Context: corectx,
+		dot:     dot,
+	}, nil
 }
 
 // InitContext initializes a context in the given path.
-func InitContext(path string, ctx context.Context) (*Context, error) {
-	if _, err := LoadContext(path, ctx); err == nil {
-		return nil, errors.New("repo already exists")
+func InitContext(fs billy.Filesystem, ctx context.Context) error {
+	if _, err := LoadContext(fs, ctx); err == nil {
+		return errors.New("repo already exists")
 	}
 
-	root := filepath.Join(path, RootDir)
-	if err := os.Mkdir(root, 0755); err != nil {
-		return nil, err
+	if err := fs.MkdirAll(DotDir, 0755); err != nil {
+		return err
 	}
 
-	return NewContext(path, ctx)
+	dot, err := fs.Chroot(DotDir)
+	if err != nil {
+		return err
+	}
+
+	return WriteConfig(dot, &config.Config{})
 }
 
 // LoadContext loads a context in the given path or parent directories.
-func LoadContext(path string, ctx context.Context) (*Context, error) {
-	root := filepath.Join(path, RootDir)
-
-	info, err := os.Lstat(root)
+func LoadContext(fs billy.Filesystem, ctx context.Context) (*Context, error) {
+	info, err := fs.Lstat(DotDir)
 	if err == nil && info.IsDir() {
-		return NewContext(path, ctx)
+		return NewContext(fs, ctx)
 	}
 
-	parent := filepath.Dir(path)
-	if parent == path {
+	parent, err := fs.Chroot("..")
+	if err != nil {
+		return nil, err
+	}
+
+	if parent.Root() == fs.Root() {
 		return nil, errors.New("repo not found")
 	}
 
 	return LoadContext(parent, ctx)
+}
+
+// NewDatastore returns a datastore backed by the given filesystem.
+func NewDatastore(fs billy.Filesystem) (datastore.Batching, error) {
+	type fsBased interface {
+		Filesystem() billy.Filesystem
+	}
+
+	opts := badger.DefaultOptions
+	if _, ok := fs.(fsBased); ok {
+		opts.WithInMemory(true)
+	}
+
+	path := fs.Join(fs.Root(), DatastoreDir)
+	return badger.NewDatastore(path, &opts)
+}
+
+// ReadConfig reads the config file from the given filesystem.
+func ReadConfig(fs billy.Filesystem) (*config.Config, error) {
+	file, err := fs.Open(ConfigFile)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var cfg config.Config
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+// WriteConfig writes the config file to the given filesystem.
+func WriteConfig(fs billy.Filesystem, c *config.Config) error {
+	data, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return fsutil.WriteFile(fs, ConfigFile, data, 0644)
 }
