@@ -38,6 +38,7 @@ that enables peer-to-peer software development.`,
 			NewCommitCommand(),
 			NewInitCommand(),
 			NewLogCommand(),
+			NewStatusCommand(),
 		},
 	}
 }
@@ -54,10 +55,5 @@ func BeforeLoadContext(c *cli.Context) error {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	return nil
-}
-
-// AfterWriteConfig is used as an after func to write config.
-func AfterWriteConfig(c *cli.Context) error {
 	return nil
 }

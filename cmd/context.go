@@ -87,7 +87,11 @@ func InitContext(fs billy.Filesystem, ctx context.Context) error {
 		return err
 	}
 
-	return WriteConfig(dot, &config.Config{})
+	cfg := config.Config{
+		Branch: config.DefaultBranch,
+	}
+
+	return WriteConfig(dot, &cfg)
 }
 
 // LoadContext loads a context in the given path or parent directories.
