@@ -11,7 +11,8 @@ var data = []byte(`{
 	"date": "2020-10-25T15:26:12.168056-07:00",
 	"message": "big changes",
 	"parents": [{"/": "bagaybqabciqeutn2u7n3zuk5b4ykgfwpkekb7ctgnlwik5zfr6bcukvknj2jtpa"}],
-	"tree": {"/": "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ"}
+	"tree": {"/": "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ"},
+	"metadata": {"foo": "bar"}
 }`)
 
 func TestCommitFromJSON(t *testing.T) {
@@ -38,6 +39,10 @@ func TestCommitFromJSON(t *testing.T) {
 
 	if commit.Tree.String() != "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ" {
 		t.Error("work tree does not match")
+	}
+
+	if commit.Metadata["foo"] != "bar" {
+		t.Error("metadata does not match")
 	}
 }
 
@@ -75,6 +80,10 @@ func TestCommitFromCBOR(t *testing.T) {
 
 	if commit.Tree.String() != "QmQycvPQd5tAVP4Xx1dp1Yfb9tmjKQAa5uxPoTfUQr9tFZ" {
 		t.Error("work tree does not match")
+	}
+
+	if commit.Metadata["foo"] != "bar" {
+		t.Error("metadata does not match")
 	}
 }
 
