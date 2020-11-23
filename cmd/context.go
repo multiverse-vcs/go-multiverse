@@ -21,8 +21,8 @@ import (
 const (
 	// DotDir is the name of the dot directory.
 	DotDir = ".multiverse"
-	// DatastoreName is the name of the datastore directory.
-	DatastoreDir = "datastore"
+	// DataDir is the name of the data directory.
+	DataDir = "datastore"
 	// ConfigFile is the name of the config file.
 	ConfigFile = "config.json"
 )
@@ -120,12 +120,14 @@ func NewDatastore(fs billy.Filesystem) (datastore.Batching, error) {
 	}
 
 	opts := badger.DefaultOptions
+	path := fs.Join(fs.Root(), DataDir)
+
 	if _, ok := fs.(fsBased); ok {
-		opts.WithInMemory(true)
+		return badger.NewDatastore(path, &opts)
 	}
 
-	path := fs.Join(fs.Root(), DatastoreDir)
-	return badger.NewDatastore(path, &opts)
+	opts.Options = opts.WithInMemory(true)
+	return badger.NewDatastore("", &opts)
 }
 
 // ReadConfig reads the config file from the given filesystem.
@@ -150,7 +152,7 @@ func ReadConfig(fs billy.Filesystem) (*config.Config, error) {
 
 // WriteConfig writes the config file to the given filesystem.
 func WriteConfig(fs billy.Filesystem, c *config.Config) error {
-	data, err := json.Marshal(c)
+	data, err := json.MarshalIndent(c, "", "\t")
 	if err != nil {
 		return err
 	}

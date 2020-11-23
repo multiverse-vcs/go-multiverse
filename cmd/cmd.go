@@ -25,9 +25,9 @@ var cmdctx *Context
 // NewApp returns a new cli app.
 func NewApp() *cli.App {
 	return &cli.App{
-		Name:     "multi",
+		Name:     "Multiverse",
 		HelpName: "multi",
-		Usage:    "decentralized version control system",
+		Usage:    "Decentralized Version Control System",
 		Description: `Multiverse is a decentralized version control system
 that enables peer-to-peer software development.`,
 		Version: "0.0.1",
