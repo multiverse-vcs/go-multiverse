@@ -13,7 +13,12 @@ func NewCommitCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "commit",
 		Usage: "record repo changes",
+		ArgsUsage: "<message>",
 		Action: func(c *cli.Context) error {
+			if c.NArg() < 1 {
+				return cli.Exit("missing required args", 1)
+			}
+
 			store, err := Store()
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
@@ -29,7 +34,7 @@ func NewCommitCommand() *cli.Command {
 				parents = append(parents, cfg.Head)
 			}
 
-			id, err := core.Commit(c.Context, store, "", parents...)
+			id, err := core.Commit(c.Context, store, c.Args().Get(0), parents...)
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}

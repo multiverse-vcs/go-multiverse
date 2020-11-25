@@ -19,10 +19,10 @@ func NewCloneCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "clone",
 		Usage:     "copy an existing repo",
-		ArgsUsage: "[cid] [dir]",
+		ArgsUsage: "<cid> <dir>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 2 {
-				return cli.Exit("missing required params", 1)
+				return cli.Exit("missing required args", 1)
 			}
 
 			id, err := cid.Parse(c.Args().Get(0))

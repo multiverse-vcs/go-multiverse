@@ -13,10 +13,6 @@ import (
 
 // Online initializes a p2p host for the underlying blockservice.
 func (s *Store) Online(ctx context.Context) error {
-	if s.Host != nil {
-		return nil
-	}
-
 	// TODO save key instead of generating
 	priv, _, err := crypto.GenerateKeyPair(p2p.DefaultKeyType, -1)
 	if err != nil {
@@ -36,6 +32,7 @@ func (s *Store) Online(ctx context.Context) error {
 
 	s.Dag = dag
 	s.Host = host
+	s.Router = router
 
 	return nil
 }

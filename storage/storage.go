@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-ipfs-blockstore"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/spf13/afero"
 )
@@ -30,6 +31,8 @@ type Store struct {
 	Cwd afero.Fs
 	// Host is the optional p2p host.
 	Host host.Host
+	// Router is the optional p2p routing service.
+	Router routing.Routing
 
 	bstore blockstore.Blockstore
 }
