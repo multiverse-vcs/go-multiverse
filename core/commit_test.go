@@ -1,29 +1,30 @@
 package core
 
 import (
+	"context"
 	"testing"
 
 	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 func TestCommit(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
 	}
 
-	parent, err := mock.Commit("init")
+	parent, err := Commit(context.TODO(), store, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	id, err := mock.Commit("changes")
+	id, err := Commit(context.TODO(), store, "changes", parent)
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	node, err := mock.Dag.Get(mock, id)
+	node, err := store.Dag.Get(context.TODO(), id)
 	if err != nil {
 		t.Fatalf("failed to get commit")
 	}
@@ -43,35 +44,5 @@ func TestCommit(t *testing.T) {
 
 	if commit.Parents[0] != parent {
 		t.Errorf("commit parent does not match")
-	}
-
-	if mock.Config.Head != id {
-		t.Errorf("config head does not match")
-	}
-
-	if mock.Config.Base != id {
-		t.Errorf("config base does not match")
-	}
-}
-
-func TestCommitDetached(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
-	}
-
-	commit, err := mock.Commit("init")
-	if err != nil {
-		t.Fatalf("failed to create commit")
-	}
-
-	if _, err := mock.Commit("second"); err != nil {
-		t.Fatalf("failed to create commit")
-	}
-
-	mock.Config.Base = commit
-	if _, err := mock.Commit("detached"); err == nil {
-		t.Errorf("expected commit error")
 	}
 }

@@ -1,34 +1,39 @@
 package core
 
 import (
+	"context"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
+	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestWriteFile(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	path := mock.Fs.Join(mock.Fs.Root(), "test.txt")
-	if err := fsutil.WriteFile(mock.Fs, path, []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, "test.txt", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := mock.Add(path, nil)
+	node, err := Add(context.TODO(), store, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	if err := mock.Fs.Remove(path); err != nil {
+	if err := store.Cwd.Remove("test.txt"); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
-	if err := mock.Write(path, node); err != nil {
+	if err := Write(context.TODO(), store, "test.txt", node); err != nil {
 		t.Fatalf("failed to write node")
 	}
 
-	file, err := mock.Fs.Open(path)
+	file, err := store.Cwd.Open("test.txt")
 	if err != nil {
 		t.Fatalf("failed to open file")
 	}
@@ -44,64 +49,35 @@ func TestWriteFile(t *testing.T) {
 	}
 }
 
-func TestWriteSymlink(t *testing.T) {
-	mock := NewMockContext()
-
-	path := mock.Fs.Join(mock.Fs.Root(), "link")
-	if err := mock.Fs.Symlink("target", path); err != nil {
-		t.Fatalf("failed to create symlink")
-	}
-
-	node, err := mock.Add(path, nil)
-	if err != nil {
-		t.Fatalf("failed to add")
-	}
-
-	if err := mock.Fs.Remove(path); err != nil {
-		t.Fatalf("failed to remove file")
-	}
-
-	if err := mock.Write(path, node); err != nil {
-		t.Fatalf("failed to write node")
-	}
-
-	target, err := mock.Fs.Readlink(path)
-	if err != nil {
-		t.Fatalf("failed to read symlink")
-	}
-
-	if target != "target" {
-		t.Errorf("symlink target does not match")
-	}
-}
-
 func TestWriteDir(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	dir := mock.Fs.Join(mock.Fs.Root(), "test")
-	if err := mock.Fs.MkdirAll(dir, 0755); err != nil {
+	if err := store.Cwd.Mkdir("test", 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
-	path := mock.Fs.Join(dir, "test.txt")
-	if err := fsutil.WriteFile(mock.Fs, path, []byte("hello"), 0644); err != nil {
+	path := filepath.Join("test", "test.txt")
+	if err := afero.WriteFile(store.Cwd, path, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := mock.Add(dir, nil)
+	node, err := Add(context.TODO(), store, "test", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	if err := fsutil.RemoveAll(mock.Fs, dir); err != nil {
+	if err := store.Cwd.RemoveAll("test"); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
-	if err := mock.Write(dir, node); err != nil {
+	if err := Write(context.TODO(), store, "test", node); err != nil {
 		t.Fatalf("failed to write node")
 	}
 
-	if _, err := mock.Fs.Lstat(path); err != nil {
+	if _, err := store.Cwd.Stat(path); err != nil {
 		t.Fatalf("failed to lstat file")
 	}
 }

@@ -3,15 +3,18 @@ package core
 import (
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
+	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestIgnoreDefault(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
 	IgnoreRules = []string{"foo"}
-
-	rules, err := mock.Ignore()
+	rules, err := Ignore(store)
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")
 	}
@@ -26,16 +29,17 @@ func TestIgnoreDefault(t *testing.T) {
 }
 
 func TestIgnoreFile(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
 	IgnoreRules = []string{"foo"}
-
-	file := mock.Fs.Join(mock.Fs.Root(), IgnoreFile)
-	if err := fsutil.WriteFile(mock.Fs, file, []byte("bar"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, IgnoreFile, []byte("bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	rules, err := mock.Ignore()
+	rules, err := Ignore(store)
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")
 	}

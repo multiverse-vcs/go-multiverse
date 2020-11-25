@@ -1,28 +1,32 @@
 package core
 
 import (
+	"context"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
-	"github.com/ipfs/go-unixfs"
 	ufsio "github.com/ipfs/go-unixfs/io"
+	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestAddFile(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	path := mock.Fs.Join(mock.Fs.Root(), "test.txt")
-	if err := fsutil.WriteFile(mock.Fs, path, []byte("foo bar"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, "test.txt", []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := mock.Add(path, nil)
+	node, err := Add(context.TODO(), store, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	r, err := ufsio.NewDagReader(mock, node, mock.Dag)
+	r, err := ufsio.NewDagReader(context.TODO(), node, store.Dag)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
@@ -38,57 +42,32 @@ func TestAddFile(t *testing.T) {
 }
 
 func TestAddDir(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	dir := mock.Fs.Join(mock.Fs.Root(), "test")
-	if err := mock.Fs.MkdirAll(dir, 0755); err != nil {
+	if err := store.Cwd.Mkdir("test", 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
-	path := mock.Fs.Join(dir, "test.txt")
-	if err := fsutil.WriteFile(mock.Fs, path, []byte("foo bar"), 0644); err != nil {
+	path := filepath.Join("test", "test.txt")
+	if err := afero.WriteFile(store.Cwd, path, []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := mock.Add(dir, nil)
+	node, err := Add(context.TODO(), store, "test", nil)
 	if err != nil {
 		t.Fatalf("failed to add")
 	}
 
-	ufsdir, err := ufsio.NewDirectoryFromNode(mock.Dag, node)
+	ufsdir, err := ufsio.NewDirectoryFromNode(store.Dag, node)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = ufsdir.Find(mock, "test.txt")
+	_, err = ufsdir.Find(context.TODO(), "test.txt")
 	if err != nil {
 		t.Errorf("failed to find file")
-	}
-}
-
-func TestAddSymlink(t *testing.T) {
-	mock := NewMockContext()
-
-	path := mock.Fs.Join(mock.Fs.Root(), "link")
-	if err := mock.Fs.Symlink("target", path); err != nil {
-		t.Fatalf("failed to create symlink")
-	}
-
-	node, err := mock.Add(path, nil)
-	if err != nil {
-		t.Fatalf("failed to add")
-	}
-
-	fsnode, err := unixfs.ExtractFSNode(node)
-	if err != nil {
-		t.Fatalf("failed to extract fsnode")
-	}
-
-	if fsnode.Type() != unixfs.TSymlink {
-		t.Errorf("invalid fsnode type")
-	}
-
-	if string(fsnode.Data()) != "target" {
-		t.Errorf("symlink target does not match")
 	}
 }

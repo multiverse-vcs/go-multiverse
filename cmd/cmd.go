@@ -1,10 +1,11 @@
-// Package command implements the Multiverse CLI.
 package cmd
 
 import (
+	"errors"
 	"os"
+	"path/filepath"
 
-	"github.com/go-git/go-billy/v5/osfs"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/urfave/cli/v2"
 )
 
@@ -18,9 +19,6 @@ const (
 	ColorCyan    = "\033[36m"
 	ColorWhite   = "\033[37m"
 )
-
-// cmdctx is the command context for all commands
-var cmdctx *Context
 
 // NewApp returns a new cli app.
 func NewApp() *cli.App {
@@ -38,22 +36,41 @@ that enables peer-to-peer software development.`,
 			NewCommitCommand(),
 			NewInitCommand(),
 			NewLogCommand(),
+			NewServeCommand(),
 			NewStatusCommand(),
+			NewSyncCommand(),
 		},
 	}
 }
 
-// BeforeLoadContext is used as a before func to load cmdctx.
-func BeforeLoadContext(c *cli.Context) error {
+// Root finds the repo root by searching parent directories.
+func Root(root string) (string, error) {
+	path := filepath.Join(root, storage.DotDir)
+
+	info, err := os.Lstat(path)
+	if err == nil && info.IsDir() {
+		return root, nil
+	}
+
+	parent := filepath.Dir(root)
+	if parent == root {
+		return "", errors.New("repo not found")
+	}
+
+	return Root(parent)
+}
+
+// Store returns the repo store from the current directory.
+func Store() (*storage.Store, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return cli.Exit(err.Error(), 1)
+		return nil, err
 	}
 
-	cmdctx, err = LoadContext(osfs.New(cwd), c.Context)
+	root, err := Root(cwd)
 	if err != nil {
-		return cli.Exit(err.Error(), 1)
+		return nil, err
 	}
 
-	return nil
+	return storage.NewOsStore(root)
 }

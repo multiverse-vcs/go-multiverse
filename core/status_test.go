@@ -1,29 +1,35 @@
 package core
 
 import (
+	"context"
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestStatusRemove(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	if _, err := mock.Commit("init"); err != nil {
+	head, err := Commit(context.TODO(), store, "init")
+	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := mock.Fs.Remove(readme); err != nil {
+	if err := store.Cwd.Remove("README.md"); err != nil {
 		t.Fatalf("failed to remove readme file")
 	}
 
-	changes, err := mock.Status()
+	changes, err := Status(context.TODO(), store, head)
 	if err != nil {
 		t.Fatalf("failed to get status: %s", err)
 	}
@@ -42,14 +48,16 @@ func TestStatusRemove(t *testing.T) {
 }
 
 func TestStatusBare(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	changes, err := mock.Status()
+	changes, err := Status(context.TODO(), store, cid.Cid{})
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}

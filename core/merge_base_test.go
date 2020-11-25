@@ -1,37 +1,34 @@
 package core
 
 import (
+	"context"
 	"testing"
 
-	"github.com/ipfs/go-cid"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 func TestMergeBase(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
 	}
 
-	base, err := mock.Commit("base")
+	base, err := Commit(context.TODO(), store, "base")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := mock.Commit("local")
+	local, err := Commit(context.TODO(), store, "local", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	mock.Config.Head = base
-	mock.Config.Base = base
-
-	remote, err := mock.Commit("remote")
+	remote, err := Commit(context.TODO(), store, "remote", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := mock.MergeBase(local, remote)
+	merge, err := MergeBase(context.TODO(), store, local, remote)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
@@ -42,27 +39,27 @@ func TestMergeBase(t *testing.T) {
 }
 
 func TestMergeBaseRemoteAhead(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
 	}
 
-	if _, err := mock.Commit("init"); err != nil {
-		t.Fatalf("failed to create commit")
-	}
-
-	local, err := mock.Commit("local")
+	base, err := Commit(context.TODO(), store, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := mock.Commit("remote")
+	local, err := Commit(context.TODO(), store, "local", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := mock.MergeBase(local, remote)
+	remote, err := Commit(context.TODO(), store, "remote", local)
+	if err != nil {
+		t.Fatalf("failed to create commit")
+	}
+
+	merge, err := MergeBase(context.TODO(), store, local, remote)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
@@ -73,27 +70,27 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 }
 
 func TestMergeBaseLocalAhead(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
 	}
 
-	if _, err := mock.Commit("init"); err != nil {
-		t.Fatalf("failed to create commit")
-	}
-
-	remote, err := mock.Commit("remote")
+	base, err := Commit(context.TODO(), store, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := mock.Commit("local")
+	remote, err := Commit(context.TODO(), store, "remote", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := mock.MergeBase(local, remote)
+	local, err := Commit(context.TODO(), store, "local", remote)
+	if err != nil {
+		t.Fatalf("failed to create commit")
+	}
+
+	merge, err := MergeBase(context.TODO(), store, local, remote)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
@@ -104,26 +101,22 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 }
 
 func TestMergeBaseUnrelated(t *testing.T) {
-	mock := NewMockContext()
-
-	if err := mock.Fs.MkdirAll(mock.Fs.Root(), 0755); err != nil {
-		t.Fatalf("failed to mkdir")
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
 	}
 
-	local, err := mock.Commit("local")
+	local, err := Commit(context.TODO(), store, "local")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	mock.Config.Head = cid.Cid{}
-	mock.Config.Base = cid.Cid{}
-
-	remote, err := mock.Commit("remote")
+	remote, err := Commit(context.TODO(), store, "remote")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := mock.MergeBase(local, remote)
+	merge, err := MergeBase(context.TODO(), store, local, remote)
 	if merge.Defined() {
 		t.Errorf("uexpected merge base")
 	}

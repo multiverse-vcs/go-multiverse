@@ -12,12 +12,12 @@ import (
 var timeAtlasEntry = atlas.BuildEntry(time.Time{}).
 	Transform().
 	TransformMarshal(atlas.MakeMarshalTransformFunc(
-		func(t time.Time) ([]byte, error) {
-			return t.MarshalText()
+		func(t time.Time) (string, error) {
+			return t.Format(time.RFC3339), nil
 		})).
 	TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
-		func(data []byte) (time.Time, error) {
-			return time.Parse(time.RFC3339, string(data))
+		func(t string) (time.Time, error) {
+			return time.Parse(time.RFC3339, t)
 		})).
 	Complete()
 

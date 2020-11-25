@@ -1,22 +1,19 @@
 package core
 
 import (
-	"errors"
+	"context"
 	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipld-cbor"
 	"github.com/multiformats/go-multihash"
 	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 // Commit creates a new commit.
-func (c *Context) Commit(message string) (cid.Cid, error) {
-	if c.Config.Base != c.Config.Head {
-		return cid.Cid{}, errors.New("base is behind head")
-	}
-
-	tree, err := c.Worktree()
+func Commit(ctx context.Context, store *storage.Store, message string, parents ...cid.Cid) (cid.Cid, error) {
+	tree, err := Worktree(ctx, store)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -25,10 +22,7 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		Date:    time.Now(),
 		Message: message,
 		Tree:    tree.Cid(),
-	}
-
-	if c.Config.Base.Defined() {
-		commit.Parents = append(commit.Parents, c.Config.Base)
+		Parents: parents,
 	}
 
 	node, err := cbornode.WrapObject(&commit, multihash.SHA2_256, -1)
@@ -36,12 +30,9 @@ func (c *Context) Commit(message string) (cid.Cid, error) {
 		return cid.Cid{}, err
 	}
 
-	if err := c.Dag.Add(c, node); err != nil {
+	if err := store.Dag.Add(ctx, node); err != nil {
 		return cid.Cid{}, err
 	}
-
-	c.Config.Base = node.Cid()
-	c.Config.Head = node.Cid()
 
 	return node.Cid(), nil
 }

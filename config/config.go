@@ -17,3 +17,10 @@ type Config struct {
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
 }
+
+// Default returns a new config with default settings.
+func Default() *Config {
+	return &Config{
+		Branch: DefaultBranch,
+	}
+}

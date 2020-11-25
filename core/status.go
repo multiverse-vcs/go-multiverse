@@ -1,23 +1,27 @@
 package core
 
 import (
+	"context"
+
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
-// Status returns a list of changes between the head and worktree.
-func (c *Context) Status() ([]*dagutils.Change, error) {
-	tree, err := c.Worktree()
+// Status returns a list of changes between the worktree and commit with the given id.
+func Status(ctx context.Context, store *storage.Store, id cid.Cid) ([]*dagutils.Change, error) {
+	tree, err := Worktree(ctx, store)
 	if err != nil {
 		return nil, err
 	}
 
-	if !c.Config.Head.Defined() {
-		return dagutils.Diff(c, c.Dag, &merkledag.ProtoNode{}, tree)
+	if !id.Defined() {
+		return dagutils.Diff(ctx, store.Dag, &merkledag.ProtoNode{}, tree)
 	}
 
-	node, err := c.Dag.Get(c, c.Config.Head)
+	node, err := store.Dag.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +31,10 @@ func (c *Context) Status() ([]*dagutils.Change, error) {
 		return nil, err
 	}
 
-	nodeA, err := c.Dag.Get(c, commit.Tree)
+	nodeA, err := store.Dag.Get(ctx, commit.Tree)
 	if err != nil {
 		return nil, err
 	}
 
-	return dagutils.Diff(c, c.Dag, nodeA, tree)
+	return dagutils.Diff(ctx, store.Dag, nodeA, tree)
 }

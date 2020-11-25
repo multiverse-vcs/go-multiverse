@@ -1,15 +1,17 @@
 package core
 
 import (
+	"context"
 	"errors"
 
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 // Checkout writes the tree of the commit to the root.
-func (c *Context) Checkout(id cid.Cid) error {
-	node, err := c.Dag.Get(c, id)
+func Checkout(ctx context.Context, store *storage.Store, id cid.Cid) error {
+	node, err := store.Dag.Get(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -19,10 +21,10 @@ func (c *Context) Checkout(id cid.Cid) error {
 		return errors.New("invalid commit")
 	}
 
-	tree, err := c.Dag.Get(c, commit.Tree)
+	tree, err := store.Dag.Get(ctx, commit.Tree)
 	if err != nil {
 		return err
 	}
 
-	return c.Write(c.Fs.Root(), tree)
+	return Write(ctx, store, "", tree)
 }

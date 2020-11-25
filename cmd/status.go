@@ -11,16 +11,25 @@ import (
 // NewStatusCommand returns a new status command.
 func NewStatusCommand() *cli.Command {
 	return &cli.Command{
-		Name:   "status",
-		Usage:  "print pending changes",
-		Before: BeforeLoadContext,
+		Name:  "status",
+		Usage: "print pending changes",
 		Action: func(c *cli.Context) error {
-			changes, err := cmdctx.Status()
+			store, err := Store()
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			fmt.Printf("Tracking changes on branch %s:\n", cmdctx.Config.Branch)
+			cfg, err := store.ReadConfig()
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
+			changes, err := core.Status(c.Context, store, cfg.Head)
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
+			fmt.Printf("Tracking changes on branch %s:\n", cfg.Branch)
 			fmt.Printf("  (all files are automatically considered for commit)\n")
 			fmt.Printf("  (to stop tracking files add rules to '%s')\n", core.IgnoreFile)
 

@@ -1,33 +1,37 @@
 package core
 
 import (
+	"context"
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
+	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestCheckout(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	id, err := mock.Commit("init")
+	id, err := Commit(context.TODO(), store, "init")
 	if err != nil {
 		t.Fatalf("failed to create worktree")
 	}
 
-	if err := fsutil.RemoveAll(mock.Fs, mock.Fs.Root()); err != nil {
+	if err := store.Cwd.RemoveAll(""); err != nil {
 		t.Fatalf("failed to remove all")
 	}
 
-	if err := mock.Checkout(id); err != nil {
+	if err := Checkout(context.TODO(), store, id); err != nil {
 		t.Fatalf("failed to checkout")
 	}
 
-	if _, err := mock.Fs.Lstat(readme); err != nil {
+	if _, err := store.Cwd.Stat("README.md"); err != nil {
 		t.Fatalf("failed to lstat file")
 	}
 }

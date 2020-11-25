@@ -1,30 +1,34 @@
 package core
 
 import (
+	"context"
 	"testing"
 
-	fsutil "github.com/go-git/go-billy/v5/util"
+	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestWalk(t *testing.T) {
-	mock := NewMockContext()
+	store, err := storage.NewMemoryStore()
+	if err != nil {
+		t.Fatalf("failed to create storage")
+	}
 
-	readme := mock.Fs.Join(mock.Fs.Root(), "README.md")
-	if err := fsutil.WriteFile(mock.Fs, readme, []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	idA, err := mock.Commit("first")
+	idA, err := Commit(context.TODO(), store, "first")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	idB, err := mock.Commit("second")
+	idB, err := Commit(context.TODO(), store, "second", idA)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	history, err := mock.Walk(idB, nil)
+	history, err := Walk(context.TODO(), store, idB, nil)
 	if err != nil {
 		t.Fatalf("failed to walk")
 	}

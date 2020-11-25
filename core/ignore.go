@@ -3,11 +3,13 @@ package core
 import (
 	"io/ioutil"
 	"strings"
+
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 // IgnoreRules contains default ignore rules.
 // Use init func to append additional rules.
-var IgnoreRules = []string{}
+var IgnoreRules = []string{storage.DotDir, ".git"}
 
 // IgnoreFile is the name of ignore files.
 const IgnoreFile = ".multignore"
@@ -15,13 +17,12 @@ const IgnoreFile = ".multignore"
 // Ignore returns a list of files to ignore.
 // If an ignore file exists its rules will
 // be appended to the list of default rules.
-func (c *Context) Ignore() ([]string, error) {
-	path := c.Fs.Join(c.Fs.Root(), IgnoreFile)
-	if _, err := c.Fs.Lstat(path); err != nil {
+func Ignore(store *storage.Store) ([]string, error) {
+	if _, err := store.Cwd.Stat(IgnoreFile); err != nil {
 		return IgnoreRules, nil
 	}
 
-	file, err := c.Fs.Open(path)
+	file, err := store.Cwd.Open(IgnoreFile)
 	if err != nil {
 		return nil, err
 	}

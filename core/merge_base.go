@@ -1,13 +1,16 @@
 package core
 
 import (
+	"context"
+
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 // MergeBase returns the best common ancestor of local and remote.
-func (c *Context) MergeBase(local, remote cid.Cid) (cid.Cid, error) {
-	history, err := c.Walk(local, nil)
+func MergeBase(ctx context.Context, store *storage.Store, local, remote cid.Cid) (cid.Cid, error) {
+	history, err := Walk(ctx, store, local, nil)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -33,14 +36,14 @@ func (c *Context) MergeBase(local, remote cid.Cid) (cid.Cid, error) {
 		}
 
 		var match bool
-		if match, err0 = c.isAncestor(best, id); !match {
+		if match, err0 = isAncestor(ctx, store, best, id); !match {
 			best = id
 		}
 
 		return false
 	}
 
-	if _, err := c.Walk(remote, cb); err != nil {
+	if _, err := Walk(ctx, store, remote, cb); err != nil {
 		return cid.Cid{}, err
 	}
 
@@ -48,7 +51,7 @@ func (c *Context) MergeBase(local, remote cid.Cid) (cid.Cid, error) {
 }
 
 // isAncestor returns true if child is an ancestor of parent.
-func (c *Context) isAncestor(parent, child cid.Cid) (bool, error) {
+func isAncestor(ctx context.Context, store *storage.Store, parent, child cid.Cid) (bool, error) {
 	if !(parent.Defined() && child.Defined()) {
 		return false, nil
 	}
@@ -57,7 +60,7 @@ func (c *Context) isAncestor(parent, child cid.Cid) (bool, error) {
 		return id != child
 	}
 
-	history, err := c.Walk(parent, cb)
+	history, err := Walk(ctx, store, parent, cb)
 	if err != nil {
 		return false, err
 	}
