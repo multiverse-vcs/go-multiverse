@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -24,8 +25,12 @@ func NewServeCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			fmt.Printf("bootstrapping network...\n")
-			p2p.Bootstrap(c.Context, store.Host)
+			//fmt.Printf("bootstrapping network...\n")
+			//p2p.Bootstrap(c.Context, store.Host)
+
+			if err := p2p.Discovery(context.Background(), store.Host); err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
 
 			fmt.Printf("Connected to network with peer id %s:\n", store.Host.ID().Pretty())
 			fmt.Printf("  (listening on multiaddresses)\n")
