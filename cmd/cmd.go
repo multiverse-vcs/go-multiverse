@@ -33,12 +33,12 @@ that enables peer-to-peer software development.`,
 			{Name: "Keenan Nemetz", Email: "keenan.nemetz@pm.me"},
 		},
 		Commands: []*cli.Command{
+			NewCloneCommand(),
 			NewCommitCommand(),
 			NewInitCommand(),
 			NewLogCommand(),
-			NewServeCommand(),
 			NewStatusCommand(),
-			NewSyncCommand(),
+			NewSwapCommand(),
 		},
 	}
 }

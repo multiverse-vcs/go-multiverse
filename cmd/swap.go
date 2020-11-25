@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -10,10 +9,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// NewServeCommand returns a new serve command.
-func NewServeCommand() *cli.Command {
+// NewSwapCommand returns a new serve command.
+func NewSwapCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "serve",
+		Name:  "swap",
 		Usage: "exchange data with peers",
 		Action: func(c *cli.Context) error {
 			store, err := Store()
@@ -25,17 +24,18 @@ func NewServeCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			//fmt.Printf("bootstrapping network...\n")
-			//p2p.Bootstrap(c.Context, store.Host)
+			fmt.Printf("bootstrapping network...\n")
+			p2p.Bootstrap(c.Context, store.Host)
 
-			if err := p2p.Discovery(context.Background(), store.Host); err != nil {
+			if err := p2p.Discovery(c.Context, store.Host); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			fmt.Printf("Connected to network with peer id %s:\n", store.Host.ID().Pretty())
-			fmt.Printf("  (listening on multiaddresses)\n")
+			fmt.Println("Listening on multiaddresses:")
+			id := store.Host.ID().Pretty()
+
 			for _, a := range store.Host.Addrs() {
-				fmt.Printf("\t%s%s/p2p/%s%s\n", ColorGreen, a, store.Host.ID().Pretty(), ColorReset)
+				fmt.Printf("\t%s%s/p2p/%s%s\n", ColorGreen, a, id, ColorReset)
 			}
 
 			interrupt := make(chan os.Signal, 1)
