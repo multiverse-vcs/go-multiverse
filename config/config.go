@@ -2,6 +2,8 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/ipfs/go-cid"
 )
 
@@ -10,17 +12,49 @@ const DefaultBranch = "default"
 
 // Config contains local repo info.
 type Config struct {
-	// Base is the commit changes are based on.
-	Base cid.Cid `json:"base"`
-	// Head is the tip of the current branch.
-	Head cid.Cid `json:"head"`
+	// Index is the commit changes are based on.
+	Index cid.Cid `json:"base"`
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
+	// Branches contains a map of local branches.
+	Branches map[string]cid.Cid
 }
 
 // Default returns a new config with default settings.
 func Default() *Config {
 	return &Config{
-		Branch: DefaultBranch,
+		Branch:   DefaultBranch,
+		Branches: map[string]cid.Cid{DefaultBranch: {}},
 	}
+}
+
+// Head returns the current branch head.
+func (c *Config) Head() cid.Cid {
+	head, _ := c.Branches[c.Branch]
+	return head
+}
+
+// SetHead sets the current branch head to the given head.
+func (c *Config) SetHead(head cid.Cid) {
+	c.Branches[c.Branch] = head
+}
+
+// AddBranch creates a new branch with the given name and head.
+func (c *Config) AddBranch(name string, head cid.Cid) error {
+	if _, ok := c.Branches[name]; ok {
+		return errors.New("branch already exists")
+	}
+
+	c.Branches[name] = head
+	return nil
+}
+
+// DeleteBranch deletes the branch with the given name.
+func (c *Config) DeleteBranch(name string) error {
+	if _, ok := c.Branches[name]; !ok {
+		return errors.New("branch does not exist")
+	}
+
+	delete(c.Branches, name)
+	return nil
 }

@@ -24,7 +24,7 @@ func NewStatusCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			changes, err := core.Status(c.Context, store, cfg.Head)
+			changes, err := core.Status(c.Context, store, cfg.Head())
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}

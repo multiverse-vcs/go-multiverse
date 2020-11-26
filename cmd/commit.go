@@ -30,8 +30,8 @@ func NewCommitCommand() *cli.Command {
 			}
 
 			var parents []cid.Cid
-			if cfg.Head.Defined() {
-				parents = append(parents, cfg.Head)
+			if cfg.Head().Defined() {
+				parents = append(parents, cfg.Head())
 			}
 
 			id, err := core.Commit(c.Context, store, c.Args().Get(0), parents...)
@@ -39,8 +39,8 @@ func NewCommitCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			cfg.Head = id
-			cfg.Base = id
+			cfg.Index = id
+			cfg.SetHead(id)
 
 			if err := store.WriteConfig(cfg); err != nil {
 				return cli.Exit(err.Error(), 1)

@@ -28,19 +28,19 @@ func NewLogCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			if !cfg.Head.Defined() {
+			if !cfg.Head().Defined() {
 				return nil
 			}
 
 			cb := func(id cid.Cid, commit *object.Commit) bool {
 				fmt.Printf("%s%s", ColorYellow, id.String())
 
-				if id == cfg.Head {
+				if id == cfg.Head() {
 					fmt.Printf(" (%sHEAD%s)", ColorRed, ColorYellow)
 				}
 
-				if id == cfg.Base {
-					fmt.Printf(" (%sBASE%s)", ColorGreen, ColorYellow)
+				if id == cfg.Index {
+					fmt.Printf(" (%sINDEX%s)", ColorGreen, ColorYellow)
 				}
 
 				fmt.Printf("%s\n", ColorReset)
@@ -54,7 +54,7 @@ func NewLogCommand() *cli.Command {
 				return true
 			}
 
-			if _, err := core.Walk(c.Context, store, cfg.Head, cb); err != nil {
+			if _, err := core.Walk(c.Context, store, cfg.Head(), cb); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 

@@ -71,8 +71,8 @@ func NewCloneCommand() *cli.Command {
 			}
 
 			cfg := config.Default()
-			cfg.Head = id
-			cfg.Base = id
+			cfg.Index = id
+			cfg.SetHead(id)
 
 			if err := store.WriteConfig(cfg); err != nil {
 				return cli.Exit(err.Error(), 1)
