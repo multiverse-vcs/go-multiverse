@@ -7,14 +7,12 @@ import (
 	bsnet "github.com/ipfs/go-bitswap/network"
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-merkledag"
-	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
 // Online initializes a p2p host for the underlying blockservice.
 func (s *Store) Online(ctx context.Context) error {
-	// TODO save key instead of generating
-	priv, _, err := crypto.GenerateKeyPair(p2p.DefaultKeyType, -1)
+	priv, err := s.ReadKey()
 	if err != nil {
 		return err
 	}
