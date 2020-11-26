@@ -19,10 +19,8 @@ import (
 
 // ListenAddresses is a list of addresses to listen on.
 var ListenAddresses = []string{
-	"/ip4/0.0.0.0/tcp/9000",
-	"/ip4/0.0.0.0/udp/9000/quic",
-	"/ip4/127.0.0.1/tcp/9000",
-	"/ip4/127.0.0.1/udp/9000/quic",
+	"/ip4/0.0.0.0/tcp/4000",
+	"/ip4/0.0.0.0/udp/4000/quic",
 }
 
 const (
@@ -57,6 +55,7 @@ func NewHost(ctx context.Context, priv crypto.PrivKey) (host.Host, routing.Routi
 			return router, err
 		}),
 		libp2p.EnableAutoRelay(),
+		libp2p.DefaultStaticRelays(),
 	)
 
 	return host, router, err

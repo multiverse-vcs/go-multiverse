@@ -11,8 +11,8 @@ import (
 // NewCommitCommand returns a new commit command.
 func NewCommitCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "commit",
-		Usage: "record repo changes",
+		Name:      "commit",
+		Usage:     "record repo changes",
 		ArgsUsage: "<message>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {

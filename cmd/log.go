@@ -45,7 +45,7 @@ func NewLogCommand() *cli.Command {
 
 				fmt.Printf("%s\n", ColorReset)
 				fmt.Printf("Date: %s\n", commit.Date.Format(LogDateFormat))
-				
+
 				if len(commit.Message) > 0 {
 					fmt.Printf("\n\t%s\n", commit.Message)
 				}
