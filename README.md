@@ -2,10 +2,6 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
 
-Multiverse is a decentralized version control system that enables peer-to-peer software development.
-
-### Usage
-
 ```
 NAME:
    Multiverse - Decentralized Version Control System
