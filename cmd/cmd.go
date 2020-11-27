@@ -40,6 +40,7 @@ that enables peer-to-peer software development.`,
 			NewLogCommand(),
 			NewStatusCommand(),
 			NewSwapCommand(),
+			NewSwitchCommand(),
 		},
 	}
 }

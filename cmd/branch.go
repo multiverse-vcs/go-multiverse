@@ -21,9 +21,9 @@ func NewBranchCommand() *cli.Command {
 // NewBranchAddCommand returns a new command.
 func NewBranchAddCommand() *cli.Command {
 	return &cli.Command{
-		Name: "add",
-		Usage: "create a branch",
-		ArgsUsage: "<name>",
+		Name:      "add",
+		Usage:     "create a branch",
+		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
 				return cli.Exit("missing required args", 1)
@@ -55,9 +55,9 @@ func NewBranchAddCommand() *cli.Command {
 // NewBranchListCommand returns a new command.
 func NewBranchListCommand() *cli.Command {
 	return &cli.Command{
-		Name: "list",
+		Name:    "list",
 		Aliases: []string{"ls"},
-		Usage: "print branches",
+		Usage:   "print branches",
 		Action: func(c *cli.Context) error {
 			store, err := Store()
 			if err != nil {
@@ -69,7 +69,7 @@ func NewBranchListCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			for b, _ := range cfg.Branches {
+			for b := range cfg.Branches {
 				if b == cfg.Branch {
 					fmt.Printf("%s*%s ", ColorGreen, ColorReset)
 				}
@@ -85,10 +85,10 @@ func NewBranchListCommand() *cli.Command {
 // NewBranchRemoveCommand returns a new command.
 func NewBranchRemoveCommand() *cli.Command {
 	return &cli.Command{
-		Name: "remove",
-		Aliases: []string{"rm"},
-		Usage: "delete a branch",
-		ArgsUsage: "<name>",
+		Name:      "remove",
+		Aliases:   []string{"rm"},
+		Usage:     "delete a branch",
+		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
 				return cli.Exit("missing required args", 1)

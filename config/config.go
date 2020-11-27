@@ -10,6 +10,14 @@ import (
 // DefaultBranch is the name of the default branch.
 const DefaultBranch = "default"
 
+// Branch contains a diverging set of changes.
+type Branch struct {
+	// Head is the tip of the branch.
+	Head cid.Cid
+	// Stash is a copy of the working directory.
+	Stash cid.Cid
+}
+
 // Config contains local repo info.
 type Config struct {
 	// Index is the commit changes are based on.
@@ -17,26 +25,57 @@ type Config struct {
 	// Branch is the name of the current branch.
 	Branch string
 	// Branches contains a map of local branches.
-	Branches map[string]cid.Cid
+	Branches map[string]*Branch
 }
 
 // Default returns a new config with default settings.
 func Default() *Config {
 	return &Config{
-		Branch:   DefaultBranch,
-		Branches: map[string]cid.Cid{DefaultBranch: {}},
+		Branch: DefaultBranch,
+		Branches: map[string]*Branch{
+			DefaultBranch: {},
+		},
 	}
 }
 
 // Head returns the current branch head.
 func (c *Config) Head() cid.Cid {
-	head, _ := c.Branches[c.Branch]
-	return head
+	branch, err := c.GetBranch(c.Branch)
+	if err != nil {
+		return cid.Cid{}
+	}
+
+	return branch.Head
 }
 
-// SetHead sets the current branch head to the given head.
+// SetHead sets the current branch head.
 func (c *Config) SetHead(head cid.Cid) {
-	c.Branches[c.Branch] = head
+	branch, err := c.GetBranch(c.Branch)
+	if err != nil {
+		return
+	}
+
+	branch.Head = head
+}
+
+// Stash returns the current branch stash.
+func (c *Config) Stash() cid.Cid {
+	branch, err := c.GetBranch(c.Branch)
+	if err != nil {
+		return cid.Cid{}
+	}
+
+	return branch.Stash
+}
+
+// SetStash sets the current branch stash.
+func (c *Config) SetStash(stash cid.Cid) {
+	branch, err := c.GetBranch(c.Branch)
+	if err != nil {
+		return
+	}
+
+	branch.Stash = stash
 }
 
 // AddBranch creates a new branch with the given name and head.
@@ -45,16 +84,26 @@ func (c *Config) AddBranch(name string, head cid.Cid) error {
 		return errors.New("branch already exists")
 	}
 
-	c.Branches[name] = head
+	c.Branches[name] = &Branch{Head: head}
 	return nil
 }
 
 // DeleteBranch deletes the branch with the given name.
 func (c *Config) DeleteBranch(name string) error {
-	if _, ok := c.Branches[name]; !ok {
+	if _, ok := c.Branches[c.Branch]; !ok {
 		return errors.New("branch does not exist")
 	}
 
 	delete(c.Branches, name)
 	return nil
+}
+
+// GetBranch returns the branch with the given name
+func (c *Config) GetBranch(name string) (*Branch, error) {
+	branch, ok := c.Branches[c.Branch]
+	if !ok {
+		return nil, errors.New("branch does not exist")
+	}
+
+	return branch, nil
 }
