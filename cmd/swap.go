@@ -27,11 +27,11 @@ func NewSwapCommand() *cli.Command {
 			fmt.Printf("bootstrapping network...\n")
 			p2p.Bootstrap(c.Context, store.Host)
 
-			if err := store.Router.Bootstrap(c.Context); err != nil {
+			if err := p2p.Discovery(c.Context, store.Host); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			if err := p2p.Discovery(c.Context, store.Host); err != nil {
+			if err := store.Router.Bootstrap(c.Context); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 

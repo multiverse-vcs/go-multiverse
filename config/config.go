@@ -13,9 +13,9 @@ const DefaultBranch = "default"
 // Config contains local repo info.
 type Config struct {
 	// Index is the commit changes are based on.
-	Index cid.Cid `json:"base"`
+	Index cid.Cid
 	// Branch is the name of the current branch.
-	Branch string `json:"branch"`
+	Branch string
 	// Branches contains a map of local branches.
 	Branches map[string]cid.Cid
 }

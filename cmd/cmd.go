@@ -23,7 +23,7 @@ const (
 // NewApp returns a new cli app.
 func NewApp() *cli.App {
 	return &cli.App{
-		Name:     "Multiverse",
+		Name:     "multi",
 		HelpName: "multi",
 		Usage:    "Decentralized Version Control System",
 		Description: `Multiverse is a decentralized version control system
@@ -33,6 +33,7 @@ that enables peer-to-peer software development.`,
 			{Name: "Keenan Nemetz", Email: "keenan.nemetz@pm.me"},
 		},
 		Commands: []*cli.Command{
+			NewBranchCommand(),
 			NewCloneCommand(),
 			NewCommitCommand(),
 			NewInitCommand(),

@@ -61,6 +61,10 @@ func NewCloneCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
+			if err := store.Router.Bootstrap(c.Context); err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
 			fmt.Printf("fetching commit graph...\n")
 			if err := merkledag.FetchGraph(c.Context, id, store.Dag); err != nil {
 				return cli.Exit(err.Error(), 1)
