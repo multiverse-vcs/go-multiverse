@@ -34,6 +34,7 @@ that enables peer-to-peer software development.`,
 		},
 		Commands: []*cli.Command{
 			NewBranchCommand(),
+			NewCheckoutCommand(),
 			NewCloneCommand(),
 			NewCommitCommand(),
 			NewInitCommand(),

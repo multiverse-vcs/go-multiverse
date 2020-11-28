@@ -20,8 +20,8 @@ import (
 
 // ListenAddresses is a list of addresses to listen on.
 var ListenAddresses = []string{
-	"/ip4/0.0.0.0/tcp/4000",
-	"/ip4/0.0.0.0/udp/4000/quic",
+	"/ip4/0.0.0.0/tcp/9000",
+	"/ip4/0.0.0.0/udp/9000/quic",
 }
 
 const (

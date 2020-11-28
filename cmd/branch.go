@@ -26,7 +26,7 @@ func NewBranchAddCommand() *cli.Command {
 		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
-				return cli.Exit("missing required args", 1)
+				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
 			store, err := Store()
@@ -91,7 +91,7 @@ func NewBranchRemoveCommand() *cli.Command {
 		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
-				return cli.Exit("missing required args", 1)
+				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
 			store, err := Store()
