@@ -35,11 +35,11 @@ func NewSwapCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
+			fmt.Println("listening on:")
 			id := store.Host.ID().Pretty()
-			fmt.Printf("%syour peer id is %s%s\n", ColorYellow, id, ColorReset)
 
 			for _, a := range store.Host.Addrs() {
-				fmt.Printf("\t%s%s/p2p/%s%s\n", ColorGreen, a, id, ColorReset)
+				fmt.Printf("* %s/p2p/%s\n", a, id)
 			}
 
 			interrupt := make(chan os.Signal, 1)

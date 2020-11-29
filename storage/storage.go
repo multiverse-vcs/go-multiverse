@@ -22,6 +22,8 @@ const (
 	ConfigFile = "config"
 	// KeyFile is the name of the key file.
 	KeyFile = "key"
+	// KeyType is the type of key to use.
+	KeyType = crypto.Ed25519
 )
 
 // Store contains storage services.

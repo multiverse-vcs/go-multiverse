@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/ipfs/go-blockservice"
@@ -8,8 +9,38 @@ import (
 	"github.com/ipfs/go-ipfs-blockstore"
 	"github.com/ipfs/go-ipfs-exchange-offline"
 	"github.com/ipfs/go-merkledag"
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/spf13/afero"
 )
+
+// InitOsStore initializes a store that is backed by the operating system.
+func InitOsStore(root string) (*Store, error) {
+	path := filepath.Join(root, DotDir)
+	if err := os.Mkdir(path, 0755); err != nil {
+		return nil, err
+	}
+
+	store, err := NewOsStore(root)
+	if err != nil {
+		return nil, err
+	}
+
+	priv, _, err := crypto.GenerateKeyPair(KeyType, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := store.WriteConfig(config.Default()); err != nil {
+		return nil, err
+	}
+
+	if err := store.WriteKey(priv); err != nil {
+		return nil, err
+	}
+
+	return store, nil
+}
 
 // NewOsStore returns a store that is backed by the operating system.
 func NewOsStore(root string) (*Store, error) {

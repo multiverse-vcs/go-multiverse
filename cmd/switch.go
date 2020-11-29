@@ -39,7 +39,7 @@ func NewSwitchCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			fmt.Println("stashing working directory...")
+			fmt.Println("stashing changes...")
 			stash, err := core.Worktree(c.Context, store)
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
