@@ -12,7 +12,7 @@ import (
 func NewStatusCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "status",
-		Usage: "print pending changes",
+		Usage: "Print repo status",
 		Action: func(c *cli.Context) error {
 			store, err := Store()
 			if err != nil {

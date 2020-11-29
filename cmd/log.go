@@ -16,7 +16,7 @@ const LogDateFormat = "Mon Jan 2 15:04:05 2006 -0700"
 func NewLogCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "log",
-		Usage: "print change history",
+		Usage: "Print change history",
 		Action: func(c *cli.Context) error {
 			store, err := Store()
 			if err != nil {

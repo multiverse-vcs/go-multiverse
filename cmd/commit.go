@@ -12,11 +12,11 @@ import (
 func NewCommitCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "commit",
-		Usage:     "record repo changes",
+		Usage:     "Record repo changes",
 		ArgsUsage: "<message>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
-				return cli.Exit("missing required args", 1)
+				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
 			store, err := Store()

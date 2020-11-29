@@ -3,22 +3,21 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag"
-	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/config"
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/urfave/cli/v2"
 )
 
-// NewCloneCommand returns a new command.
-func NewCloneCommand() *cli.Command {
+// NewFetchCommand returns a new command.
+func NewFetchCommand() *cli.Command {
 	return &cli.Command{
-		Name:      "clone",
-		Usage:     "Copy an existing repo",
-		ArgsUsage: "<commit-cid> <dir>",
+		Name:      "fetch",
+		Usage:     "Fetch changes from peers",
+		ArgsUsage: "<commit-cid> <branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 2 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
@@ -34,12 +33,7 @@ func NewCloneCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			root := filepath.Join(cwd, c.Args().Get(1))
-			if err := os.Mkdir(root, 0755); err != nil {
-				return cli.Exit(err.Error(), 1)
-			}
-
-			store, err := storage.InitOsStore(root)
+			store, err := storage.NewOsStore(cwd)
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
@@ -47,6 +41,11 @@ func NewCloneCommand() *cli.Command {
 			cfg, err := store.ReadConfig()
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
+			}
+
+			name := c.Args().Get(1)
+			if b, ok := cfg.Branches[name]; ok && b.Head.Defined() {
+				return cli.Exit("branch exists and is not empty", 1)
 			}
 
 			if err := store.Online(c.Context); err != nil {
@@ -69,13 +68,7 @@ func NewCloneCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			if err := core.Checkout(c.Context, store, id); err != nil {
-				return cli.Exit(err.Error(), 1)
-			}
-
-			cfg.Index = id
-			cfg.SetHead(id)
-
+			cfg.Branches[name] = &config.Branch{Head: id}
 			if err := store.WriteConfig(cfg); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}

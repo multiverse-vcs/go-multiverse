@@ -2,35 +2,38 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
 
+Multiverse is a decentralized version control system that enables peer-to-peer software development.
+
+### About
+
+Multiverse differs from other version control systems in that it is completely *decentralized*.
+
+Repositories are shared using a globally distributed commit graph instead of *centralized* servers.
+
+### Install
+
+Go 1.14 or higher is required.
+
+```bash
+$ git clone https://github.com/multiverse-vcs/go-multiverse.git
+$ cd go-multiverse
+$ make install
 ```
-NAME:
-   Multiverse - Decentralized Version Control System
 
-USAGE:
-   multi [global options] command [command options] [arguments...]
+### Usage
 
-VERSION:
-   0.0.1
-
-DESCRIPTION:
-   Multiverse is a decentralized version control system
-   that enables peer-to-peer software development.
-
-AUTHOR:
-   Keenan Nemetz <keenan.nemetz@pm.me>
-
-COMMANDS:
-   clone    copy an existing repo
-   commit   record repo changes
-   init     create a new repo
-   log      print change history
-   status   print pending changes
-   swap     exchange data with peers
-   help, h  Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --help, -h     show help (default: false)
-   --version, -v  print the version (default: false)
+```
+branch    Add, remove, or list branches
+checkout  Checkout committed files
+clone     Copy an existing repo
+commit    Record repo changes
+fetch     Fetch changes from peers
+init      Initialize a new repo
+log       Print change history
+status    Print repo status
+swap      Exchange data with peers
+switch    Change branches
+help, h   Shows a list of commands or help for one command
 ```
 
 ### Contributing

@@ -1,19 +1,25 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/urfave/cli/v2"
 )
 
-// NewSwitchCommand returns a new command.
-func NewSwitchCommand() *cli.Command {
+// NewCheckoutCommand returns a new command.
+func NewCheckoutCommand() *cli.Command {
 	return &cli.Command{
-		Name:      "switch",
-		Usage:     "Change branches",
-		ArgsUsage: "<branch-name>",
+		Name:      "checkout",
+		Usage:     "Checkout committed files",
+		ArgsUsage: "<commit-cid>",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "force",
+				Aliases: []string{"f"},
+				Value:   false,
+				Usage:   "Force checkout with pending changes",
+			},
+		},
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
@@ -29,35 +35,26 @@ func NewSwitchCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			name := c.Args().Get(0)
-			if cfg.Branch == name {
-				return cli.Exit("already on branch", 1)
-			}
-
-			branch, err := cfg.GetBranch(name)
+			id, err := cid.Parse(c.Args().Get(0))
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			fmt.Println("stashing changes...")
-			stash, err := core.Worktree(c.Context, store)
+			changes, err := core.Status(c.Context, store, cfg.Head())
 			if err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			var id cid.Cid = branch.Head
-			if branch.Stash.Defined() {
-				id = branch.Stash
+			if len(changes) > 0 && !c.Bool("force") {
+				return cli.Exit("use the force flag to checkout with pending changes", 1)
 			}
 
-			fmt.Println("checking out branch...")
 			if err := core.Checkout(c.Context, store, id); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			cfg.SetStash(stash.Cid())
-			cfg.Branch = name
 			cfg.Index = id
+			cfg.SetHead(id)
 
 			if err := store.WriteConfig(cfg); err != nil {
 				return cli.Exit(err.Error(), 1)
