@@ -16,7 +16,7 @@ import (
 func NewFetchCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "fetch",
-		Usage:     "copy changes from peers",
+		Usage:     "Fetch changes from peers",
 		ArgsUsage: "<commit-cid> <branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 2 {

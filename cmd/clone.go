@@ -18,7 +18,7 @@ import (
 func NewCloneCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "clone",
-		Usage:     "copy an existing repo",
+		Usage:     "Copy an existing repo",
 		ArgsUsage: "<commit-cid> <dir>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 2 {

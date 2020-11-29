@@ -12,7 +12,7 @@ import (
 func NewCommitCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "commit",
-		Usage:     "record repo changes",
+		Usage:     "Record repo changes",
 		ArgsUsage: "<message>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {

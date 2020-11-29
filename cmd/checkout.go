@@ -10,14 +10,14 @@ import (
 func NewCheckoutCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "checkout",
-		Usage:     "checkout committed files",
+		Usage:     "Checkout committed files",
 		ArgsUsage: "<commit-cid>",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "force",
 				Aliases: []string{"f"},
 				Value:   false,
-				Usage:   "force checkout with pending changes",
+				Usage:   "Force checkout with pending changes",
 			},
 		},
 		Action: func(c *cli.Context) error {

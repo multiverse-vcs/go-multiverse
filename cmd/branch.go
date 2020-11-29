@@ -9,7 +9,7 @@ import (
 func NewBranchCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "branch",
-		Usage: "add, remove, or list branches",
+		Usage: "Add, remove, or list branches",
 		Subcommands: []*cli.Command{
 			NewBranchAddCommand(),
 			NewBranchListCommand(),
@@ -22,7 +22,7 @@ func NewBranchCommand() *cli.Command {
 func NewBranchAddCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "add",
-		Usage:     "create a branch",
+		Usage:     "Create a branch",
 		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
@@ -57,7 +57,7 @@ func NewBranchListCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "list",
 		Aliases: []string{"ls"},
-		Usage:   "print branches",
+		Usage:   "Print branches",
 		Action: func(c *cli.Context) error {
 			store, err := Store()
 			if err != nil {
@@ -87,7 +87,7 @@ func NewBranchRemoveCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "remove",
 		Aliases:   []string{"rm"},
-		Usage:     "delete a branch",
+		Usage:     "Delete a branch",
 		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {

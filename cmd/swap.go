@@ -13,7 +13,7 @@ import (
 func NewSwapCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "swap",
-		Usage: "exchange data with peers",
+		Usage: "Exchange data with peers",
 		Action: func(c *cli.Context) error {
 			store, err := Store()
 			if err != nil {

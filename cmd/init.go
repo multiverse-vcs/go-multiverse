@@ -16,7 +16,7 @@ const DefaultKeyType = crypto.Ed25519
 func NewInitCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "init",
-		Usage: "create a new repo",
+		Usage: "Initialize a new repo",
 		Action: func(c *cli.Context) error {
 			cwd, err := os.Getwd()
 			if err != nil {

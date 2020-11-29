@@ -12,7 +12,7 @@ import (
 func NewSwitchCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "switch",
-		Usage:     "change branches",
+		Usage:     "Change branches",
 		ArgsUsage: "<branch-name>",
 		Action: func(c *cli.Context) error {
 			if c.NArg() < 1 {
