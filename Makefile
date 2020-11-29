@@ -1,3 +1,6 @@
+
+all: build
+
 release:
 	GOOS=freebsd GOARCH=386 go build -o bin/multi-freebsd-386
 	GOOS=freebsd GOARCH=amd64 go build -o bin/multi-freebsd-amd64
@@ -8,7 +11,8 @@ release:
 	GOOS=windows GOARCH=386 go build -o bin/multi-windows-386
 	GOOS=windows GOARCH=amd64 go build -o bin/multi-windows-amd64
 
-all: build
+test:
+	go test ./...
 
 build:
 	go build -o bin/multi
@@ -16,4 +20,4 @@ build:
 install: build
 	cp bin/multi /usr/local/bin/
 
-.PHONY: build release install
+.PHONY: build release install test
