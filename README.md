@@ -20,6 +20,30 @@ $ cd go-multiverse
 $ make install
 ```
 
+### Concepts
+
+Multiverse uses content identifiers or [CIDs](https://docs.ipfs.io/concepts/content-addressing/#identifier-formats) to locate and retrieve content.
+
+A CID can refer to a specific commit, tag, or branch of a repository. Only trust shared CIDs from secure sources.
+
+Below is an example of using a CID to clone a repository.
+
+```bash
+$ multi clone bafyreid6o5dhbnxthplfnsuuyqyhxs6vi22xep62f3szk2krq2r7pyaiim project
+```
+
+When you are ready to share your changes you will need to connect to other peers in the network.
+
+Multiverse uses multiple networking protocols to find peers on both global and local networks.
+
+An internet connection is *never* required to share changes with peers on your local network.
+
+Use the swap command to connect with peers and share changes.
+
+```bash
+$ multi swap
+```
+
 ### Usage
 
 ```
