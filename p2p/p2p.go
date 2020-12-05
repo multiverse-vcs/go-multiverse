@@ -14,7 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/dual"
 	"github.com/libp2p/go-libp2p-quic-transport"
-	"github.com/libp2p/go-libp2p-secio"
+	"github.com/libp2p/go-libp2p-noise"
 	"github.com/libp2p/go-libp2p-tls"
 )
 
@@ -42,7 +42,7 @@ func NewHost(ctx context.Context, priv crypto.PrivKey) (host.Host, routing.Routi
 		libp2p.Identity(priv),
 		libp2p.ListenAddrStrings(ListenAddresses...),
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
-		libp2p.Security(secio.ID, secio.New),
+		libp2p.Security(noise.ID, noise.New),
 		libp2p.Transport(libp2pquic.NewTransport),
 		libp2p.DefaultTransports,
 		libp2p.NATPortMap(),
