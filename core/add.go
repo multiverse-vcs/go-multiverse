@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -40,21 +41,16 @@ func Add(ctx context.Context, store *storage.Store, path string, filter *ignore.
 	}
 }
 
-func addFile(ctx context.Context, store *storage.Store, path string) (ipld.Node, error) {
+func add(ctx context.Context, store *storage.Store, reader io.Reader) (ipld.Node, error) {
+	chunker, err := chunk.FromString(reader, DefaultChunker)
+	if err != nil {
+		return nil, err
+	}
+
 	params := helpers.DagBuilderParams{
 		Dagserv:    store.Dag,
 		CidBuilder: merkledag.V1CidPrefix(),
 		Maxlinks:   helpers.DefaultLinksPerBlock,
-	}
-
-	file, err := store.Cwd.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	chunker, err := chunk.FromString(file, DefaultChunker)
-	if err != nil {
-		return nil, err
 	}
 
 	helper, err := params.New(chunker)
@@ -68,6 +64,16 @@ func addFile(ctx context.Context, store *storage.Store, path string) (ipld.Node,
 	}
 
 	return node, store.Dag.Add(ctx, node)
+}
+
+func addFile(ctx context.Context, store *storage.Store, path string) (ipld.Node, error) {
+	file, err := store.Cwd.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return add(ctx, store, file)
 }
 
 func addSymlink(ctx context.Context, store *storage.Store, path string) (ipld.Node, error) {

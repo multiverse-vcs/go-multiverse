@@ -31,7 +31,7 @@ func TestStatusRemove(t *testing.T) {
 
 	changes, err := Status(context.TODO(), store, head)
 	if err != nil {
-		t.Fatalf("failed to get status: %s", err)
+		t.Fatalf("failed to get status")
 	}
 
 	if len(changes) != 1 {

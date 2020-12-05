@@ -45,6 +45,7 @@ func writeFile(ctx context.Context, store *storage.Store, path string, node ipld
 	if err != nil {
 		return err
 	}
+	defer reader.Close()
 
 	file, err := store.Cwd.Create(path)
 	if err != nil {
