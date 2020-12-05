@@ -29,26 +29,21 @@ func Merge(textO, textA, textB string) string {
 	matchesB := matches(diffsB, runesB)
 
 	var result strings.Builder
-	indexO, indexA, indexB := 0, 0, 0
-	for {
-		i := nextMismatch(indexO, indexA, indexB, runesA, runesB, matchesA, matchesB)
-
+	for indexO, indexA, indexB := 0, 0, 0; indexO < len(runesO) || indexA < len(runesA) || indexB < len(runesB); {
 		o, a, b := 0, 0, 0
-		if i == 1 {
+		switch i := nextMismatch(indexO, indexA, indexB, runesA, runesB, matchesA, matchesB); i {
+		case 1:
 			o, a, b = nextMatch(indexO, runesO, matchesA, matchesB)
-		} else if i > 1 {
+		case 0:
+			o, a, b = len(runesO)+1, len(runesA)+1, len(runesB)+1
+		default:
 			o, a, b = indexO+i, indexA+i, indexB+i
-		}
-
-		if o == 0 || a == 0 || b == 0 {
-			break
 		}
 
 		chunk(indexO, indexA, indexB, o-1, a-1, b-1, runesO, runesA, runesB, linesA, linesB, &result)
 		indexO, indexA, indexB = o-1, a-1, b-1
 	}
 
-	chunk(indexO, indexA, indexB, len(runesO), len(runesA), len(runesB), runesO, runesA, runesB, linesA, linesB, &result)
 	return result.String()
 }
 

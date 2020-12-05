@@ -42,6 +42,7 @@ onions
 >>>>>>>
 wine
 `
+
 	if Merge(textO, textA, textB) != expect {
 		t.Errorf("unexpected merge result")
 	}
