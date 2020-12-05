@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/core"
@@ -33,14 +34,29 @@ func NewStatusCommand() *cli.Command {
 			fmt.Printf("  (all files are automatically considered for commit)\n")
 			fmt.Printf("  (to stop tracking files add rules to '%s')\n", core.IgnoreFile)
 
+			set := make(map[string]dagutils.ChangeType)
 			for _, change := range changes {
-				switch change.Type {
+				if _, ok := set[change.Path]; ok {
+					set[change.Path] = dagutils.Mod
+				} else {
+					set[change.Path] = change.Type
+				}
+			}
+
+			paths := make([]string, 0)
+			for path := range set {
+				paths = append(paths, path)
+			}
+			sort.Strings(paths)
+
+			for _, p := range paths {
+				switch set[p] {
 				case dagutils.Add:
-					fmt.Printf("\t%snew file: %s%s\n", ColorGreen, change.Path, ColorReset)
+					fmt.Printf("\t%snew file: %s%s\n", ColorGreen, p, ColorReset)
 				case dagutils.Remove:
-					fmt.Printf("\t%sdeleted:  %s%s\n", ColorRed, change.Path, ColorReset)
+					fmt.Printf("\t%sdeleted:  %s%s\n", ColorRed, p, ColorReset)
 				case dagutils.Mod:
-					fmt.Printf("\t%smodified: %s%s\n", ColorYellow, change.Path, ColorReset)
+					fmt.Printf("\t%smodified: %s%s\n", ColorRed, p, ColorReset)
 				}
 			}
 
