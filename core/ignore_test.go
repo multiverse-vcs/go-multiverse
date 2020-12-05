@@ -34,11 +34,11 @@ func TestIgnoreFile(t *testing.T) {
 		t.Fatalf("failed to create storage")
 	}
 
-	IgnoreRules = []string{"foo"}
 	if err := afero.WriteFile(store.Cwd, IgnoreFile, []byte("bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
+	IgnoreRules = []string{"foo"}
 	rules, err := Ignore(store)
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")

@@ -42,7 +42,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := Merge(context.TODO(), store, local, remote); err != nil {
+	if err := Merge(context.TODO(), store, base, local, remote); err != nil {
 		t.Fatalf("failed to merge %s", err)
 	}
 

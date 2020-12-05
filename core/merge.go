@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/ipfs/go-cid"
@@ -14,27 +13,14 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
-// Merge combines the work trees of a and b o
-func Merge(ctx context.Context, store *storage.Store, local, remote cid.Cid) error {
-	base, err := MergeBase(ctx, store, local, remote)
+// Merge combines the work trees of a and b into the base o.
+func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) error {
+	changesA, err := Diff(ctx, store, o, a)
 	if err != nil {
 		return err
 	}
 
-	if base == local {
-		return Checkout(ctx, store, remote)
-	}
-
-	if base == remote {
-		return Checkout(ctx, store, local)
-	}
-
-	changesA, err := Diff(ctx, store, base, local)
-	if err != nil {
-		return err
-	}
-
-	changesB, err := Diff(ctx, store, base, remote)
+	changesB, err := Diff(ctx, store, o, b)
 	if err != nil {
 		return err
 	}
@@ -49,7 +35,7 @@ func Merge(ctx context.Context, store *storage.Store, local, remote cid.Cid) err
 		changes = append(changes, change)
 	}
 
-	node, err := store.Dag.Get(ctx, base)
+	node, err := store.Dag.Get(ctx, o)
 	if err != nil {
 		return err
 	}
