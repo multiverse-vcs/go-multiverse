@@ -13,8 +13,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/dual"
-	"github.com/libp2p/go-libp2p-quic-transport"
 	"github.com/libp2p/go-libp2p-noise"
+	"github.com/libp2p/go-libp2p-quic-transport"
 	"github.com/libp2p/go-libp2p-tls"
 )
 
