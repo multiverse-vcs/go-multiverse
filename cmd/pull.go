@@ -6,20 +6,19 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag"
-	"github.com/multiverse-vcs/go-multiverse/config"
-	"github.com/multiverse-vcs/go-multiverse/p2p"
+	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/urfave/cli/v2"
 )
 
-// NewFetchCommand returns a new command.
-func NewFetchCommand() *cli.Command {
+// NewPullCommand returns a new command.
+func NewPullCommand() *cli.Command {
 	return &cli.Command{
-		Name:      "fetch",
-		Usage:     "Fetch changes from peers",
-		ArgsUsage: "<commit-cid> <branch-name>",
+		Name:      "pull",
+		Usage:     "Merge changes from peers",
+		ArgsUsage: "<commit-cid>",
 		Action: func(c *cli.Context) error {
-			if c.NArg() < 2 {
+			if c.NArg() < 1 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
@@ -43,23 +42,11 @@ func NewFetchCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			name := c.Args().Get(1)
-			if b, ok := cfg.Branches[name]; ok && b.Head.Defined() {
-				return cli.Exit("branch exists and is not empty", 1)
+			if cfg.Head() != cfg.Index {
+				return cli.Exit("index is behind head", 1)
 			}
 
 			if err := store.Online(c.Context); err != nil {
-				return cli.Exit(err.Error(), 1)
-			}
-
-			fmt.Printf("bootstrapping network...\n")
-			p2p.Bootstrap(c.Context, store.Host)
-
-			if err := p2p.Discovery(c.Context, store.Host); err != nil {
-				return cli.Exit(err.Error(), 1)
-			}
-
-			if err := store.Router.Bootstrap(c.Context); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 
@@ -68,8 +55,21 @@ func NewFetchCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			cfg.Branches[name] = &config.Branch{Head: id}
-			if err := store.WriteConfig(cfg); err != nil {
+			base, err := core.MergeBase(c.Context, store, cfg.Head(), id)
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
+			if base == id {
+				return cli.Exit("local is ahead of remote", 1)
+			}
+
+			node, err := core.Merge(c.Context, store, cfg.Head(), base, id)
+			if err != nil {
+				return cli.Exit(err.Error(), 1)
+			}
+
+			if err := core.Write(c.Context, store, "", node); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 

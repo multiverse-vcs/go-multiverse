@@ -8,7 +8,6 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag"
 	"github.com/multiverse-vcs/go-multiverse/core"
-	"github.com/multiverse-vcs/go-multiverse/p2p"
 	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/urfave/cli/v2"
 )
@@ -50,17 +49,6 @@ func NewCloneCommand() *cli.Command {
 			}
 
 			if err := store.Online(c.Context); err != nil {
-				return cli.Exit(err.Error(), 1)
-			}
-
-			fmt.Printf("bootstrapping network...\n")
-			p2p.Bootstrap(c.Context, store.Host)
-
-			if err := p2p.Discovery(c.Context, store.Host); err != nil {
-				return cli.Exit(err.Error(), 1)
-			}
-
-			if err := store.Router.Bootstrap(c.Context); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}
 

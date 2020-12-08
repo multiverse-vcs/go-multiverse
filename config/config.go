@@ -8,19 +8,10 @@ import (
 )
 
 const (
-	DefaultBranch   = "default"
-	DefaultRemote   = "local"
-	DefaultEthereum = "http://127.0.0.1:8545"
-	DefaultIPFS     = "http://127.0.0.1:5001"
+	DefaultBranch    = "default"
+	DefaultRemote    = "local"
+	DefaultRemoteURL = "http://127.0.0.1:5001"
 )
-
-// Remote contains endpoint info.
-type Remote struct {
-	// Ethereum is the Ethereum JSON RPC address.
-	Ethereum string
-	// IPFS is the IPFS HTTP API address.
-	IPFS string
-}
 
 // Branch contains local branch info.
 type Branch struct {
@@ -39,7 +30,7 @@ type Config struct {
 	// Branches contains a map of local branches.
 	Branches map[string]*Branch
 	// Remotes contains a map of remote endpoints.
-	Remotes map[string]*Remote
+	Remotes map[string]string
 }
 
 // Default returns a new config with default settings.
@@ -49,11 +40,8 @@ func Default() *Config {
 		Branches: map[string]*Branch{
 			DefaultBranch: {},
 		},
-		Remotes: map[string]*Remote{
-			DefaultRemote: {
-				Ethereum: DefaultEthereum,
-				IPFS:     DefaultIPFS,
-			},
+		Remotes: map[string]string{
+			DefaultRemote: DefaultRemoteURL,
 		},
 	}
 }

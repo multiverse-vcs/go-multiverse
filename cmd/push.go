@@ -32,7 +32,7 @@ func NewPushCommand() *cli.Command {
 				return cli.Exit(err.Error(), 1)
 			}
 
-			r, ok := cfg.Remotes[c.String("remote")]
+			url, ok := cfg.Remotes[c.String("remote")]
 			if !ok {
 				return cli.Exit("remote does not exist", 1)
 			}
@@ -41,7 +41,7 @@ func NewPushCommand() *cli.Command {
 				return cli.Exit("nothing to push", 1)
 			}
 
-			client := remote.NewRemote(r.IPFS, r.Ethereum)
+			client := remote.NewRemote(url)
 			if err := client.Upload(c.Context, store, cfg.Head()); err != nil {
 				return cli.Exit(err.Error(), 1)
 			}

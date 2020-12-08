@@ -17,20 +17,22 @@ func (s *Store) Online(ctx context.Context) error {
 		return err
 	}
 
-	host, router, err := p2p.NewHost(ctx, priv)
+	s.Host, s.Router, err = p2p.NewHost(ctx, priv)
 	if err != nil {
 		return err
 	}
 
-	net := bsnet.NewFromIpfsHost(host, router)
+	net := bsnet.NewFromIpfsHost(s.Host, s.Router)
 	exc := bitswap.New(ctx, net, s.bstore)
 
 	bserv := blockservice.New(s.bstore, exc)
-	dag := merkledag.NewDAGService(bserv)
+	s.Dag = merkledag.NewDAGService(bserv)
 
-	s.Dag = dag
-	s.Host = host
-	s.Router = router
+	p2p.Bootstrap(ctx, s.Host)
 
-	return nil
+	if err := p2p.Discovery(ctx, s.Host); err != nil {
+		return err
+	}
+
+	return s.Router.Bootstrap(ctx)
 }

@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"io/ioutil"
 	"testing"
 
 	"github.com/multiverse-vcs/go-multiverse/storage"
@@ -42,30 +41,8 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := Merge(context.TODO(), store, base, local, remote); err != nil {
+	_, err = Merge(context.TODO(), store, base, local, remote)
+	if err != nil {
 		t.Fatalf("failed to merge %s", err)
-	}
-
-	file, err := store.Cwd.Open("README.md")
-	if err != nil {
-		t.Fatalf("failed to open file")
-	}
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		t.Fatalf("failed to read file")
-	}
-
-	expect := `hello
-<<<<<<<
-foo
-=======
-bar
->>>>>>>
-`
-
-	if string(data) != expect {
-		t.Error("unexpected merge contents")
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ipfs/go-cid"
+	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/diff"
@@ -14,22 +15,22 @@ import (
 )
 
 // Merge combines the work trees of a and b into the base o.
-func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) error {
+func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) (ipld.Node, error) {
 	changesA, err := Diff(ctx, store, o, a)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	changesB, err := Diff(ctx, store, o, b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	changes, conflicts := dagutils.MergeDiffs(changesA, changesB)
 	for _, c := range conflicts {
 		change, err := mergeConflict(ctx, store, c.A, c.B)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		changes = append(changes, change)
@@ -37,30 +38,25 @@ func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) error {
 
 	node, err := store.Dag.Get(ctx, o)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	commit, err := object.CommitFromCBOR(node.RawData())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tree, err := store.Dag.Get(ctx, commit.Tree)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	proto, ok := tree.(*merkledag.ProtoNode)
 	if !ok {
-		return errors.New("invalid commit tree")
+		return nil, errors.New("invalid commit tree")
 	}
 
-	merge, err := dagutils.ApplyChange(ctx, store.Dag, proto, changes)
-	if err != nil {
-		return err
-	}
-
-	return Write(ctx, store, "", merge)
+	return dagutils.ApplyChange(ctx, store.Dag, proto, changes)
 }
 
 // mergeConflict combines the contents of two conflicting dag changes.

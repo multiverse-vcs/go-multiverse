@@ -16,17 +16,15 @@ import (
 
 // Remote is used to interact with external services.
 type Remote struct {
-	ipfs     string
-	ethereum string
-	client   *http.Client
+	url    string
+	client *http.Client
 }
 
-// NewRemote returns a remote using the given ipfs and ethereum endpoints.
-func NewRemote(ipfs, ethereum string) *Remote {
+// NewRemote returns a remote using the given url.
+func NewRemote(url string) *Remote {
 	return &Remote{
-		ipfs:     ipfs,
-		ethereum: ethereum,
-		client:   http.DefaultClient,
+		url:    url,
+		client: http.DefaultClient,
 	}
 }
 
@@ -44,7 +42,7 @@ func (r *Remote) Upload(ctx context.Context, store *storage.Store, roots ...cid.
 		return err
 	}
 
-	url := fmt.Sprintf("%s/%s", r.ipfs, "api/v0/dag/import")
+	url := fmt.Sprintf("%s/%s", r.url, "api/v0/dag/import")
 	contentType := bodyWriter.FormDataContentType()
 
 	if err := bodyWriter.Close(); err != nil {
