@@ -3,9 +3,14 @@ package storage
 
 import (
 	"encoding/json"
+	"path/filepath"
 
+	"github.com/ipfs/go-blockservice"
+	"github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ipfs-blockstore"
+	"github.com/ipfs/go-ipfs-exchange-offline"
 	ipld "github.com/ipfs/go-ipld-format"
+	"github.com/ipfs/go-merkledag"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/routing"
@@ -40,6 +45,56 @@ type Store struct {
 	Router routing.Routing
 
 	bstore blockstore.Blockstore
+}
+
+// NewStore returns a store that is backed by the given filesystem.
+func NewStore(fs afero.Fs, root string) (*Store, error) {
+	cwd := afero.NewBasePathFs(fs, root)
+	dot := afero.NewBasePathFs(cwd, DotDir)
+
+	var path string
+	opts := badger.DefaultOptions
+	if fs.Name() == "MemMapFS" {
+		opts.Options = opts.WithInMemory(true)
+	} else {
+		path = filepath.Join(root, DotDir, DataDir)
+	}
+
+	dstore, err := badger.NewDatastore(path, &opts)
+	if err != nil {
+		return nil, err
+	}
+
+	bstore := blockstore.NewBlockstore(dstore)
+	exc := offline.Exchange(bstore)
+
+	bserv := blockservice.New(bstore, exc)
+	dag := merkledag.NewDAGService(bserv)
+
+	return &Store{
+		Dag:    dag,
+		Dot:    dot,
+		Cwd:    cwd,
+		bstore: bstore,
+	}, nil
+}
+
+// Initialize initializes the store with default values.
+func (s *Store) Initialize() error {
+	priv, _, err := crypto.GenerateKeyPair(KeyType, -1)
+	if err != nil {
+		return err
+	}
+
+	if err := s.WriteConfig(config.Default()); err != nil {
+		return err
+	}
+
+	if err := s.WriteKey(priv); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ReadConfig reads the config file from the store.

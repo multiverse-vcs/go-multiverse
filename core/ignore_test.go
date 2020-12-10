@@ -8,7 +8,7 @@ import (
 )
 
 func TestIgnoreDefault(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}
@@ -29,7 +29,7 @@ func TestIgnoreDefault(t *testing.T) {
 }
 
 func TestIgnoreFile(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}

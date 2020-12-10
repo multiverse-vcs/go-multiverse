@@ -9,7 +9,7 @@ import (
 )
 
 func TestCat(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}

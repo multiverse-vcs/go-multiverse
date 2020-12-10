@@ -2,9 +2,13 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
 
-Multiverse is a version control system that enables peer-to-peer software development.
-It differs from other version control systems in that it is completely decentralized.
-Repositories are shared using a globally distributed commit graph instead of centralized servers.
+Multiverse is a decentralized version control system that enables peer-to-peer software development.
+
+### Features
+
+- Offline first. Sync changes and continue working offline.
+- Own your data. Host your code on a local IPFS node.
+- Work with peers locally. No internet connection required.
 
 ### Install
 
@@ -16,23 +20,68 @@ $ cd go-multiverse
 $ make install
 ```
 
-### Concepts
+### Quick Start
 
-Multiverse uses content identifiers or [CIDs](https://docs.ipfs.io/concepts/content-addressing/#identifier-formats) to locate and retrieve content.
-A CID can refer to a specific commit, tag, or branch of a repository. Only trust shared CIDs from secure sources.
-Below is an example of using a CID to clone a repository.
+A local IPFS node is required to use Multiverse. Instructions for setting up IPFS can be found [here](https://ipfs.io/#install).
+
+#### Creating a new repo
+
+All files in your project directory are tracked by default.
 
 ```bash
-$ multi clone bafyreid6o5dhbnxthplfnsuuyqyhxs6vi22xep62f3szk2krq2r7pyaiim project
+$ mkdir my_project
+$ cd my_project
+$ multi init
 ```
 
-When you are ready to share your changes you will need to connect to other peers in the network.
-Multiverse uses multiple networking protocols to find peers on both global and local networks.
-An internet connection is **never** required to share changes with peers on your local network.
-Use the swap command to connect with peers and share changes.
+#### Ignoring files
+
+Create a `.multignore` in your project root and add a new line for each rule.
+
+```
+# ignore all exe files
+*.exe
+
+# ignore the bin directory
+bin
+```
+
+#### Viewing repo status
+
+Check your changes before recording them.
 
 ```bash
-$ multi swap
+$ multi status
+```
+
+#### Recording changes
+
+Commits can include an optional message to describe what has been changed.
+
+```bash
+$ multi commit -m "changed some files"
+```
+
+After a commit has been recorded its [CID](https://docs.ipfs.io/concepts/content-addressing/#identifier-formats) will be printed.
+
+```bash
+$ bafyreick5vs3ayhxxotfeo2udpbmnzj3ekmhmofncppbfqtpwr6bs44vvy
+```
+
+#### Sharing changes
+
+Changes will be pinned to your local IPFS node. *Warning all shared content will be public*.
+
+```bash
+$ multi push
+```
+
+#### Merging changes
+
+Sharing changes requires an external communication channel such as an instant messanger or email. *Only trust CIDs from secure sources*.
+
+```bash
+$ multi pull bafyreick5vs3ayhxxotfeo2udpbmnzj3ekmhmofncppbfqtpwr6bs44vvy
 ```
 
 ### Usage
@@ -42,17 +91,21 @@ USAGE:
    multi [global options] command [command options] [arguments...]
 
 COMMANDS:
-  branch    Add, remove, or list branches
-  checkout  Checkout committed files
-  clone     Copy an existing repo
-  commit    Record repo changes
-  fetch     Fetch changes from peers
-  init      Initialize a new repo
-  log       Print change history
-  status    Print repo status
-  swap      Exchange data with peers
-  switch    Change branches
-  help, h   Shows a list of commands or help for one command
+   branch    Add, remove, or list branches
+   checkout  Checkout committed files
+   clone     Copy an existing repo
+   commit    Record repo changes
+   history   Print change history
+   init      Initialize a new repo
+   pull      Merge changes into the current branch
+   push      Upload changes to a remote
+   status    Print repo status
+   switch    Change branches
+   help, h   Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h     show help (default: false)
+   --version, -v  print the version (default: false)
 ```
 
 ### Contributing

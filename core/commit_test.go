@@ -6,10 +6,11 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/object"
 	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestCommit(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}

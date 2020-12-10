@@ -11,7 +11,7 @@ import (
 )
 
 func TestStatusRemove(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}
@@ -48,7 +48,7 @@ func TestStatusRemove(t *testing.T) {
 }
 
 func TestStatusBare(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}

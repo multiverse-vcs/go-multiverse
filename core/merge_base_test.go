@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 func TestMergeBase(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}
@@ -39,7 +40,7 @@ func TestMergeBase(t *testing.T) {
 }
 
 func TestMergeBaseRemoteAhead(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}
@@ -70,7 +71,7 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 }
 
 func TestMergeBaseLocalAhead(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}
@@ -101,7 +102,7 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 }
 
 func TestMergeBaseUnrelated(t *testing.T) {
-	store, err := storage.NewMemoryStore()
+	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
 	if err != nil {
 		t.Fatalf("failed to create storage")
 	}
