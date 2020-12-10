@@ -70,7 +70,7 @@ $ bafyreick5vs3ayhxxotfeo2udpbmnzj3ekmhmofncppbfqtpwr6bs44vvy
 
 #### Sharing changes
 
-Changes will be pinned to your local IPFS node. *Warning all shared content will be public*.
+Changes will be pinned to your local IPFS node. **Warning** - shared content will be public.
 
 ```bash
 $ multi push
@@ -78,7 +78,7 @@ $ multi push
 
 #### Merging changes
 
-Sharing changes requires an external communication channel such as an instant messanger or email. *Only trust CIDs from secure sources*.
+Sharing changes requires an external communication channel such as an instant messanger or email. **Only trust CIDs from secure sources**.
 
 ```bash
 $ multi pull bafyreick5vs3ayhxxotfeo2udpbmnzj3ekmhmofncppbfqtpwr6bs44vvy
