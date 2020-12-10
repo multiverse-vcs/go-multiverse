@@ -62,7 +62,7 @@ Commits can include an optional message to describe what has been changed.
 $ multi commit -m "changed some files"
 ```
 
-After a commit has been recorded its [CID](https://docs.ipfs.io/concepts/content-addressing/#identifier-formats) will be printed.
+After a commit has been recorded its [CID](https://docs.ipfs.io/concepts/content-addressing) will be printed.
 
 ```bash
 $ bafyreick5vs3ayhxxotfeo2udpbmnzj3ekmhmofncppbfqtpwr6bs44vvy
