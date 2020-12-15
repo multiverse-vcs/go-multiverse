@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/urfave/cli/v2"
 )
@@ -23,13 +25,20 @@ var branchCommand = &cli.Command{
 }
 
 func branchAction(c *cli.Context) error {
-	store, err := openStore()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	cfg, err := store.ReadConfig()
+	path, err := Root(cwd)
 	if err != nil {
+		return err
+	}
+
+	root := filepath.Join(path, DotDir)
+
+	var cfg Config
+	if err := ReadConfig(root, &cfg); err != nil {
 		return err
 	}
 
@@ -50,11 +59,11 @@ func branchAction(c *cli.Context) error {
 
 	for b := range cfg.Branches {
 		if b == cfg.Branch {
-			fmt.Printf("%s*%s ", ColorGreen, ColorReset)
+			fmt.Printf("* ")
 		}
 
 		fmt.Println(b)
 	}
 
-	return store.WriteConfig(cfg)
+	return WriteConfig(root, &cfg)
 }

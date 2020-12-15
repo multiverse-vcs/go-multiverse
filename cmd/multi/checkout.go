@@ -2,9 +2,13 @@ package main
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/node"
+	"github.com/spf13/afero"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,13 +32,26 @@ func checkoutAction(c *cli.Context) error {
 		cli.ShowSubcommandHelpAndExit(c, 1)
 	}
 
-	store, err := openStore()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	cfg, err := store.ReadConfig()
+	path, err := Root(cwd)
 	if err != nil {
+		return err
+	}
+
+	repo := afero.NewBasePathFs(fs, path)
+	root := filepath.Join(path, DotDir)
+
+	node, err := node.NewNode(root)
+	if err != nil {
+		return err
+	}
+
+	var cfg Config
+	if err := ReadConfig(root, &cfg); err != nil {
 		return err
 	}
 
@@ -43,7 +60,7 @@ func checkoutAction(c *cli.Context) error {
 		return err
 	}
 
-	changes, err := core.Status(c.Context, store, cfg.Head())
+	changes, err := core.Status(c.Context, repo, node.Dag, cfg.Head())
 	if err != nil {
 		return err
 	}
@@ -52,12 +69,12 @@ func checkoutAction(c *cli.Context) error {
 		return errors.New("use the force flag to checkout with pending changes")
 	}
 
-	if err := core.Checkout(c.Context, store, id); err != nil {
+	if err := core.Checkout(c.Context, repo, node.Dag, id); err != nil {
 		return err
 	}
 
 	cfg.Index = id
 	cfg.SetHead(id)
 
-	return store.WriteConfig(cfg)
+	return WriteConfig(root, &cfg)
 }

@@ -6,30 +6,27 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag/dagutils"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
 )
 
 func TestStatusRemove(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	head, err := Commit(context.TODO(), store, "init")
+	head, err := Commit(context.TODO(), fs, dag, "init")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := store.Cwd.Remove("README.md"); err != nil {
+	if err := fs.Remove("README.md"); err != nil {
 		t.Fatalf("failed to remove readme file")
 	}
 
-	changes, err := Status(context.TODO(), store, head)
+	changes, err := Status(context.TODO(), fs, dag, head)
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}
@@ -48,16 +45,14 @@ func TestStatusRemove(t *testing.T) {
 }
 
 func TestStatusBare(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	changes, err := Status(context.TODO(), store, cid.Cid{})
+	changes, err := Status(context.TODO(), fs, dag, cid.Cid{})
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}

@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
-	"github.com/multiverse-vcs/go-multiverse/config"
+	"github.com/multiverse-vcs/go-multiverse/node"
 	"github.com/multiverse-vcs/go-multiverse/remote"
 	"github.com/urfave/cli/v2"
 )
@@ -16,20 +18,32 @@ var pushCommand = &cli.Command{
 		&cli.StringFlag{
 			Name:    "remote",
 			Aliases: []string{"r"},
-			Value:   config.DefaultRemote,
+			Value:   "local",
 			Usage:   "Remote to push changes to",
 		},
 	},
 }
 
 func pushAction(c *cli.Context) error {
-	store, err := openStore()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	cfg, err := store.ReadConfig()
+	path, err := Root(cwd)
 	if err != nil {
+		return err
+	}
+
+	root := filepath.Join(path, DotDir)
+
+	node, err := node.NewNode(root)
+	if err != nil {
+		return err
+	}
+
+	var cfg Config
+	if err := ReadConfig(root, &cfg); err != nil {
 		return err
 	}
 
@@ -43,7 +57,7 @@ func pushAction(c *cli.Context) error {
 	}
 
 	client := remote.NewRemote(url)
-	if err := client.Upload(c.Context, store, cfg.Head()); err != nil {
+	if err := client.Upload(c.Context, node.Dag, cfg.Head()); err != nil {
 		return err
 	}
 

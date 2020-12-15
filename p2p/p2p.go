@@ -3,7 +3,6 @@ package p2p
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/libp2p/go-libp2p"
@@ -11,7 +10,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/routing"
-	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/dual"
 	"github.com/libp2p/go-libp2p-noise"
 	"github.com/libp2p/go-libp2p-quic-transport"
@@ -60,17 +58,4 @@ func NewHost(ctx context.Context, priv crypto.PrivKey) (host.Host, routing.Routi
 	)
 
 	return host, router, err
-}
-
-// Bootstrap connects to all peers in the default bootstrap list.
-func Bootstrap(ctx context.Context, h host.Host) {
-	var wg sync.WaitGroup
-	for _, info := range dht.GetDefaultBootstrapPeerAddrInfos() {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			h.Connect(ctx, info)
-		}()
-	}
-	wg.Wait()
 }

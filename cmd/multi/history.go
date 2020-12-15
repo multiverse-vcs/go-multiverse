@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/node"
 	"github.com/multiverse-vcs/go-multiverse/object"
 	"github.com/urfave/cli/v2"
 )
@@ -13,19 +16,32 @@ import (
 const DateFormat = "Mon Jan 2 15:04:05 2006 -0700"
 
 var historyCommand = &cli.Command{
-	Action: historyAction,
-	Name:   "history",
-	Usage:  "Print change history",
+	Action:  historyAction,
+	Name:    "history",
+	Aliases: []string{"log"},
+	Usage:   "Print change history",
 }
 
 func historyAction(c *cli.Context) error {
-	store, err := openStore()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	cfg, err := store.ReadConfig()
+	path, err := Root(cwd)
 	if err != nil {
+		return err
+	}
+
+	root := filepath.Join(path, DotDir)
+
+	node, err := node.NewNode(root)
+	if err != nil {
+		return err
+	}
+
+	var cfg Config
+	if err := ReadConfig(root, &cfg); err != nil {
 		return err
 	}
 
@@ -34,28 +50,26 @@ func historyAction(c *cli.Context) error {
 	}
 
 	cb := func(id cid.Cid, commit *object.Commit) bool {
-		fmt.Printf("%s%s", ColorYellow, id.String())
+		fmt.Printf("%s", id.String())
 
 		if id == cfg.Head() {
-			fmt.Printf(" (%sHEAD%s)", ColorRed, ColorYellow)
+			fmt.Printf(" (HEAD)")
 		}
 
 		if id == cfg.Index {
-			fmt.Printf(" (%sINDEX%s)", ColorGreen, ColorYellow)
+			fmt.Printf(" (INDEX)")
 		}
 
-		fmt.Printf("%s\n", ColorReset)
-		fmt.Printf("Date: %s\n", commit.Date.Format(DateFormat))
+		fmt.Printf("\nDate: %s\n\n", commit.Date.Format(DateFormat))
 
 		if len(commit.Message) > 0 {
-			fmt.Printf("\n\t%s\n", commit.Message)
+			fmt.Printf("\t%s\n\n", commit.Message)
 		}
 
-		fmt.Printf("\n")
 		return true
 	}
 
-	if _, err := core.Walk(c.Context, store, cfg.Head(), cb); err != nil {
+	if _, err := core.Walk(c.Context, node.Dag, cfg.Head(), cb); err != nil {
 		return err
 	}
 

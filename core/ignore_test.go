@@ -3,18 +3,14 @@ package core
 import (
 	"testing"
 
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
 )
 
 func TestIgnoreDefault(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
 
 	IgnoreRules = []string{"foo"}
-	rules, err := Ignore(store)
+	rules, err := Ignore(fs)
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")
 	}
@@ -29,17 +25,14 @@ func TestIgnoreDefault(t *testing.T) {
 }
 
 func TestIgnoreFile(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
 
-	if err := afero.WriteFile(store.Cwd, IgnoreFile, []byte("bar"), 0644); err != nil {
+	if err := afero.WriteFile(fs, IgnoreFile, []byte("bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
 	IgnoreRules = []string{"foo"}
-	rules, err := Ignore(store)
+	rules, err := Ignore(fs)
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")
 	}

@@ -6,34 +6,32 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/spf13/afero"
 )
 
 func TestWriteFile(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(store.Cwd, "test.txt", []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "test.txt", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), store, "test.txt", nil)
+	node, err := Add(context.TODO(), fs, dag, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	if err := store.Cwd.Remove("test.txt"); err != nil {
+	if err := fs.Remove("test.txt"); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
-	if err := Write(context.TODO(), store, "test.txt", node); err != nil {
+	if err := Write(context.TODO(), fs, dag, "test.txt", node); err != nil {
 		t.Fatalf("failed to write node")
 	}
 
-	file, err := store.Cwd.Open("test.txt")
+	file, err := fs.Open("test.txt")
 	if err != nil {
 		t.Fatalf("failed to open file")
 	}
@@ -50,34 +48,32 @@ func TestWriteFile(t *testing.T) {
 }
 
 func TestWriteDir(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := store.Cwd.Mkdir("test", 0755); err != nil {
+	if err := fs.Mkdir("test", 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
 	path := filepath.Join("test", "test.txt")
-	if err := afero.WriteFile(store.Cwd, path, []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, path, []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), store, "test", nil)
+	node, err := Add(context.TODO(), fs, dag, "test", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	if err := store.Cwd.RemoveAll("test"); err != nil {
+	if err := fs.RemoveAll("test"); err != nil {
 		t.Fatalf("failed to remove file")
 	}
 
-	if err := Write(context.TODO(), store, "test", node); err != nil {
+	if err := Write(context.TODO(), fs, dag, "test", node); err != nil {
 		t.Fatalf("failed to write node")
 	}
 
-	if _, err := store.Cwd.Stat(path); err != nil {
+	if _, err := fs.Stat(path); err != nil {
 		t.Fatalf("failed to lstat file")
 	}
 }

@@ -4,31 +4,29 @@ import (
 	"context"
 	"testing"
 
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/spf13/afero"
 )
 
 func TestWalk(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	idA, err := Commit(context.TODO(), store, "first")
+	idA, err := Commit(context.TODO(), fs, dag, "first")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	idB, err := Commit(context.TODO(), store, "second", idA)
+	idB, err := Commit(context.TODO(), fs, dag, "second", idA)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	history, err := Walk(context.TODO(), store, idB, nil)
+	history, err := Walk(context.TODO(), dag, idB, nil)
 	if err != nil {
 		t.Fatalf("failed to walk")
 	}

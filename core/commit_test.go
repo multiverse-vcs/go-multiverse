@@ -4,28 +4,26 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
 )
 
 func TestCommit(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	parent, err := Commit(context.TODO(), store, "init")
+	parent, err := Commit(context.TODO(), fs, dag, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	id, err := Commit(context.TODO(), store, "changes", parent)
+	id, err := Commit(context.TODO(), fs, dag, "changes", parent)
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	node, err := store.Dag.Get(context.TODO(), id)
+	node, err := dag.Get(context.TODO(), id)
 	if err != nil {
 		t.Fatalf("failed to get commit")
 	}

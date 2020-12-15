@@ -8,12 +8,11 @@ import (
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-unixfs"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
 )
 
 // Write writes the contents of node to the path.
-func Write(ctx context.Context, store *storage.Store, path string, node ipld.Node) error {
+func Write(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, node ipld.Node) error {
 	fsnode, err := unixfs.ExtractFSNode(node)
 	if err != nil {
 		return err
@@ -21,18 +20,18 @@ func Write(ctx context.Context, store *storage.Store, path string, node ipld.Nod
 
 	switch fsnode.Type() {
 	case unixfs.TFile:
-		return writeFile(ctx, store, path, node)
+		return writeFile(ctx, fs, dag, path, node)
 	case unixfs.TDirectory:
-		return writeDir(ctx, store, path, node)
+		return writeDir(ctx, fs, dag, path, node)
 	case unixfs.TSymlink:
-		return writeSymlink(store, path, fsnode.Data())
+		return writeSymlink(fs, path, fsnode.Data())
 	default:
 		return errors.New("invalid file type")
 	}
 }
 
-func writeSymlink(store *storage.Store, path string, target []byte) error {
-	linker, ok := store.Cwd.(afero.Linker)
+func writeSymlink(fs afero.Fs, path string, target []byte) error {
+	linker, ok := fs.(afero.Linker)
 	if !ok {
 		return errors.New("fs does not support symlinks")
 	}
@@ -40,14 +39,14 @@ func writeSymlink(store *storage.Store, path string, target []byte) error {
 	return linker.SymlinkIfPossible(path, string(target))
 }
 
-func writeFile(ctx context.Context, store *storage.Store, path string, node ipld.Node) error {
-	reader, err := ufsio.NewDagReader(ctx, node, store.Dag)
+func writeFile(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, node ipld.Node) error {
+	reader, err := ufsio.NewDagReader(ctx, node, dag)
 	if err != nil {
 		return err
 	}
 	defer reader.Close()
 
-	file, err := store.Cwd.Create(path)
+	file, err := fs.Create(path)
 	if err != nil {
 		return err
 	}
@@ -60,25 +59,25 @@ func writeFile(ctx context.Context, store *storage.Store, path string, node ipld
 	return nil
 }
 
-func writeDir(ctx context.Context, store *storage.Store, path string, node ipld.Node) error {
-	dir, err := ufsio.NewDirectoryFromNode(store.Dag, node)
+func writeDir(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, node ipld.Node) error {
+	dir, err := ufsio.NewDirectoryFromNode(dag, node)
 	if err != nil {
 		return err
 	}
 
-	if err := store.Cwd.MkdirAll(path, 0755); err != nil {
+	if err := fs.MkdirAll(path, 0755); err != nil {
 		return err
 	}
 
 	links, err := dir.Links(ctx)
 	for _, link := range links {
-		subnode, err := link.GetNode(ctx, store.Dag)
+		subnode, err := link.GetNode(ctx, dag)
 		if err != nil {
 			return err
 		}
 
 		subpath := filepath.Join(path, link.Name)
-		if err := Write(ctx, store, subpath, subnode); err != nil {
+		if err := Write(ctx, fs, dag, subpath, subnode); err != nil {
 			return err
 		}
 	}

@@ -4,26 +4,24 @@ import (
 	"context"
 	"testing"
 
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/spf13/afero"
 )
 
 func TestCat(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(store.Cwd, "test.txt", []byte("foo bar"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "test.txt", []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), store, "test.txt", nil)
+	node, err := Add(context.TODO(), fs, dag, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	text, err := Cat(context.TODO(), store, node.Cid())
+	text, err := Cat(context.TODO(), dag, node.Cid())
 	if err != nil {
 		t.Fatal("failed to cat file")
 	}

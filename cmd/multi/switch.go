@@ -1,10 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/node"
+	"github.com/spf13/afero"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,30 +25,43 @@ func switchAction(c *cli.Context) error {
 		cli.ShowSubcommandHelpAndExit(c, 1)
 	}
 
-	store, err := openStore()
+	cwd, err := os.Getwd()
 	if err != nil {
-		return cli.Exit(err.Error(), 1)
+		return err
 	}
 
-	cfg, err := store.ReadConfig()
+	path, err := Root(cwd)
 	if err != nil {
-		return cli.Exit(err.Error(), 1)
+		return err
+	}
+
+	repo := afero.NewBasePathFs(fs, path)
+	root := filepath.Join(path, DotDir)
+
+	node, err := node.NewNode(root)
+	if err != nil {
+		return err
+	}
+
+	var cfg Config
+	if err := ReadConfig(root, &cfg); err != nil {
+		return err
 	}
 
 	name := c.Args().Get(0)
 	if cfg.Branch == name {
-		return cli.Exit("already on branch", 1)
+		return errors.New("already on branch")
 	}
 
 	branch, err := cfg.GetBranch(name)
 	if err != nil {
-		return cli.Exit(err.Error(), 1)
+		return err
 	}
 
 	fmt.Println("stashing changes...")
-	stash, err := core.Worktree(c.Context, store)
+	stash, err := core.Worktree(c.Context, repo, node.Dag)
 	if err != nil {
-		return cli.Exit(err.Error(), 1)
+		return err
 	}
 
 	var id cid.Cid = branch.Head
@@ -52,17 +70,13 @@ func switchAction(c *cli.Context) error {
 	}
 
 	fmt.Println("checking out branch...")
-	if err := core.Checkout(c.Context, store, id); err != nil {
-		return cli.Exit(err.Error(), 1)
+	if err := core.Checkout(c.Context, repo, node.Dag, id); err != nil {
+		return err
 	}
 
 	cfg.SetStash(stash.Cid())
 	cfg.Branch = name
 	cfg.Index = id
 
-	if err := store.WriteConfig(cfg); err != nil {
-		return cli.Exit(err.Error(), 1)
-	}
-
-	return nil
+	return WriteConfig(root, &cfg)
 }

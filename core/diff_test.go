@@ -2,34 +2,31 @@ package core
 
 import (
 	"context"
+	"testing"
 
 	"github.com/ipfs/go-merkledag/dagutils"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
-	"testing"
 )
 
 func TestDiff(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	commit1, err := Commit(context.TODO(), store, "1")
+	commit1, err := Commit(context.TODO(), fs, dag, "1")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	commit2, err := Commit(context.TODO(), store, "2")
+	commit2, err := Commit(context.TODO(), fs, dag, "2")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	changes, err := Diff(context.TODO(), store, commit1, commit2)
+	changes, err := Diff(context.TODO(), dag, commit1, commit2)
 	if err != nil {
 		t.Fatalf("failed to get diff")
 	}

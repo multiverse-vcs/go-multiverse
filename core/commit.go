@@ -6,14 +6,15 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipld-cbor"
+	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiformats/go-multihash"
 	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 // Commit creates a new commit.
-func Commit(ctx context.Context, store *storage.Store, message string, parents ...cid.Cid) (cid.Cid, error) {
-	tree, err := Worktree(ctx, store)
+func Commit(ctx context.Context, fs afero.Fs, dag ipld.DAGService, message string, parents ...cid.Cid) (cid.Cid, error) {
+	tree, err := Worktree(ctx, fs, dag)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -30,7 +31,7 @@ func Commit(ctx context.Context, store *storage.Store, message string, parents .
 		return cid.Cid{}, err
 	}
 
-	if err := store.Dag.Add(ctx, node); err != nil {
+	if err := dag.Add(ctx, node); err != nil {
 		return cid.Cid{}, err
 	}
 

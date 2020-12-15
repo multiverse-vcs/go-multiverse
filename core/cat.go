@@ -5,18 +5,18 @@ import (
 	"io/ioutil"
 
 	"github.com/ipfs/go-cid"
+	ipld "github.com/ipfs/go-ipld-format"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 // Cat returns the contents of a file.
-func Cat(ctx context.Context, store *storage.Store, id cid.Cid) (string, error) {
-	node, err := store.Dag.Get(ctx, id)
+func Cat(ctx context.Context, dag ipld.DAGService, id cid.Cid) (string, error) {
+	node, err := dag.Get(ctx, id)
 	if err != nil {
 		return "", err
 	}
 
-	reader, err := ufsio.NewDagReader(ctx, node, store.Dag)
+	reader, err := ufsio.NewDagReader(ctx, node, dag)
 	if err != nil {
 		return "", err
 	}

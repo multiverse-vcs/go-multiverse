@@ -4,32 +4,30 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ipfs/go-merkledag/dagutils"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
 )
 
 func TestWorktree(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
 	IgnoreRules = []string{"*.exe"}
-	if err := afero.WriteFile(store.Cwd, "test.exe", []byte{0, 0, 0}, 0644); err != nil {
+	if err := afero.WriteFile(fs, "test.exe", []byte{0, 0, 0}, 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	if err := afero.WriteFile(store.Cwd, "README.md", []byte("hello"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Worktree(context.TODO(), store)
+	node, err := Worktree(context.TODO(), fs, dag)
 	if err != nil {
 		t.Fatalf("failed to create worktree")
 	}
 
-	dir, err := ufsio.NewDirectoryFromNode(store.Dag, node)
+	dir, err := ufsio.NewDirectoryFromNode(dag, node)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}

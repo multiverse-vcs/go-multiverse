@@ -11,7 +11,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-car"
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	ipld "github.com/ipfs/go-ipld-format"
 )
 
 // Remote is used to interact with external services.
@@ -29,7 +29,7 @@ func NewRemote(url string) *Remote {
 }
 
 // Upload converts the dags starting at the given roots into CAR format and uploads it.
-func (r *Remote) Upload(ctx context.Context, store *storage.Store, roots ...cid.Cid) error {
+func (r *Remote) Upload(ctx context.Context, dag ipld.DAGService, roots ...cid.Cid) error {
 	var body bytes.Buffer
 	bodyWriter := multipart.NewWriter(&body)
 
@@ -38,7 +38,7 @@ func (r *Remote) Upload(ctx context.Context, store *storage.Store, roots ...cid.
 		return err
 	}
 
-	if err := car.WriteCar(ctx, store.Dag, roots, fileWriter); err != nil {
+	if err := car.WriteCar(ctx, dag, roots, fileWriter); err != nil {
 		return err
 	}
 

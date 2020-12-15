@@ -1,16 +1,20 @@
-// Package config contains configuration definitions.
-package config
+package main
 
 import (
+	"encoding/json"
 	"errors"
+	"path/filepath"
 
 	"github.com/ipfs/go-cid"
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/spf13/afero"
 )
 
 const (
-	DefaultBranch    = "default"
-	DefaultRemote    = "local"
-	DefaultRemoteURL = "http://127.0.0.1:5001"
+	// ConfigFile is the name of the config file.
+	ConfigFile = "config"
+	// KeyType is the default private key type.
+	KeyType = crypto.Ed25519
 )
 
 // Branch contains local branch info.
@@ -25,6 +29,8 @@ type Branch struct {
 type Config struct {
 	// Index is the commit changes are based on.
 	Index cid.Cid
+	// PrivateKey is the key used for p2p networking.
+	PrivateKey string
 	// Branch is the name of the current branch.
 	Branch string
 	// Branches contains a map of local branches.
@@ -33,17 +39,41 @@ type Config struct {
 	Remotes map[string]string
 }
 
-// Default returns a new config with default settings.
-func Default() *Config {
-	return &Config{
-		Branch: DefaultBranch,
+// DefaultConfig returns a config with default values.
+func DefaultConfig() (*Config, error) {
+	cfg := &Config{
+		Branch: "default",
 		Branches: map[string]*Branch{
-			DefaultBranch: {},
+			"default": {},
 		},
 		Remotes: map[string]string{
-			DefaultRemote: DefaultRemoteURL,
+			"local": "http://127.0.0.1:5001",
 		},
 	}
+
+	return cfg, cfg.GenerateKey()
+}
+
+// ReadConfig reads the config from the given fs.
+func ReadConfig(root string, cfg *Config) error {
+	path := filepath.Join(root, ConfigFile)
+	data, err := afero.ReadFile(fs, path)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, &cfg)
+}
+
+// WriteConfig writes the config to the given fs.
+func WriteConfig(root string, cfg *Config) error {
+	data, err := json.MarshalIndent(cfg, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Join(root, ConfigFile)
+	return afero.WriteFile(fs, path, data, 0644)
 }
 
 // Head returns the current branch head.
@@ -84,6 +114,37 @@ func (c *Config) SetStash(stash cid.Cid) {
 	}
 
 	branch.Stash = stash
+}
+
+// Key returns the private key from the config.
+func (c *Config) Key() (crypto.PrivKey, error) {
+	data, err := crypto.ConfigDecodeKey(c.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return crypto.UnmarshalPrivateKey(data)
+}
+
+// SetKey sets the config private key.
+func (c *Config) SetKey(key crypto.PrivKey) error {
+	data, err := crypto.MarshalPrivateKey(key)
+	if err != nil {
+		return err
+	}
+
+	c.PrivateKey = crypto.ConfigEncodeKey(data)
+	return nil
+}
+
+// GenerateKey creates and sets a new private key.
+func (c *Config) GenerateKey() error {
+	priv, _, err := crypto.GenerateKeyPair(KeyType, -1)
+	if err != nil {
+		return err
+	}
+
+	return c.SetKey(priv)
 }
 
 // AddBranch creates a new branch with the given name and head.

@@ -14,7 +14,6 @@ import (
 	"github.com/ipfs/go-unixfs/importer/balanced"
 	"github.com/ipfs/go-unixfs/importer/helpers"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/sabhiram/go-gitignore"
 	"github.com/spf13/afero"
 )
@@ -23,32 +22,32 @@ import (
 const DefaultChunker = "buzhash"
 
 // Add creates a node from the file at path and adds it to the merkle dag.
-func Add(ctx context.Context, store *storage.Store, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
-	stat, err := store.Cwd.Stat(path)
+func Add(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+	stat, err := fs.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
 	switch mode := stat.Mode(); {
 	case mode.IsRegular():
-		return addFile(ctx, store, path)
+		return addFile(ctx, fs, dag, path)
 	case mode&os.ModeSymlink != 0:
-		return addSymlink(ctx, store, path)
+		return addSymlink(ctx, fs, dag, path)
 	case mode.IsDir():
-		return addDir(ctx, store, path, filter)
+		return addDir(ctx, fs, dag, path, filter)
 	default:
 		return nil, errors.New("invalid file type")
 	}
 }
 
-func add(ctx context.Context, store *storage.Store, reader io.Reader) (ipld.Node, error) {
+func add(ctx context.Context, dag ipld.DAGService, reader io.Reader) (ipld.Node, error) {
 	chunker, err := chunk.FromString(reader, DefaultChunker)
 	if err != nil {
 		return nil, err
 	}
 
 	params := helpers.DagBuilderParams{
-		Dagserv:    store.Dag,
+		Dagserv:    dag,
 		CidBuilder: merkledag.V1CidPrefix(),
 		Maxlinks:   helpers.DefaultLinksPerBlock,
 	}
@@ -63,21 +62,21 @@ func add(ctx context.Context, store *storage.Store, reader io.Reader) (ipld.Node
 		return nil, err
 	}
 
-	return node, store.Dag.Add(ctx, node)
+	return node, dag.Add(ctx, node)
 }
 
-func addFile(ctx context.Context, store *storage.Store, path string) (ipld.Node, error) {
-	file, err := store.Cwd.Open(path)
+func addFile(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string) (ipld.Node, error) {
+	file, err := fs.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	return add(ctx, store, file)
+	return add(ctx, dag, file)
 }
 
-func addSymlink(ctx context.Context, store *storage.Store, path string) (ipld.Node, error) {
-	reader, ok := store.Cwd.(afero.LinkReader)
+func addSymlink(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string) (ipld.Node, error) {
+	reader, ok := fs.(afero.LinkReader)
 	if !ok {
 		return nil, errors.New("fs does not support symlinks")
 	}
@@ -93,23 +92,23 @@ func addSymlink(ctx context.Context, store *storage.Store, path string) (ipld.No
 	}
 
 	node := merkledag.NodeWithData(data)
-	return node, store.Dag.Add(ctx, node)
+	return node, dag.Add(ctx, node)
 }
 
-func addDir(ctx context.Context, store *storage.Store, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
-	entries, err := afero.ReadDir(store.Cwd, path)
+func addDir(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+	entries, err := afero.ReadDir(fs, path)
 	if err != nil {
 		return nil, err
 	}
 
-	dir := ufsio.NewDirectory(store.Dag)
+	dir := ufsio.NewDirectory(dag)
 	for _, info := range entries {
 		subpath := filepath.Join(path, info.Name())
 		if filter != nil && filter.MatchesPath(subpath) {
 			continue
 		}
 
-		subnode, err := Add(ctx, store, subpath, filter)
+		subnode, err := Add(ctx, fs, dag, subpath, filter)
 		if err != nil {
 			return nil, err
 		}
@@ -124,5 +123,5 @@ func addDir(ctx context.Context, store *storage.Store, path string, filter *igno
 		return nil, err
 	}
 
-	return node, store.Dag.Add(ctx, node)
+	return node, dag.Add(ctx, node)
 }

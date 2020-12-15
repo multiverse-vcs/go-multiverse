@@ -11,24 +11,24 @@ import (
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/diff"
 	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/spf13/afero"
 )
 
 // Merge combines the work trees of a and b into the base o.
-func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) (ipld.Node, error) {
-	changesA, err := Diff(ctx, store, o, a)
+func Merge(ctx context.Context, fs afero.Fs, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node, error) {
+	changesA, err := Diff(ctx, dag, o, a)
 	if err != nil {
 		return nil, err
 	}
 
-	changesB, err := Diff(ctx, store, o, b)
+	changesB, err := Diff(ctx, dag, o, b)
 	if err != nil {
 		return nil, err
 	}
 
 	changes, conflicts := dagutils.MergeDiffs(changesA, changesB)
 	for _, c := range conflicts {
-		change, err := mergeConflict(ctx, store, c.A, c.B)
+		change, err := mergeConflict(ctx, fs, dag, c.A, c.B)
 		if err != nil {
 			return nil, err
 		}
@@ -36,7 +36,7 @@ func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) (ipld.Nod
 		changes = append(changes, change)
 	}
 
-	node, err := store.Dag.Get(ctx, o)
+	node, err := dag.Get(ctx, o)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) (ipld.Nod
 		return nil, err
 	}
 
-	tree, err := store.Dag.Get(ctx, commit.Tree)
+	tree, err := dag.Get(ctx, commit.Tree)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +56,11 @@ func Merge(ctx context.Context, store *storage.Store, o, a, b cid.Cid) (ipld.Nod
 		return nil, errors.New("invalid commit tree")
 	}
 
-	return dagutils.ApplyChange(ctx, store.Dag, proto, changes)
+	return dagutils.ApplyChange(ctx, dag, proto, changes)
 }
 
 // mergeConflict combines the contents of two conflicting dag changes.
-func mergeConflict(ctx context.Context, store *storage.Store, a, b *dagutils.Change) (*dagutils.Change, error) {
+func mergeConflict(ctx context.Context, fs afero.Fs, dag ipld.DAGService, a, b *dagutils.Change) (*dagutils.Change, error) {
 	if a.Type == dagutils.Remove {
 		return b, nil
 	}
@@ -69,17 +69,17 @@ func mergeConflict(ctx context.Context, store *storage.Store, a, b *dagutils.Cha
 		return a, nil
 	}
 
-	textO, err := Cat(ctx, store, a.Before)
+	textO, err := Cat(ctx, dag, a.Before)
 	if err != nil {
 		return nil, err
 	}
 
-	textA, err := Cat(ctx, store, a.After)
+	textA, err := Cat(ctx, dag, a.After)
 	if err != nil {
 		return nil, err
 	}
 
-	textB, err := Cat(ctx, store, b.After)
+	textB, err := Cat(ctx, dag, b.After)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func mergeConflict(ctx context.Context, store *storage.Store, a, b *dagutils.Cha
 	merged := diff.Merge(textO, textA, textB)
 	reader := strings.NewReader(merged)
 
-	merge, err := add(ctx, store, reader)
+	merge, err := add(ctx, dag, reader)
 	if err != nil {
 		return nil, err
 	}

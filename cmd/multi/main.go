@@ -6,21 +6,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/multiverse-vcs/go-multiverse/storage"
+	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/spf13/afero"
 	"github.com/urfave/cli/v2"
 )
 
-const (
-	ColorReset   = "\033[0m"
-	ColorRed     = "\033[31m"
-	ColorGreen   = "\033[32m"
-	ColorYellow  = "\033[33m"
-	ColorBlue    = "\033[34m"
-	ColorMagenta = "\033[35m"
-	ColorCyan    = "\033[36m"
-	ColorWhite   = "\033[37m"
-)
+// DotDir is the name of the root directory.
+const DotDir = ".multiverse"
 
 var fs = afero.NewOsFs()
 
@@ -37,7 +29,6 @@ that enables peer-to-peer software development.`,
 	Commands: []*cli.Command{
 		branchCommand,
 		checkoutCommand,
-		cloneCommand,
 		commitCommand,
 		historyCommand,
 		initCommand,
@@ -48,6 +39,10 @@ that enables peer-to-peer software development.`,
 	},
 }
 
+func init() {
+	core.IgnoreRules = append(core.IgnoreRules, DotDir)
+}
+
 func main() {
 	if err := app.Run(os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -55,9 +50,9 @@ func main() {
 	}
 }
 
-// findRoot finds the repo root by searching parent directories.
-func findRoot(root string) (string, error) {
-	path := filepath.Join(root, storage.DotDir)
+// Root finds the repo root by searching parent directories.
+func Root(root string) (string, error) {
+	path := filepath.Join(root, DotDir)
 
 	info, err := fs.Stat(path)
 	if err == nil && info.IsDir() {
@@ -69,20 +64,5 @@ func findRoot(root string) (string, error) {
 		return "", errors.New("repo not found")
 	}
 
-	return findRoot(parent)
-}
-
-// openStore returns the repo store from the current directory.
-func openStore() (*storage.Store, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	root, err := findRoot(cwd)
-	if err != nil {
-		return nil, err
-	}
-
-	return storage.NewStore(fs, root)
+	return Root(parent)
 }

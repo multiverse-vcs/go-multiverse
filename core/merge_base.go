@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/ipfs/go-cid"
+	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 )
 
 // MergeBase returns the best common ancestor of local and remote.
-func MergeBase(ctx context.Context, store *storage.Store, local, remote cid.Cid) (cid.Cid, error) {
-	history, err := Walk(ctx, store, local, nil)
+func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) (cid.Cid, error) {
+	history, err := Walk(ctx, dag, local, nil)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -36,14 +36,14 @@ func MergeBase(ctx context.Context, store *storage.Store, local, remote cid.Cid)
 		}
 
 		var match bool
-		if match, err0 = isAncestor(ctx, store, best, id); !match {
+		if match, err0 = isAncestor(ctx, dag, best, id); !match {
 			best = id
 		}
 
 		return false
 	}
 
-	if _, err := Walk(ctx, store, remote, cb); err != nil {
+	if _, err := Walk(ctx, dag, remote, cb); err != nil {
 		return cid.Cid{}, err
 	}
 
@@ -51,7 +51,7 @@ func MergeBase(ctx context.Context, store *storage.Store, local, remote cid.Cid)
 }
 
 // isAncestor returns true if child is an ancestor of parent.
-func isAncestor(ctx context.Context, store *storage.Store, parent, child cid.Cid) (bool, error) {
+func isAncestor(ctx context.Context, dag ipld.DAGService, parent, child cid.Cid) (bool, error) {
 	if !(parent.Defined() && child.Defined()) {
 		return false, nil
 	}
@@ -60,7 +60,7 @@ func isAncestor(ctx context.Context, store *storage.Store, parent, child cid.Cid
 		return id != child
 	}
 
-	history, err := Walk(ctx, store, parent, cb)
+	history, err := Walk(ctx, dag, parent, cb)
 	if err != nil {
 		return false, err
 	}

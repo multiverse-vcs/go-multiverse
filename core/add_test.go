@@ -6,27 +6,25 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ipfs/go-merkledag/dagutils"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/multiverse-vcs/go-multiverse/storage"
 	"github.com/spf13/afero"
 )
 
 func TestAddFile(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(store.Cwd, "test.txt", []byte("foo bar"), 0644); err != nil {
+	if err := afero.WriteFile(fs, "test.txt", []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), store, "test.txt", nil)
+	node, err := Add(context.TODO(), fs, dag, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	r, err := ufsio.NewDagReader(context.TODO(), node, store.Dag)
+	r, err := ufsio.NewDagReader(context.TODO(), node, dag)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
@@ -42,26 +40,24 @@ func TestAddFile(t *testing.T) {
 }
 
 func TestAddDir(t *testing.T) {
-	store, err := storage.NewStore(afero.NewMemMapFs(), "/")
-	if err != nil {
-		t.Fatalf("failed to create storage")
-	}
+	fs := afero.NewMemMapFs()
+	dag := dagutils.NewMemoryDagService()
 
-	if err := store.Cwd.Mkdir("test", 0755); err != nil {
+	if err := fs.Mkdir("test", 0755); err != nil {
 		t.Fatalf("failed to mkdir")
 	}
 
 	path := filepath.Join("test", "test.txt")
-	if err := afero.WriteFile(store.Cwd, path, []byte("foo bar"), 0644); err != nil {
+	if err := afero.WriteFile(fs, path, []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), store, "test", nil)
+	node, err := Add(context.TODO(), fs, dag, "test", nil)
 	if err != nil {
 		t.Fatalf("failed to add")
 	}
 
-	ufsdir, err := ufsio.NewDirectoryFromNode(store.Dag, node)
+	ufsdir, err := ufsio.NewDirectoryFromNode(dag, node)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
