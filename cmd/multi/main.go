@@ -8,11 +8,11 @@ import (
 )
 
 var app = &cli.App{
-	Name:     "multi",
-	HelpName: "multi",
-	Usage:    "Multiverse command line interface",
+	Name:        "multi",
+	HelpName:    "multi",
+	Usage:       "Multiverse command line interface",
 	Description: `Multiverse is a decentralized version control system for peer-to-peer software development.`,
-	Version: "0.0.1",
+	Version:     "0.0.1",
 	Authors: []*cli.Author{
 		{Name: "Keenan Nemetz", Email: "keenan.nemetz@pm.me"},
 	},
@@ -20,6 +20,8 @@ var app = &cli.App{
 		commitCommand,
 		daemonCommand,
 		initCommand,
+		pullCommand,
+		statusCommand,
 	},
 }
 

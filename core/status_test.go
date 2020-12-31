@@ -28,20 +28,17 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to remove readme file")
 	}
 
-	changes, err := Status(ctx, dag, "/", head)
+	diffs, err := Status(ctx, dag, "/", head)
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}
 
-	if len(changes) != 1 {
+	diff, ok := diffs["README.md"]
+	if !ok {
 		t.Fatalf("unexpected changes")
 	}
 
-	if changes[0].Path != "README.md" {
-		t.Fatalf("unexpected change path")
-	}
-
-	if changes[0].Type != dagutils.Remove {
+	if diff != dagutils.Remove {
 		t.Fatalf("unexpected change type")
 	}
 }
@@ -56,20 +53,17 @@ func TestStatusBare(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	changes, err := Status(ctx, dag, "", cid.Cid{})
+	diffs, err := Status(ctx, dag, "", cid.Cid{})
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}
 
-	if len(changes) != 1 {
+	diff, ok := diffs["README.md"]
+	if !ok {
 		t.Fatalf("unexpected changes")
 	}
 
-	if changes[0].Path != "README.md" {
-		t.Fatalf("unexpected change path")
-	}
-
-	if changes[0].Type != dagutils.Add {
+	if diff != dagutils.Add {
 		t.Fatalf("unexpected change type")
 	}
 }

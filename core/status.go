@@ -11,14 +11,14 @@ import (
 )
 
 // Status returns a list of changes between the worktree and commit with the given id.
-func Status(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid) ([]*dagutils.Change, error) {
+func Status(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid) (map[string]dagutils.ChangeType, error) {
 	tree, err := Worktree(ctx, dag, path)
 	if err != nil {
 		return nil, err
 	}
 
 	if !id.Defined() {
-		return dagutils.Diff(ctx, dag, &merkledag.ProtoNode{}, tree)
+		return mapChanges(ctx, dag, &merkledag.ProtoNode{}, tree)
 	}
 
 	node, err := dag.Get(ctx, id)
@@ -36,5 +36,28 @@ func Status(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid) (
 		return nil, err
 	}
 
-	return dagutils.Diff(ctx, dag, nodeA, tree)
+	return mapChanges(ctx, dag, nodeA, tree)
+}
+
+// mapChanges returns a map of unique file changes.
+func mapChanges(ctx context.Context, dag ipld.DAGService, nodeA, nodeB ipld.Node) (map[string]dagutils.ChangeType, error) {
+	changes, err := dagutils.Diff(ctx, dag, nodeA, nodeB)
+	if err != nil {
+		return nil, err
+	}
+
+	diffs := make(map[string]dagutils.ChangeType)
+	for _, change := range changes {
+		if change.Path == "" {
+			continue
+		}
+
+		if _, ok := diffs[change.Path]; ok {
+			diffs[change.Path] = dagutils.Mod
+		} else {
+			diffs[change.Path] = change.Type
+		}
+	}
+
+	return diffs, nil
 }

@@ -6,7 +6,7 @@ An open source decentralized version control system for peer-to-peer software de
 
 ### Getting Started
 
-[RTFM](https://www.multiverse-vcs.com/docs/)
+[Read the manual](https://www.multiverse-vcs.com/docs/).
 
 ### Install
 
