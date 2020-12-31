@@ -7,10 +7,10 @@ import (
 )
 
 func TestIgnoreDefault(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
 
 	IgnoreRules = []string{"foo"}
-	rules, err := Ignore(fs)
+	rules, err := Ignore()
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")
 	}
@@ -25,14 +25,14 @@ func TestIgnoreDefault(t *testing.T) {
 }
 
 func TestIgnoreFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
 
 	if err := afero.WriteFile(fs, IgnoreFile, []byte("bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
 	IgnoreRules = []string{"foo"}
-	rules, err := Ignore(fs)
+	rules, err := Ignore()
 	if err != nil {
 		t.Fatalf("failed to load ignore rules")
 	}

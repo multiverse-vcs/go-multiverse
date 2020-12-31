@@ -1,27 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/ipfs/go-cid"
-	"github.com/multiverse-vcs/go-multiverse/core"
-	"github.com/multiverse-vcs/go-multiverse/node"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/repo"
+	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
 
 var commitCommand = &cli.Command{
 	Action: commitAction,
 	Name:   "commit",
-	Usage:  "Record repo changes",
+	Usage:  "Record changes",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "message",
 			Aliases: []string{"m"},
-			Value:   "",
-			Usage:   "Description of changes",
+			Usage:   "Description",
 		},
 	},
 }
@@ -32,37 +28,37 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	path, err := Root(cwd)
+	repo, err := repo.Read(cwd)
 	if err != nil {
 		return err
 	}
 
-	repo := afero.NewBasePathFs(fs, path)
-	root := filepath.Join(path, DotDir)
-
-	node, err := node.NewNode(root)
+	client, err := rpc.NewClient()
 	if err != nil {
 		return err
 	}
 
-	var cfg Config
-	if err := ReadConfig(root, &cfg); err != nil {
+	head, err := repo.Head()
+	if err != nil {
 		return err
 	}
 
 	var parents []cid.Cid
-	if cfg.Head().Defined() {
-		parents = append(parents, cfg.Head())
+	if head.Defined() {
+		parents = append(parents, head)
 	}
 
-	id, err := core.Commit(c.Context, repo, node.Dag, c.String("message"), parents...)
-	if err != nil {
+	args := rpc.CommitArgs{
+		Root:    repo.Root,
+		Parents: parents,
+		Message: c.String("message"),
+	}
+
+	var reply rpc.CommitReply
+	if err = client.Call("Service.Commit", &args, &reply); err != nil {
 		return err
 	}
-	fmt.Println(id.String())
 
-	cfg.Index = id
-	cfg.SetHead(id)
-
-	return WriteConfig(root, &cfg)
+	repo.SetHead(reply.ID)
+	return repo.Write()
 }

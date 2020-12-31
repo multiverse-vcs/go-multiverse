@@ -5,13 +5,12 @@ import (
 
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/sabhiram/go-gitignore"
-	"github.com/spf13/afero"
 )
 
 // Worktree adds the current working tree to the merkle dag.
 // Optional ignore rules can be used to filter out files.
-func Worktree(ctx context.Context, fs afero.Fs, dag ipld.DAGService) (ipld.Node, error) {
-	rules, err := Ignore(fs)
+func Worktree(ctx context.Context, dag ipld.DAGService, path string) (ipld.Node, error) {
+	rules, err := Ignore()
 	if err != nil {
 		return nil, err
 	}
@@ -21,5 +20,5 @@ func Worktree(ctx context.Context, fs afero.Fs, dag ipld.DAGService) (ipld.Node,
 		return nil, err
 	}
 
-	return Add(ctx, fs, dag, "", filter)
+	return Add(ctx, dag, path, filter)
 }

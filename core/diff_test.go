@@ -9,10 +9,12 @@ import (
 )
 
 func TestDiff(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	commit1, err := Commit(context.TODO(), fs, dag, "1")
+	commit1, err := Commit(ctx, dag, "/", "1")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -21,12 +23,12 @@ func TestDiff(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	commit2, err := Commit(context.TODO(), fs, dag, "2")
+	commit2, err := Commit(ctx, dag, "", "2")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	changes, err := Diff(context.TODO(), dag, commit1, commit2)
+	changes, err := Diff(ctx, dag, commit1, commit2)
 	if err != nil {
 		t.Fatalf("failed to get diff")
 	}

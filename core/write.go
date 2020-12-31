@@ -12,7 +12,7 @@ import (
 )
 
 // Write writes the contents of node to the path.
-func Write(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, node ipld.Node) error {
+func Write(ctx context.Context, dag ipld.DAGService, path string, node ipld.Node) error {
 	fsnode, err := unixfs.ExtractFSNode(node)
 	if err != nil {
 		return err
@@ -20,17 +20,17 @@ func Write(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, n
 
 	switch fsnode.Type() {
 	case unixfs.TFile:
-		return writeFile(ctx, fs, dag, path, node)
+		return writeFile(ctx, dag, path, node)
 	case unixfs.TDirectory:
-		return writeDir(ctx, fs, dag, path, node)
+		return writeDir(ctx, dag, path, node)
 	case unixfs.TSymlink:
-		return writeSymlink(fs, path, fsnode.Data())
+		return writeSymlink(path, fsnode.Data())
 	default:
 		return errors.New("invalid file type")
 	}
 }
 
-func writeSymlink(fs afero.Fs, path string, target []byte) error {
+func writeSymlink(path string, target []byte) error {
 	linker, ok := fs.(afero.Linker)
 	if !ok {
 		return errors.New("fs does not support symlinks")
@@ -39,7 +39,7 @@ func writeSymlink(fs afero.Fs, path string, target []byte) error {
 	return linker.SymlinkIfPossible(path, string(target))
 }
 
-func writeFile(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, node ipld.Node) error {
+func writeFile(ctx context.Context, dag ipld.DAGService, path string, node ipld.Node) error {
 	reader, err := ufsio.NewDagReader(ctx, node, dag)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func writeFile(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path strin
 	return nil
 }
 
-func writeDir(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, node ipld.Node) error {
+func writeDir(ctx context.Context, dag ipld.DAGService, path string, node ipld.Node) error {
 	dir, err := ufsio.NewDirectoryFromNode(dag, node)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func writeDir(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string
 		}
 
 		subpath := filepath.Join(path, link.Name)
-		if err := Write(ctx, fs, dag, subpath, subnode); err != nil {
+		if err := Write(ctx, dag, subpath, subnode); err != nil {
 			return err
 		}
 	}

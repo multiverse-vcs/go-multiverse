@@ -12,19 +12,21 @@ import (
 )
 
 func TestAddFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "test.txt", []byte("foo bar"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), fs, dag, "test.txt", nil)
+	node, err := Add(ctx, dag, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
 
-	r, err := ufsio.NewDagReader(context.TODO(), node, dag)
+	r, err := ufsio.NewDagReader(ctx, node, dag)
 	if err != nil {
 		t.Fatalf("failed to read node")
 	}
@@ -40,7 +42,9 @@ func TestAddFile(t *testing.T) {
 }
 
 func TestAddDir(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := fs.Mkdir("test", 0755); err != nil {
@@ -52,7 +56,7 @@ func TestAddDir(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), fs, dag, "test", nil)
+	node, err := Add(ctx, dag, "test", nil)
 	if err != nil {
 		t.Fatalf("failed to add")
 	}
@@ -62,7 +66,7 @@ func TestAddDir(t *testing.T) {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = ufsdir.Find(context.TODO(), "test.txt")
+	_, err = ufsdir.Find(ctx, "test.txt")
 	if err != nil {
 		t.Errorf("failed to find file")
 	}

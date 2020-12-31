@@ -9,24 +9,26 @@ import (
 )
 
 func TestWalk(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	idA, err := Commit(context.TODO(), fs, dag, "first")
+	idA, err := Commit(ctx, dag, "", "first")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	idB, err := Commit(context.TODO(), fs, dag, "second", idA)
+	idB, err := Commit(ctx, dag, "", "second", idA)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	history, err := Walk(context.TODO(), dag, idB, nil)
+	history, err := Walk(ctx, dag, idB, nil)
 	if err != nil {
 		t.Fatalf("failed to walk")
 	}

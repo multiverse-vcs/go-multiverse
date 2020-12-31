@@ -11,14 +11,16 @@ import (
 )
 
 func TestWriteFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "test.txt", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), fs, dag, "test.txt", nil)
+	node, err := Add(ctx, dag, "test.txt", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
@@ -27,7 +29,7 @@ func TestWriteFile(t *testing.T) {
 		t.Fatalf("failed to remove file")
 	}
 
-	if err := Write(context.TODO(), fs, dag, "test.txt", node); err != nil {
+	if err := Write(ctx, dag, "test.txt", node); err != nil {
 		t.Fatalf("failed to write node")
 	}
 
@@ -48,7 +50,9 @@ func TestWriteFile(t *testing.T) {
 }
 
 func TestWriteDir(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := fs.Mkdir("test", 0755); err != nil {
@@ -60,7 +64,7 @@ func TestWriteDir(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Add(context.TODO(), fs, dag, "test", nil)
+	node, err := Add(ctx, dag, "test", nil)
 	if err != nil {
 		t.Fatalf("failed to add file")
 	}
@@ -69,7 +73,7 @@ func TestWriteDir(t *testing.T) {
 		t.Fatalf("failed to remove file")
 	}
 
-	if err := Write(context.TODO(), fs, dag, "test", node); err != nil {
+	if err := Write(ctx, dag, "test", node); err != nil {
 		t.Fatalf("failed to write node")
 	}
 

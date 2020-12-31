@@ -7,15 +7,15 @@ import (
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
-	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // WalkFun is called for each commit visited by walk.
-type WalkFun func(cid.Cid, *object.Commit) bool
+type WalkFun func(cid.Cid, *data.Commit) bool
 
 // Walk traverses the commit history starting at the given id.
-func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map[string]*object.Commit, error) {
-	history := make(map[string]*object.Commit)
+func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map[string]*data.Commit, error) {
+	history := make(map[string]*data.Commit)
 
 	// perform a depth first traversal of parent commits
 	getLinks := func(ctx context.Context, id cid.Cid) ([]*ipld.Link, error) {
@@ -37,7 +37,7 @@ func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map
 			return false
 		}
 
-		commit, err := object.CommitFromCBOR(node.RawData())
+		commit, err := data.CommitFromCBOR(node.RawData())
 		if err != nil {
 			return false
 		}

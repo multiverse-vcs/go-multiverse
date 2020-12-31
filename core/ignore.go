@@ -3,8 +3,6 @@ package core
 import (
 	"io/ioutil"
 	"strings"
-
-	"github.com/spf13/afero"
 )
 
 // IgnoreRules contains default ignore rules.
@@ -17,7 +15,7 @@ const IgnoreFile = ".multignore"
 // Ignore returns a list of files to ignore.
 // If an ignore file exists its rules will
 // be appended to the list of default rules.
-func Ignore(fs afero.Fs) ([]string, error) {
+func Ignore() ([]string, error) {
 	if _, err := fs.Stat(IgnoreFile); err != nil {
 		return IgnoreRules, nil
 	}

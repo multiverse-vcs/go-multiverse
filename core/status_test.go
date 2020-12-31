@@ -10,14 +10,16 @@ import (
 )
 
 func TestStatusRemove(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	head, err := Commit(context.TODO(), fs, dag, "init")
+	head, err := Commit(ctx, dag, "", "init")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -26,7 +28,7 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to remove readme file")
 	}
 
-	changes, err := Status(context.TODO(), fs, dag, head)
+	changes, err := Status(ctx, dag, "/", head)
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}
@@ -45,14 +47,16 @@ func TestStatusRemove(t *testing.T) {
 }
 
 func TestStatusBare(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	changes, err := Status(context.TODO(), fs, dag, cid.Cid{})
+	changes, err := Status(ctx, dag, "", cid.Cid{})
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}

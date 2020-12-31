@@ -9,25 +9,27 @@ import (
 )
 
 func TestMergeBase(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(context.TODO(), fs, dag, "base")
+	base, err := Commit(ctx, dag, "/", "base")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := Commit(context.TODO(), fs, dag, "local", base)
+	local, err := Commit(ctx, dag, "/", "local", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(context.TODO(), fs, dag, "remote", base)
+	remote, err := Commit(ctx, dag, "/", "remote", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := MergeBase(context.TODO(), dag, local, remote)
+	merge, err := MergeBase(ctx, dag, local, remote)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
@@ -38,25 +40,27 @@ func TestMergeBase(t *testing.T) {
 }
 
 func TestMergeBaseRemoteAhead(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(context.TODO(), fs, dag, "init")
+	base, err := Commit(ctx, dag, "/", "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := Commit(context.TODO(), fs, dag, "local", base)
+	local, err := Commit(ctx, dag, "/", "local", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(context.TODO(), fs, dag, "remote", local)
+	remote, err := Commit(ctx, dag, "/", "remote", local)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := MergeBase(context.TODO(), dag, local, remote)
+	merge, err := MergeBase(ctx, dag, local, remote)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
@@ -67,25 +71,27 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 }
 
 func TestMergeBaseLocalAhead(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(context.TODO(), fs, dag, "init")
+	base, err := Commit(ctx, dag, "/", "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(context.TODO(), fs, dag, "remote", base)
+	remote, err := Commit(ctx, dag, "/", "remote", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := Commit(context.TODO(), fs, dag, "local", remote)
+	local, err := Commit(ctx, dag, "/", "local", remote)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := MergeBase(context.TODO(), dag, local, remote)
+	merge, err := MergeBase(ctx, dag, local, remote)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
@@ -96,20 +102,22 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 }
 
 func TestMergeBaseUnrelated(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	local, err := Commit(context.TODO(), fs, dag, "local")
+	local, err := Commit(ctx, dag, "/", "local")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(context.TODO(), fs, dag, "remote")
+	remote, err := Commit(ctx, dag, "/", "remote")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	merge, err := MergeBase(context.TODO(), dag, local, remote)
+	merge, err := MergeBase(ctx, dag, local, remote)
 	if merge.Defined() {
 		t.Errorf("uexpected merge base")
 	}

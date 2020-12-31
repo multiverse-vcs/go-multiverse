@@ -6,18 +6,17 @@ import (
 
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // Checkout writes the tree of the commit to the root.
-func Checkout(ctx context.Context, fs afero.Fs, dag ipld.DAGService, id cid.Cid) error {
+func Checkout(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid) error {
 	node, err := dag.Get(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	commit, err := object.CommitFromCBOR(node.RawData())
+	commit, err := data.CommitFromCBOR(node.RawData())
 	if err != nil {
 		return errors.New("invalid commit")
 	}
@@ -27,5 +26,5 @@ func Checkout(ctx context.Context, fs afero.Fs, dag ipld.DAGService, id cid.Cid)
 		return err
 	}
 
-	return Write(ctx, fs, dag, "", tree)
+	return Write(ctx, dag, path, tree)
 }

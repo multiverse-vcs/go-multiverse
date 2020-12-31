@@ -9,13 +9,12 @@ import (
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
-	"github.com/multiverse-vcs/go-multiverse/diff"
-	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/nasdf/diff3"
 )
 
 // Merge combines the work trees of a and b into the base o.
-func Merge(ctx context.Context, fs afero.Fs, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node, error) {
+func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node, error) {
 	changesA, err := Diff(ctx, dag, o, a)
 	if err != nil {
 		return nil, err
@@ -28,7 +27,7 @@ func Merge(ctx context.Context, fs afero.Fs, dag ipld.DAGService, o, a, b cid.Ci
 
 	changes, conflicts := dagutils.MergeDiffs(changesA, changesB)
 	for _, c := range conflicts {
-		change, err := mergeConflict(ctx, fs, dag, c.A, c.B)
+		change, err := mergeConflict(ctx, dag, c.A, c.B)
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +40,7 @@ func Merge(ctx context.Context, fs afero.Fs, dag ipld.DAGService, o, a, b cid.Ci
 		return nil, err
 	}
 
-	commit, err := object.CommitFromCBOR(node.RawData())
+	commit, err := data.CommitFromCBOR(node.RawData())
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +59,7 @@ func Merge(ctx context.Context, fs afero.Fs, dag ipld.DAGService, o, a, b cid.Ci
 }
 
 // mergeConflict combines the contents of two conflicting dag changes.
-func mergeConflict(ctx context.Context, fs afero.Fs, dag ipld.DAGService, a, b *dagutils.Change) (*dagutils.Change, error) {
+func mergeConflict(ctx context.Context, dag ipld.DAGService, a, b *dagutils.Change) (*dagutils.Change, error) {
 	if a.Type == dagutils.Remove {
 		return b, nil
 	}
@@ -84,7 +83,7 @@ func mergeConflict(ctx context.Context, fs afero.Fs, dag ipld.DAGService, a, b *
 		return nil, err
 	}
 
-	merged := diff.Merge(textO, textA, textB)
+	merged := diff3.Merge(textO, textA, textB)
 	reader := strings.NewReader(merged)
 
 	merge, err := add(ctx, dag, reader)

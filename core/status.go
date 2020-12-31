@@ -7,13 +7,12 @@ import (
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
-	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // Status returns a list of changes between the worktree and commit with the given id.
-func Status(ctx context.Context, fs afero.Fs, dag ipld.DAGService, id cid.Cid) ([]*dagutils.Change, error) {
-	tree, err := Worktree(ctx, fs, dag)
+func Status(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid) ([]*dagutils.Change, error) {
+	tree, err := Worktree(ctx, dag, path)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +26,7 @@ func Status(ctx context.Context, fs afero.Fs, dag ipld.DAGService, id cid.Cid) (
 		return nil, err
 	}
 
-	commit, err := object.CommitFromCBOR(node.RawData())
+	commit, err := data.CommitFromCBOR(node.RawData())
 	if err != nil {
 		return nil, err
 	}

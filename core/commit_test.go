@@ -5,30 +5,32 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-merkledag/dagutils"
-	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/spf13/afero"
 )
 
 func TestCommit(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	parent, err := Commit(context.TODO(), fs, dag, "init")
+	parent, err := Commit(ctx, dag, "/", "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	id, err := Commit(context.TODO(), fs, dag, "changes", parent)
+	id, err := Commit(ctx, dag, "/", "changes", parent)
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
 
-	node, err := dag.Get(context.TODO(), id)
+	node, err := dag.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("failed to get commit")
 	}
 
-	commit, err := object.CommitFromCBOR(node.RawData())
+	commit, err := data.CommitFromCBOR(node.RawData())
 	if err != nil {
 		t.Fatalf("failed to decode commit")
 	}

@@ -10,7 +10,9 @@ import (
 )
 
 func TestWorktree(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	IgnoreRules = []string{"*.exe"}
@@ -22,7 +24,7 @@ func TestWorktree(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	node, err := Worktree(context.TODO(), fs, dag)
+	node, err := Worktree(ctx, dag, "")
 	if err != nil {
 		t.Fatalf("failed to create worktree")
 	}
@@ -32,12 +34,12 @@ func TestWorktree(t *testing.T) {
 		t.Fatalf("failed to read node")
 	}
 
-	_, err = dir.Find(context.TODO(), "README.md")
+	_, err = dir.Find(ctx, "README.md")
 	if err != nil {
 		t.Errorf("failed to find file")
 	}
 
-	_, err = dir.Find(context.TODO(), "test.exe")
+	_, err = dir.Find(ctx, "test.exe")
 	if err == nil {
 		t.Errorf("expected file to be ignored")
 	}

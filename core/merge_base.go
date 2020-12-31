@@ -5,7 +5,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/multiverse-vcs/go-multiverse/object"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // MergeBase returns the best common ancestor of local and remote.
@@ -26,7 +26,7 @@ func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) 
 	// find the least common ancestor by searching
 	// for commits that are in both local and remote
 	// and that are also independent from each other
-	cb := func(id cid.Cid, commit *object.Commit) bool {
+	cb := func(id cid.Cid, commit *data.Commit) bool {
 		if err0 != nil {
 			return false
 		}
@@ -56,7 +56,7 @@ func isAncestor(ctx context.Context, dag ipld.DAGService, parent, child cid.Cid)
 		return false, nil
 	}
 
-	cb := func(id cid.Cid, commit *object.Commit) bool {
+	cb := func(id cid.Cid, commit *data.Commit) bool {
 		return id != child
 	}
 

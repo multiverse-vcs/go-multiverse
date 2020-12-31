@@ -9,14 +9,16 @@ import (
 )
 
 func TestCheckout(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	id, err := Commit(context.TODO(), fs, dag, "init")
+	id, err := Commit(ctx, dag, "", "init")
 	if err != nil {
 		t.Fatalf("failed to create worktree")
 	}
@@ -25,7 +27,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatalf("failed to remove all")
 	}
 
-	if err := Checkout(context.TODO(), fs, dag, id); err != nil {
+	if err := Checkout(ctx, dag, "/", id); err != nil {
 		t.Fatalf("failed to checkout")
 	}
 

@@ -1,4 +1,4 @@
-package object
+package data
 
 import (
 	"encoding/json"
@@ -19,7 +19,7 @@ type Commit struct {
 	Parents []cid.Cid `json:"parents"`
 	// Tree is the root CID of the repo file tree.
 	Tree cid.Cid `json:"tree"`
-	// Metadata contains a map of additional data.
+	// Metadata contains additional data.
 	Metadata map[string]string `json:"metadata"`
 }
 

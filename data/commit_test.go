@@ -1,4 +1,4 @@
-package object
+package data
 
 import (
 	"testing"

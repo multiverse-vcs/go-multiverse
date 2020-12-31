@@ -8,18 +8,17 @@ import (
 	"github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiformats/go-multihash"
-	"github.com/multiverse-vcs/go-multiverse/object"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // Commit creates a new commit.
-func Commit(ctx context.Context, fs afero.Fs, dag ipld.DAGService, message string, parents ...cid.Cid) (cid.Cid, error) {
-	tree, err := Worktree(ctx, fs, dag)
+func Commit(ctx context.Context, dag ipld.DAGService, path string, message string, parents ...cid.Cid) (cid.Cid, error) {
+	tree, err := Worktree(ctx, dag, path)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	commit := object.Commit{
+	commit := data.Commit{
 		Date:    time.Now(),
 		Message: message,
 		Tree:    tree.Cid(),

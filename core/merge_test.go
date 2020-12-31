@@ -9,14 +9,16 @@ import (
 )
 
 func TestMergeConflicts(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
+
+	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello\n"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	base, err := Commit(context.TODO(), fs, dag, "base")
+	base, err := Commit(ctx, dag, "", "base")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -25,7 +27,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	local, err := Commit(context.TODO(), fs, dag, "local", base)
+	local, err := Commit(ctx, dag, "", "local", base)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -34,12 +36,12 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	remote, err := Commit(context.TODO(), fs, dag, "remote", base)
+	remote, err := Commit(ctx, dag, "", "remote", base)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	_, err = Merge(context.TODO(), fs, dag, base, local, remote)
+	_, err = Merge(ctx, dag, base, local, remote)
 	if err != nil {
 		t.Fatalf("failed to merge %s", err)
 	}

@@ -1,5 +1,5 @@
-// Package object contains Multiverse object definitions.
-package object
+// Package data contains definitions for ipld objects.
+package data
 
 import (
 	"time"

@@ -22,7 +22,7 @@ import (
 const DefaultChunker = "buzhash"
 
 // Add creates a node from the file at path and adds it to the merkle dag.
-func Add(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+func Add(ctx context.Context, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
 	stat, err := fs.Stat(path)
 	if err != nil {
 		return nil, err
@@ -30,11 +30,11 @@ func Add(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, fil
 
 	switch mode := stat.Mode(); {
 	case mode.IsRegular():
-		return addFile(ctx, fs, dag, path)
+		return addFile(ctx, dag, path)
 	case mode&os.ModeSymlink != 0:
-		return addSymlink(ctx, fs, dag, path)
+		return addSymlink(ctx, dag, path)
 	case mode.IsDir():
-		return addDir(ctx, fs, dag, path, filter)
+		return addDir(ctx, dag, path, filter)
 	default:
 		return nil, errors.New("invalid file type")
 	}
@@ -65,7 +65,7 @@ func add(ctx context.Context, dag ipld.DAGService, reader io.Reader) (ipld.Node,
 	return node, dag.Add(ctx, node)
 }
 
-func addFile(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string) (ipld.Node, error) {
+func addFile(ctx context.Context, dag ipld.DAGService, path string) (ipld.Node, error) {
 	file, err := fs.Open(path)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func addFile(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string)
 	return add(ctx, dag, file)
 }
 
-func addSymlink(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string) (ipld.Node, error) {
+func addSymlink(ctx context.Context, dag ipld.DAGService, path string) (ipld.Node, error) {
 	reader, ok := fs.(afero.LinkReader)
 	if !ok {
 		return nil, errors.New("fs does not support symlinks")
@@ -95,7 +95,7 @@ func addSymlink(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path stri
 	return node, dag.Add(ctx, node)
 }
 
-func addDir(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+func addDir(ctx context.Context, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
 	entries, err := afero.ReadDir(fs, path)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func addDir(ctx context.Context, fs afero.Fs, dag ipld.DAGService, path string, 
 			continue
 		}
 
-		subnode, err := Add(ctx, fs, dag, subpath, filter)
+		subnode, err := Add(ctx, dag, subpath, filter)
 		if err != nil {
 			return nil, err
 		}
