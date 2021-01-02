@@ -2,14 +2,12 @@ package node
 
 import (
 	"context"
-	"path/filepath"
 	"time"
 
 	"github.com/ipfs/go-bitswap"
 	bsnet "github.com/ipfs/go-bitswap/network"
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-ipfs-blockstore"
 	"github.com/ipfs/go-ipfs-provider"
 	"github.com/ipfs/go-ipfs-provider/queue"
@@ -23,8 +21,6 @@ import (
 )
 
 const (
-	// DataDir is the name of the data directory.
-	DataDir = "datastore"
 	// ReprovideInterval is the time between reprovides.
 	ReprovideInterval = 12 * time.Hour
 	// QueueName is the name for the provider queue.
@@ -42,15 +38,7 @@ type Node struct {
 }
 
 // New returns a new node.
-func New(ctx context.Context, root string) (*Node, error) {
-	path := filepath.Join(root, DataDir)
-	opts := badger.DefaultOptions
-
-	dstore, err := badger.NewDatastore(path, &opts)
-	if err != nil {
-		return nil, err
-	}
-
+func New(ctx context.Context, dstore datastore.Batching) (*Node, error) {
 	key, err := p2p.GenerateKey()
 	if err != nil {
 		return nil, err

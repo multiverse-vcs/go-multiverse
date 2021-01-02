@@ -2,13 +2,17 @@ package rpc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/core"
 )
 
 // CommitArgs contains the args.
 type CommitArgs struct {
+	// Name is the repo name.
+	Name string
 	// Root is the repo root path.
 	Root string
 	// Message is the description of changes.
@@ -26,8 +30,17 @@ type CommitReply struct {
 func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	ctx := context.Background()
 
+	if args.Name == "" {
+		return errors.New("name cannot be empty")
+	}
+
 	id, err := core.Commit(ctx, s.dag, args.Root, args.Message, args.Parents...)
 	if err != nil {
+		return err
+	}
+
+	key, val := datastore.NewKey(args.Name), id.Bytes()
+	if err := s.dstore.Put(key, val); err != nil {
 		return err
 	}
 

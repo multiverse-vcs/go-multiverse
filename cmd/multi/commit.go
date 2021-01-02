@@ -50,6 +50,7 @@ func commitAction(c *cli.Context) error {
 
 	args := rpc.CommitArgs{
 		Root:    repo.Root,
+		Name:    repo.Name,
 		Parents: parents,
 		Message: c.String("message"),
 	}

@@ -21,6 +21,8 @@ type Repo struct {
 	Path string `json:"-"`
 	// Root is the path to the root directory.
 	Root string `json:"-"`
+	// Name is the human friendly name of the repo.
+	Name string `json:"name"`
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
 	// Branches is a map of branch heads.
@@ -32,8 +34,9 @@ func init() {
 }
 
 // Default returns a config with default settings.
-func Default(root string) *Repo {
+func Default(root string, name string) *Repo {
 	return &Repo{
+		Name:     name,
 		Branch:   "default",
 		Branches: make(map[string]string),
 		Path:     filepath.Join(root, Config),

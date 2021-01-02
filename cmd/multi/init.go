@@ -11,9 +11,10 @@ import (
 )
 
 var initCommand = &cli.Command{
-	Action: initAction,
-	Name:   "init",
-	Usage:  "Create a repo",
+	Action:    initAction,
+	Name:      "init",
+	Usage:     "Create a repo",
+	ArgsUsage: "<name>",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "cid",
@@ -24,6 +25,10 @@ var initCommand = &cli.Command{
 }
 
 func initAction(c *cli.Context) error {
+	if c.NArg() < 1 {
+		cli.ShowSubcommandHelpAndExit(c, 1)
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -33,7 +38,7 @@ func initAction(c *cli.Context) error {
 		return errors.New("repo already exists")
 	}
 
-	repo := repo.Default(cwd)
+	repo := repo.Default(cwd, c.Args().Get(0))
 	if !c.IsSet("cid") {
 		return repo.Write()
 	}

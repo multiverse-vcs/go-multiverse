@@ -3,6 +3,7 @@ module github.com/multiverse-vcs/go-multiverse
 go 1.14
 
 require (
+	github.com/alecthomas/chroma v0.8.2
 	github.com/ipfs/go-bitswap v0.3.2
 	github.com/ipfs/go-blockservice v0.1.2
 	github.com/ipfs/go-cid v0.0.7
@@ -16,8 +17,10 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.0.3
 	github.com/ipfs/go-ipld-format v0.2.0
 	github.com/ipfs/go-merkledag v0.3.2
+	github.com/ipfs/go-path v0.0.8
 	github.com/ipfs/go-unixfs v0.2.4
 	github.com/ipld/go-car v0.1.0
+	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-libp2p v0.12.0
 	github.com/libp2p/go-libp2p-connmgr v0.2.4

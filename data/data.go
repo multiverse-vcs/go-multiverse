@@ -4,9 +4,13 @@ package data
 import (
 	"time"
 
+	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipld-cbor"
 	"github.com/polydawn/refmt/obj/atlas"
 )
+
+// Prefix is the prefix for datastore keys.
+var Prefix = datastore.NewKey("multiverse")
 
 // timeAtlasEntry allows encoding and decoding of time structs.
 var timeAtlasEntry = atlas.BuildEntry(time.Time{}).
