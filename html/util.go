@@ -1,4 +1,4 @@
-package http
+package html
 
 import (
 	"context"
@@ -11,10 +11,23 @@ import (
 	"github.com/alecthomas/chroma/styles"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-unixfs"
+	"github.com/multiverse-vcs/go-multiverse/node"
+)
+
+// util implements template utilities.
+type util struct {
+	node *node.Node
+}
+
+// formatter outputs highlighted code.
+var formatter = html.New(
+	html.WithLineNumbers(true),
+	html.LineNumbersInTable(true),
+	html.LinkableLineNumbers(true, ""),
 )
 
 // Highlight returns a syntax highlighted version of the given code.
-func (s *Server) Highlight(name, code string) (template.HTML, error) {
+func (u *util) Highlight(name, code string) (template.HTML, error) {
 	lexer := lexers.Match(name)
 	if lexer == nil {
 		lexer = lexers.Analyse(code)
@@ -29,14 +42,7 @@ func (s *Server) Highlight(name, code string) (template.HTML, error) {
 		style = styles.Fallback
 	}
 
-	formatter := html.New(
-		html.WithLineNumbers(true),
-		html.LineNumbersInTable(true),
-		html.LinkableLineNumbers(true, ""),
-	)
-
-	lexer = chroma.Coalesce(lexer)
-	token, err := lexer.Tokenise(nil, code)
+	token, err := chroma.Coalesce(lexer).Tokenise(nil, code)
 	if err != nil {
 		return "", err
 	}
@@ -50,10 +56,10 @@ func (s *Server) Highlight(name, code string) (template.HTML, error) {
 }
 
 // IsDir returns true if the node with the given CID is a directory.
-func (s *Server) IsDir(id cid.Cid) (bool, error) {
+func (u *util) IsDir(id cid.Cid) (bool, error) {
 	ctx := context.Background()
 
-	node, err := s.dag.Get(ctx, id)
+	node, err := u.node.Get(ctx, id)
 	if err != nil {
 		return false, err
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/core"
 )
 
@@ -34,16 +33,11 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		return errors.New("name cannot be empty")
 	}
 
-	id, err := core.Commit(ctx, s.dag, args.Root, args.Message, args.Parents...)
+	id, err := core.Commit(ctx, s.node, args.Root, args.Message, args.Parents...)
 	if err != nil {
 		return err
 	}
 
-	key, val := datastore.NewKey(args.Name), id.Bytes()
-	if err := s.dstore.Put(key, val); err != nil {
-		return err
-	}
-
 	reply.ID = id
-	return nil
+	return s.node.Repo().Set(args.Name, id)
 }

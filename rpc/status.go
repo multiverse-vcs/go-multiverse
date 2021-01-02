@@ -27,7 +27,7 @@ type StatusReply struct {
 func (s *Service) Status(args *StatusArgs, reply *StatusReply) error {
 	ctx := context.Background()
 
-	diffs, err := core.Status(ctx, s.dag, args.Root, args.Head)
+	diffs, err := core.Status(ctx, s.node, args.Root, args.Head)
 	if err != nil {
 		return err
 	}

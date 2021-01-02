@@ -8,16 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-datastore/namespace"
-	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/node"
 )
 
 // Service implements an RPC service.
 type Service struct {
-	dag    ipld.DAGService
-	dstore datastore.Batching
+	node *node.Node
 }
 
 // SockAddr returns the unix sock file path.
@@ -41,7 +37,7 @@ func NewClient() (*rpc.Client, error) {
 }
 
 // ListenAndServer starts an RPC listener.
-func ListenAndServe(dag ipld.DAGService, dstore datastore.Batching) error {
+func ListenAndServe(node *node.Node) error {
 	sock, err := SockAddr()
 	if err != nil {
 		return err
@@ -51,12 +47,7 @@ func ListenAndServe(dag ipld.DAGService, dstore datastore.Batching) error {
 		return err
 	}
 
-	service := Service{
-		dag:    dag,
-		dstore: namespace.Wrap(dstore, data.Prefix),
-	}
-
-	rpc.Register(&service)
+	rpc.Register(&Service{node})
 	rpc.HandleHTTP()
 
 	listener, err := net.Listen("unix", sock)

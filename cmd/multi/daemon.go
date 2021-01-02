@@ -34,13 +34,13 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	node, err := node.New(c.Context, dstore)
+	node, err := node.Init(c.Context, dstore)
 	if err != nil {
 		return err
 	}
 
-	go http.ListenAndServe(node, dstore)
-	go rpc.ListenAndServe(node, dstore)
+	go http.ListenAndServe(node)
+	go rpc.ListenAndServe(node)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)

@@ -29,7 +29,7 @@ type PullReply struct {
 func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 	ctx := context.Background()
 
-	diffs, err := core.Status(ctx, s.dag, args.Root, args.Head)
+	diffs, err := core.Status(ctx, s.node, args.Root, args.Head)
 	if err != nil {
 		return err
 	}
@@ -38,11 +38,11 @@ func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 		return errors.New("repo has uncommitted changes")
 	}
 
-	if err := merkledag.FetchGraph(ctx, args.ID, s.dag); err != nil {
+	if err := merkledag.FetchGraph(ctx, args.ID, s.node); err != nil {
 		return err
 	}
 
-	base, err := core.MergeBase(ctx, s.dag, args.Head, args.ID)
+	base, err := core.MergeBase(ctx, s.node, args.Head, args.ID)
 	if err != nil {
 		return err
 	}
@@ -51,11 +51,11 @@ func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 		return errors.New("local is ahead of remote")
 	}
 
-	merge, err := core.Merge(ctx, s.dag, args.Head, base, args.ID)
+	merge, err := core.Merge(ctx, s.node, args.Head, base, args.ID)
 	if err != nil {
 		return err
 	}
 
 	reply.ID = merge.Cid()
-	return core.Write(ctx, s.dag, args.Root, merge)
+	return core.Write(ctx, s.node, args.Root, merge)
 }

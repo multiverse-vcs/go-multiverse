@@ -25,7 +25,7 @@ type CheckoutReply struct{}
 func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 	ctx := context.Background()
 
-	diffs, err := core.Status(ctx, s.dag, args.Root, args.Head)
+	diffs, err := core.Status(ctx, s.node, args.Root, args.Head)
 	if err != nil {
 		return err
 	}
@@ -34,5 +34,5 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("repo has uncommitted changes")
 	}
 
-	return core.Checkout(ctx, s.dag, args.Root, args.ID)
+	return core.Checkout(ctx, s.node, args.Root, args.ID)
 }
