@@ -13,6 +13,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-unixfs"
 	"github.com/multiverse-vcs/go-multiverse/node"
+	"github.com/yuin/goldmark"
 )
 
 // util implements template utilities.
@@ -40,10 +41,10 @@ func (u *util) Breadcrumbs(url string) []string {
 }
 
 // Highlight returns a syntax highlighted version of the given code.
-func (u *util) Highlight(name, code string) (template.HTML, error) {
+func (u *util) Highlight(name, source string) (template.HTML, error) {
 	lexer := lexers.Match(name)
 	if lexer == nil {
-		lexer = lexers.Analyse(code)
+		lexer = lexers.Analyse(source)
 	}
 
 	if lexer == nil {
@@ -55,7 +56,7 @@ func (u *util) Highlight(name, code string) (template.HTML, error) {
 		style = styles.Fallback
 	}
 
-	token, err := chroma.Coalesce(lexer).Tokenise(nil, code)
+	token, err := chroma.Coalesce(lexer).Tokenise(nil, source)
 	if err != nil {
 		return "", err
 	}
@@ -81,4 +82,14 @@ func (u *util) IsDir(id cid.Cid) (bool, error) {
 	}
 
 	return fsnode.IsDir(), nil
+}
+
+// Markdown renders the given markdown source into html.
+func (u *util) Markdown(source string) (template.HTML, error) {
+	var b strings.Builder
+	if err := goldmark.Convert([]byte(source), &b); err != nil {
+		return "", err
+	}
+
+	return template.HTML(b.String()), nil
 }

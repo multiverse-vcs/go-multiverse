@@ -1,11 +1,11 @@
 {{ define "content" }}
-  <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
-    <ul>
-    {{ range (.Util.Breadcrumbs .URL) }}
-      <li><a href={{ join "/" . }}>{{ base . }}</a></li>
-    {{ end }}
-    </ul>
-  </nav>
+<nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+	<ul>
+	{{ range (.Util.Breadcrumbs .URL) }}
+	  <li><a href={{ join "/" . }}>{{ base . }}</a></li>
+	{{ end }}
+	</ul>
+</nav>
 
-  {{ .Util.Highlight .Path .Blob }}
+{{ .Util.Highlight .Path .Blob }}
 {{ end }}

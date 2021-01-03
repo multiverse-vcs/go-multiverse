@@ -34,5 +34,6 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94
 	github.com/spf13/afero v1.4.1
 	github.com/urfave/cli/v2 v2.3.0
+	github.com/yuin/goldmark v1.3.1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
