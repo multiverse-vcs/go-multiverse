@@ -1,0 +1,25 @@
+{{ define "content" }}
+  <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+    <ul>
+      {{ range (.Util.Breadcrumbs .URL) }}
+      <li><a href={{ join "/" . }}>{{ base . }}</a></li>
+      {{ end }}
+    </ul>
+  </nav>
+
+  <div class="panel">
+    <p class="panel-heading">Tree</p>
+    {{ range .Tree }}
+    <a href={{ join "/" $.URL .Name }} class="panel-block">
+      <span class="panel-icon">
+      {{ if .IsDir }}
+        <i class="fas fa-folder" aria-hidden="true"></i>
+      {{ else }}
+        <i class="fas fa-file" aria-hidden="true"></i>
+      {{ end }}
+      </span>
+      {{ .Name }}
+    </a>
+    {{ end }}
+  </div>
+{{ end }}

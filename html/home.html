@@ -1,8 +1,9 @@
 {{ define "content" }}
-<section>
-  <h1>Home</h1>
+<section class="container">
   {{ range .List }}
-  <a href="{{ .Key }}">{{ .Key }}</a>
+  <section class="section">
+    <h1 class="title"><a href="{{ .Key }}">{{ .Key }}</a></h1>
+  </section>
   {{ end }}
 </section>
 {{ end }}

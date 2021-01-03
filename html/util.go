@@ -3,6 +3,7 @@ package html
 import (
 	"context"
 	"html/template"
+	"path"
 	"strings"
 
 	"github.com/alecthomas/chroma"
@@ -23,8 +24,20 @@ type util struct {
 var formatter = html.New(
 	html.WithLineNumbers(true),
 	html.LineNumbersInTable(true),
-	html.LinkableLineNumbers(true, ""),
+	html.LinkableLineNumbers(true, "line-"),
 )
+
+// Breadcrumbs returns a list of ascending urls.
+func (u *util) Breadcrumbs(url string) []string {
+	var crumbs []string
+
+	parts := strings.Split(strings.Trim(url, "/"), "/")
+	for i := range parts {
+		crumbs = append(crumbs, path.Join(parts[:i+1]...))
+	}
+
+	return crumbs
+}
 
 // Highlight returns a syntax highlighted version of the given code.
 func (u *util) Highlight(name, code string) (template.HTML, error) {
@@ -37,7 +50,7 @@ func (u *util) Highlight(name, code string) (template.HTML, error) {
 		lexer = lexers.Fallback
 	}
 
-	style := styles.Get("pastie")
+	style := styles.Get("monokai")
 	if style == nil {
 		style = styles.Fallback
 	}
@@ -57,14 +70,12 @@ func (u *util) Highlight(name, code string) (template.HTML, error) {
 
 // IsDir returns true if the node with the given CID is a directory.
 func (u *util) IsDir(id cid.Cid) (bool, error) {
-	ctx := context.Background()
-
-	node, err := u.node.Get(ctx, id)
+	f, err := u.node.Get(context.Background(), id)
 	if err != nil {
 		return false, err
 	}
 
-	fsnode, err := unixfs.ExtractFSNode(node)
+	fsnode, err := unixfs.ExtractFSNode(f)
 	if err != nil {
 		return false, err
 	}

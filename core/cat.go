@@ -9,7 +9,7 @@ import (
 	ufsio "github.com/ipfs/go-unixfs/io"
 )
 
-// Cat returns the contents of a file.
+// Cat returns the contents of the file with the given CID.
 func Cat(ctx context.Context, dag ipld.DAGService, id cid.Cid) (string, error) {
 	node, err := dag.Get(ctx, id)
 	if err != nil {

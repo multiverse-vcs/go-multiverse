@@ -23,35 +23,20 @@ func ListenAndServe(node *node.Node) error {
 
 	router := httprouter.New()
 	router.HandlerFunc(http.MethodGet, "/", server.home)
-	router.HandlerFunc(http.MethodGet, "/:repo", server.tree)
-	router.HandlerFunc(http.MethodGet, "/:repo/tree/*file", server.tree)
-	router.HandlerFunc(http.MethodGet, "/:repo/blob/*file", server.blob)
+	router.HandlerFunc(http.MethodGet, "/:repo", server.file)
+	router.HandlerFunc(http.MethodGet, "/:repo/*file", server.file)
 
 	return http.ListenAndServe(BindAddr, router)
 }
 
 func (s *Server) home(w http.ResponseWriter, req *http.Request) {
-	if err := html.Home(w, s.node); err != nil {
+	if err := html.Home(w, req, s.node); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
-func (s *Server) blob(w http.ResponseWriter, req *http.Request) {
-	params := httprouter.ParamsFromContext(req.Context())
-	repo := params.ByName("repo")
-	file := params.ByName("file")
-
-	if err := html.Blob(req.Context(), w, s.node, repo, file); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
-func (s *Server) tree(w http.ResponseWriter, req *http.Request) {
-	params := httprouter.ParamsFromContext(req.Context())
-	repo := params.ByName("repo")
-	file := params.ByName("file")
-
-	if err := html.Tree(req.Context(), w, s.node, repo, file); err != nil {
+func (s *Server) file(w http.ResponseWriter, req *http.Request) {
+	if err := html.File(w, req, s.node); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
