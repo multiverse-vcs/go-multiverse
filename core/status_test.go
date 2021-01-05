@@ -19,7 +19,7 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	head, err := Commit(ctx, dag, "", "init")
+	head, err := Commit(ctx, dag, "", nil, "init")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}

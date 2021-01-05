@@ -1,4 +1,4 @@
-// Package data contains definitions for ipld objects.
+// Package data contains object definitions.
 package data
 
 import (
@@ -21,8 +21,8 @@ var timeAtlasEntry = atlas.BuildEntry(time.Time{}).
 		})).
 	Complete()
 
-// register all types here so they can be encoded and decoded
 func init() {
 	cbornode.RegisterCborType(timeAtlasEntry)
 	cbornode.RegisterCborType(Commit{})
+	cbornode.RegisterCborType(Repository{})
 }

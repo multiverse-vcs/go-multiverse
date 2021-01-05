@@ -1,37 +1,86 @@
 package node
 
 import (
+	"context"
+
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
-// repo is used to access data objects.
-type repo struct {
-	dstore datastore.Batching
-}
-
-// Set sets the head of repo with the given name.
-func (r *repo) Set(name string, id cid.Cid) error {
-	return r.dstore.Put(datastore.NewKey(name), id.Bytes())
-}
-
-// Get returns the head of the repo with the given name.
-func (r *repo) Get(name string) (cid.Cid, error) {
-	val, err := r.dstore.Get(datastore.NewKey(name))
+// PutRepository stores the given repo.
+func (n *Node) PutRepository(ctx context.Context, repo *data.Repository) error {
+	node, err := repo.Node()
 	if err != nil {
-		return cid.Cid{}, err
+		return err
 	}
 
-	return cid.Cast(val)
+	if err := n.Add(ctx, node); err != nil {
+		return err
+	}
+
+	key := datastore.NewKey(repo.Name)
+	val := node.Cid().Bytes()
+
+	return n.dstore.Put(key, val)
 }
 
-// List returns a list of all repos.
-func (r *repo) List() ([]query.Entry, error) {
-	res, err := r.dstore.Query(query.Query{})
+// GetRepository returns the repo with the given name.
+func (n *Node) GetRepository(ctx context.Context, name string) (*data.Repository, error) {
+	val, err := n.dstore.Get(datastore.NewKey(name))
 	if err != nil {
 		return nil, err
 	}
 
-	return res.Rest()
+	id, err := cid.Cast(val)
+	if err != nil {
+		return nil, err
+	}
+
+	node, err := n.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return data.RepositoryFromCBOR(node.RawData())
+}
+
+// GetRepositoryOrDefault returns the repo with the given name or one with default settings.
+func (n *Node) GetRepositoryOrDefault(ctx context.Context, name string) (*data.Repository, error) {
+	exists, err := n.dstore.Has(datastore.NewKey(name))
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return data.NewRepository(name), nil
+	}
+
+	return n.GetRepository(ctx, name)
+}
+
+// List returns a list of all repositories.
+func (n *Node) ListRepositories(ctx context.Context) ([]*data.Repository, error) {
+	res, err := n.dstore.Query(query.Query{KeysOnly: true})
+	if err != nil {
+		return nil, err
+	}
+
+	all, err := res.Rest()
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*data.Repository
+	for _, e := range all {
+		repo, err := n.GetRepository(ctx, e.Key)
+		if err != nil {
+			return nil, err
+		}
+
+		list = append(list, repo)
+	}
+
+	return list, nil
 }

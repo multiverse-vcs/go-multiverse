@@ -14,7 +14,7 @@ func TestDiff(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	commit1, err := Commit(ctx, dag, "/", "1")
+	commit1, err := Commit(ctx, dag, "", nil, "1")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -23,7 +23,7 @@ func TestDiff(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	commit2, err := Commit(ctx, dag, "", "2")
+	commit2, err := Commit(ctx, dag, "", nil, "2")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}

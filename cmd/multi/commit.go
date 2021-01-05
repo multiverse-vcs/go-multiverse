@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/ipfs/go-cid"
-	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
@@ -28,7 +27,7 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	repo, err := repo.Read(cwd)
+	config, err := LoadConfig(cwd)
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,7 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	head, err := repo.Head()
+	head, err := config.Head()
 	if err != nil {
 		return err
 	}
@@ -48,9 +47,16 @@ func commitAction(c *cli.Context) error {
 		parents = append(parents, head)
 	}
 
+	ignore, err := config.Ignore()
+	if err != nil {
+		return err
+	}
+
 	args := rpc.CommitArgs{
-		Root:    repo.Root,
-		Name:    repo.Name,
+		Root:    config.Root,
+		Ignore:  ignore,
+		Name:    config.Name,
+		Branch:  config.Branch,
 		Parents: parents,
 		Message: c.String("message"),
 	}
@@ -60,6 +66,6 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	repo.SetHead(reply.ID)
-	return repo.Write()
+	config.SetHead(reply.ID)
+	return config.Save()
 }

@@ -18,12 +18,12 @@ func TestWalk(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	idA, err := Commit(ctx, dag, "", "first")
+	idA, err := Commit(ctx, dag, "", nil, "first")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	idB, err := Commit(ctx, dag, "", "second", idA)
+	idB, err := Commit(ctx, dag, "", nil, "second", idA)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}

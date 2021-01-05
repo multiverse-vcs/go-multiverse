@@ -1,25 +1,17 @@
-package html
+package view
 
 import (
-	"context"
 	"html/template"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
-	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-unixfs"
-	"github.com/multiverse-vcs/go-multiverse/node"
 	"github.com/yuin/goldmark"
 )
-
-// util implements template utilities.
-type util struct {
-	node *node.Node
-}
 
 // formatter outputs highlighted code.
 var formatter = html.New(
@@ -28,8 +20,27 @@ var formatter = html.New(
 	html.LinkableLineNumbers(true, "line-"),
 )
 
-// Breadcrumbs returns a list of ascending urls.
-func (u *util) Breadcrumbs(url string) []string {
+// funcs contains template helpers.
+var funcs = template.FuncMap{
+	"join": func(parts ...string) string {
+		return path.Join(parts...)
+	},
+	"split": func(url string) []string {
+		return strings.Split(url, "/")
+	},
+	"base": func(url string) string {
+		return path.Base(url)
+	},
+	"timestamp": func(t time.Time) string {
+		return t.Format(time.RFC822)
+	},
+	"breadcrumbs": breadcrumbs,
+	"highlight":   highlight,
+	"markdown":    markdown,
+}
+
+// breadcrumbs returns a list of ascending urls.
+func breadcrumbs(url string) []string {
 	var crumbs []string
 
 	parts := strings.Split(strings.Trim(url, "/"), "/")
@@ -40,8 +51,8 @@ func (u *util) Breadcrumbs(url string) []string {
 	return crumbs
 }
 
-// Highlight returns a syntax highlighted version of the given code.
-func (u *util) Highlight(name, source string) (template.HTML, error) {
+// highlight returns a syntax highlighted version of the given code.
+func highlight(name, source string) (template.HTML, error) {
 	lexer := lexers.Match(name)
 	if lexer == nil {
 		lexer = lexers.Analyse(source)
@@ -51,7 +62,7 @@ func (u *util) Highlight(name, source string) (template.HTML, error) {
 		lexer = lexers.Fallback
 	}
 
-	style := styles.Get("monokai")
+	style := styles.Get("monokailight")
 	if style == nil {
 		style = styles.Fallback
 	}
@@ -69,23 +80,8 @@ func (u *util) Highlight(name, source string) (template.HTML, error) {
 	return template.HTML(b.String()), nil
 }
 
-// IsDir returns true if the node with the given CID is a directory.
-func (u *util) IsDir(id cid.Cid) (bool, error) {
-	f, err := u.node.Get(context.Background(), id)
-	if err != nil {
-		return false, err
-	}
-
-	fsnode, err := unixfs.ExtractFSNode(f)
-	if err != nil {
-		return false, err
-	}
-
-	return fsnode.IsDir(), nil
-}
-
-// Markdown renders the given markdown source into html.
-func (u *util) Markdown(source string) (template.HTML, error) {
+// markdown renders the given markdown source into html.
+func markdown(source string) (template.HTML, error) {
 	var b strings.Builder
 	if err := goldmark.Convert([]byte(source), &b); err != nil {
 		return "", err

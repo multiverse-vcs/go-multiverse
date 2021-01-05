@@ -5,27 +5,25 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/multiformats/go-multihash"
 	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // Commit creates a new commit.
-func Commit(ctx context.Context, dag ipld.DAGService, path string, message string, parents ...cid.Cid) (cid.Cid, error) {
-	tree, err := Worktree(ctx, dag, path)
+func Commit(ctx context.Context, dag ipld.DAGService, path string, filter Filter, message string, parents ...cid.Cid) (cid.Cid, error) {
+	tree, err := Add(ctx, dag, path, filter)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	commit := data.Commit{
+	commit := &data.Commit{
 		Date:    time.Now(),
 		Message: message,
 		Tree:    tree.Cid(),
 		Parents: parents,
 	}
 
-	node, err := cbornode.WrapObject(&commit, multihash.SHA2_256, -1)
+	node, err := commit.Node()
 	if err != nil {
 		return cid.Cid{}, err
 	}

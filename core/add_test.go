@@ -71,3 +71,22 @@ func TestAddDir(t *testing.T) {
 		t.Errorf("failed to find file")
 	}
 }
+
+func TestFilter(t *testing.T) {
+	filter := Filter{
+		"*.exe",
+		"baz/*",
+	}
+
+	if !filter.Match("foo.exe") {
+		t.Errorf("expected filter to match")
+	}
+
+	if !filter.Match("foo/bar.exe") {
+		t.Errorf("expected filter to match")
+	}
+
+	if !filter.Match("baz/bar") {
+		t.Errorf("expected filter to match")
+	}
+}

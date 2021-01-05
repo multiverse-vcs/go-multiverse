@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/ipfs/go-cid"
-	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
@@ -26,7 +25,7 @@ func pullAction(c *cli.Context) error {
 		return err
 	}
 
-	repo, err := repo.Read(cwd)
+	config, err := LoadConfig(cwd)
 	if err != nil {
 		return err
 	}
@@ -36,7 +35,7 @@ func pullAction(c *cli.Context) error {
 		return err
 	}
 
-	head, err := repo.Head()
+	head, err := config.Head()
 	if err != nil {
 		return err
 	}
@@ -47,7 +46,7 @@ func pullAction(c *cli.Context) error {
 	}
 
 	args := rpc.PullArgs{
-		Root: repo.Root,
+		Root: config.Root,
 		Head: head,
 		ID:   id,
 	}
@@ -57,6 +56,6 @@ func pullAction(c *cli.Context) error {
 		return err
 	}
 
-	repo.SetHead(reply.ID)
-	return repo.Write()
+	config.SetHead(reply.ID)
+	return config.Save()
 }

@@ -14,17 +14,17 @@ func TestMergeBase(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(ctx, dag, "/", "base")
+	base, err := Commit(ctx, dag, "/", nil, "base")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := Commit(ctx, dag, "/", "local", base)
+	local, err := Commit(ctx, dag, "/", nil, "local", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(ctx, dag, "/", "remote", base)
+	remote, err := Commit(ctx, dag, "/", nil, "remote", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
@@ -45,17 +45,17 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(ctx, dag, "/", "init")
+	base, err := Commit(ctx, dag, "/", nil, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := Commit(ctx, dag, "/", "local", base)
+	local, err := Commit(ctx, dag, "/", nil, "local", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(ctx, dag, "/", "remote", local)
+	remote, err := Commit(ctx, dag, "/", nil, "remote", local)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
@@ -76,17 +76,17 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(ctx, dag, "/", "init")
+	base, err := Commit(ctx, dag, "/", nil, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(ctx, dag, "/", "remote", base)
+	remote, err := Commit(ctx, dag, "/", nil, "remote", base)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	local, err := Commit(ctx, dag, "/", "local", remote)
+	local, err := Commit(ctx, dag, "/", nil, "local", remote)
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
@@ -107,12 +107,12 @@ func TestMergeBaseUnrelated(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	local, err := Commit(ctx, dag, "/", "local")
+	local, err := Commit(ctx, dag, "/", nil, "local")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	remote, err := Commit(ctx, dag, "/", "remote")
+	remote, err := Commit(ctx, dag, "/", nil, "remote")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}

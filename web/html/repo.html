@@ -1,0 +1,83 @@
+{{ define "content" }}
+  <nav class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <div class="dropdown is-hoverable">
+          <div class="dropdown-trigger">
+            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+              <span class="icon is-small">
+                <i class="fas fa-code-branch" aria-hidden="true"></i>
+              </span>
+              <strong>{{ .Branch }}</strong>
+              <span class="icon is-small">
+                <i class="fas fa-angle-down" aria-hidden="true"></i>
+              </span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content">
+              {{ range $k, $v := .Repo.Branches }}
+              <a href="#" class="dropdown-item">{{ $k }}</a>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="level-item">
+        <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+          <ul>
+            {{ range breadcrumbs .URL }}
+            <li><a href={{ join "/" . }}>{{ base . }}</a></li>
+            {{ end }}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </nav>
+  {{ if .IsDir }}
+    <div class="panel">
+      <div class="panel-heading">
+        <div class="level">
+          <div class="level-left">
+            <div class="level-item">
+              <span class="">{{ .Commit.Message }}</span>
+            </div>
+          </div>
+          <div class="level-right">
+            <div class="level-item">
+              <span class="">{{ timestamp .Commit.Date }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{ range .Tree }}
+      <div class="panel-block">
+        <span class="panel-icon">
+        {{ if .IsDir }}
+          <i class="fas fa-folder has-text-info" aria-hidden="true"></i>
+        {{ else }}
+          <i class="far fa-file" aria-hidden="true"></i>
+        {{ end }}
+        </span>
+        <a class="has-text-black" href={{ join "/" $.URL .Name }}>{{ .Name }}</a>
+      </div>
+      {{ end }}
+    </div>
+  {{ else }}
+    <div class="panel">
+      <p class="panel-heading">
+        Blob
+      </p>
+      <div class="panel-block">
+        {{ highlight .Path .Blob }}
+      </div>
+    </div>
+  {{ end }}
+  {{ if $readme := .Readme }}
+  <div class="box">
+    <div class="content">
+      {{ markdown $readme }}
+    </div>
+  </div>
+  {{ end }}
+{{ end }}

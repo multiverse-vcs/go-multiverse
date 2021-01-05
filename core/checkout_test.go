@@ -18,7 +18,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	id, err := Commit(ctx, dag, "", "init")
+	id, err := Commit(ctx, dag, "", nil, "init")
 	if err != nil {
 		t.Fatalf("failed to create worktree")
 	}

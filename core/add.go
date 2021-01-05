@@ -14,15 +14,33 @@ import (
 	"github.com/ipfs/go-unixfs/importer/balanced"
 	"github.com/ipfs/go-unixfs/importer/helpers"
 	ufsio "github.com/ipfs/go-unixfs/io"
-	"github.com/sabhiram/go-gitignore"
 	"github.com/spf13/afero"
 )
 
 // DefaultChunker is the name of the default chunker algorithm.
 const DefaultChunker = "buzhash"
 
+// Filter is used to ignore files.
+type Filter []string
+
+// Match returns true if the path matches any ignore rules.
+func (f Filter) Match(path string) bool {
+	for _, i := range f {
+		base := filepath.Base(path)
+		if match, _ := filepath.Match(i, base); match {
+			return true
+		}
+
+		if match, _ := filepath.Match(i, path); match {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Add creates a node from the file at path and adds it to the merkle dag.
-func Add(ctx context.Context, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+func Add(ctx context.Context, dag ipld.DAGService, path string, filter Filter) (ipld.Node, error) {
 	stat, err := fs.Stat(path)
 	if err != nil {
 		return nil, err
@@ -95,7 +113,7 @@ func addSymlink(ctx context.Context, dag ipld.DAGService, path string) (ipld.Nod
 	return node, dag.Add(ctx, node)
 }
 
-func addDir(ctx context.Context, dag ipld.DAGService, path string, filter *ignore.GitIgnore) (ipld.Node, error) {
+func addDir(ctx context.Context, dag ipld.DAGService, path string, filter Filter) (ipld.Node, error) {
 	entries, err := afero.ReadDir(fs, path)
 	if err != nil {
 		return nil, err
@@ -104,7 +122,7 @@ func addDir(ctx context.Context, dag ipld.DAGService, path string, filter *ignor
 	dir := ufsio.NewDirectory(dag)
 	for _, info := range entries {
 		subpath := filepath.Join(path, info.Name())
-		if filter != nil && filter.MatchesPath(subpath) {
+		if filter.Match(subpath) {
 			continue
 		}
 

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/ipfs/go-ds-badger2"
-	"github.com/multiverse-vcs/go-multiverse/http"
 	"github.com/multiverse-vcs/go-multiverse/node"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
+	"github.com/multiverse-vcs/go-multiverse/web"
 	"github.com/urfave/cli/v2"
 )
 
@@ -39,7 +39,7 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	go http.ListenAndServe(node)
+	go web.ListenAndServe(node)
 	go rpc.ListenAndServe(node)
 
 	quit := make(chan os.Signal, 1)

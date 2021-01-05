@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
+	"github.com/multiformats/go-multihash"
 )
 
 // Commit contains info about changes to a repo.
@@ -33,7 +34,7 @@ func CommitFromJSON(data []byte) (*Commit, error) {
 	return &commit, nil
 }
 
-// CommitFromNode decodes a commit from an ipld node.
+// CommitFromCBOR decodes a commit from an ipld node.
 func CommitFromCBOR(data []byte) (*Commit, error) {
 	var commit Commit
 	if err := cbornode.DecodeInto(data, &commit); err != nil {
@@ -41,6 +42,11 @@ func CommitFromCBOR(data []byte) (*Commit, error) {
 	}
 
 	return &commit, nil
+}
+
+// Node returns an ipld node containing the commit.
+func (c *Commit) Node() (ipld.Node, error) {
+	return cbornode.WrapObject(&c, multihash.SHA2_256, -1)
 }
 
 // ParentLinks returns parent ipld links.

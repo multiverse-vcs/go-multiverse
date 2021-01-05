@@ -12,7 +12,8 @@ import (
 
 // Status returns a list of changes between the worktree and commit with the given id.
 func Status(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid) (map[string]dagutils.ChangeType, error) {
-	tree, err := Worktree(ctx, dag, path)
+	// TODO add ignore filter
+	tree, err := Add(ctx, dag, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -48,10 +49,6 @@ func mapChanges(ctx context.Context, dag ipld.DAGService, nodeA, nodeB ipld.Node
 
 	diffs := make(map[string]dagutils.ChangeType)
 	for _, change := range changes {
-		if change.Path == "" {
-			continue
-		}
-
 		if _, ok := diffs[change.Path]; ok {
 			diffs[change.Path] = dagutils.Mod
 		} else {
@@ -59,5 +56,6 @@ func mapChanges(ctx context.Context, dag ipld.DAGService, nodeA, nodeB ipld.Node
 		}
 	}
 
+	delete(diffs, "")
 	return diffs, nil
 }

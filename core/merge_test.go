@@ -18,7 +18,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	base, err := Commit(ctx, dag, "", "base")
+	base, err := Commit(ctx, dag, "", nil, "base")
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -27,7 +27,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	local, err := Commit(ctx, dag, "", "local", base)
+	local, err := Commit(ctx, dag, "", nil, "local", base)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -36,7 +36,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	remote, err := Commit(ctx, dag, "", "remote", base)
+	remote, err := Commit(ctx, dag, "", nil, "remote", base)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}

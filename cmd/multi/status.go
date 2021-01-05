@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/multiverse-vcs/go-multiverse/core"
-	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
@@ -22,7 +20,7 @@ func statusAction(c *cli.Context) error {
 		return err
 	}
 
-	repo, err := repo.Read(cwd)
+	config, err := LoadConfig(cwd)
 	if err != nil {
 		return err
 	}
@@ -32,13 +30,13 @@ func statusAction(c *cli.Context) error {
 		return err
 	}
 
-	head, err := repo.Head()
+	head, err := config.Head()
 	if err != nil {
 		return err
 	}
 
 	args := rpc.StatusArgs{
-		Root: repo.Root,
+		Root: config.Root,
 		Head: head,
 	}
 
@@ -47,9 +45,9 @@ func statusAction(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("Tracking changes on branch %s:\n", repo.Branch)
+	fmt.Printf("Tracking changes on branch %s:\n", config.Branch)
 	fmt.Printf("  (all files are automatically considered for commit)\n")
-	fmt.Printf("  (to stop tracking files add rules to '%s')\n", core.IgnoreFile)
+	fmt.Printf("  (to stop tracking files add rules to '%s')\n", IgnoreFile)
 
 	for _, diff := range reply.Diffs {
 		fmt.Println(diff)

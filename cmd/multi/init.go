@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/ipfs/go-cid"
-	"github.com/multiverse-vcs/go-multiverse/repo"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
@@ -34,13 +33,13 @@ func initAction(c *cli.Context) error {
 		return err
 	}
 
-	if _, err := repo.Find(cwd); err == nil {
+	if _, err := FindConfig(cwd); err == nil {
 		return errors.New("repo already exists")
 	}
 
-	repo := repo.Default(cwd, c.Args().Get(0))
+	config := DefaultConfig(cwd, c.Args().Get(0))
 	if !c.IsSet("cid") {
-		return repo.Write()
+		return config.Save()
 	}
 
 	id, err := cid.Parse(c.String("cid"))
@@ -54,7 +53,7 @@ func initAction(c *cli.Context) error {
 	}
 
 	args := rpc.CheckoutArgs{
-		Root: repo.Root,
+		Root: config.Root,
 		ID:   id,
 	}
 
@@ -63,6 +62,6 @@ func initAction(c *cli.Context) error {
 		return err
 	}
 
-	repo.SetHead(id)
-	return repo.Write()
+	config.SetHead(id)
+	return config.Save()
 }

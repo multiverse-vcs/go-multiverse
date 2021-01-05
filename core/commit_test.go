@@ -15,12 +15,12 @@ func TestCommit(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	parent, err := Commit(ctx, dag, "/", "init")
+	parent, err := Commit(ctx, dag, "/", nil, "init")
 	if err != nil {
 		t.Fatalf("failed to create commit")
 	}
 
-	id, err := Commit(ctx, dag, "/", "changes", parent)
+	id, err := Commit(ctx, dag, "/", nil, "changes", parent)
 	if err != nil {
 		t.Fatalf("failed to commit: %s", err)
 	}
