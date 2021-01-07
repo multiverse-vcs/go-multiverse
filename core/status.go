@@ -12,13 +12,15 @@ import (
 
 // Status returns a list of changes between the worktree and commit with the given id.
 func Status(ctx context.Context, dag ipld.DAGService, path string, filter Filter, id cid.Cid) ([]*dagutils.Change, error) {
-	tree, err := Add(ctx, dag, path, filter)
+	mem := dagutils.NewMemoryDagService()
+
+	tree, err := Add(ctx, mem, path, filter)
 	if err != nil {
 		return nil, err
 	}
 
 	if !id.Defined() {
-		return dagutils.Diff(ctx, dag, &merkledag.ProtoNode{}, tree)
+		return dagutils.Diff(ctx, mem, &merkledag.ProtoNode{}, tree)
 	}
 
 	node, err := dag.Get(ctx, id)
@@ -36,5 +38,26 @@ func Status(ctx context.Context, dag ipld.DAGService, path string, filter Filter
 		return nil, err
 	}
 
-	return dagutils.Diff(ctx, dag, nodeA, tree)
+	var ids []cid.Cid
+	visit := func(id cid.Cid) bool {
+		ids = append(ids, id)
+		return true
+	}
+
+	getLinks := merkledag.GetLinksWithDAG(dag)
+	if err := merkledag.Walk(ctx, getLinks, commit.Tree, visit); err != nil {
+		return nil, err
+	}
+
+	for opt := range dag.GetMany(ctx, ids) {
+		if opt.Err != nil {
+			return nil, opt.Err
+		}
+
+		if err := mem.Add(ctx, opt.Node); err != nil {
+			return nil, err
+		}
+	}
+
+	return dagutils.Diff(ctx, mem, nodeA, tree)
 }

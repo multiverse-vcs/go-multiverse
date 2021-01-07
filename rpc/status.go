@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/core"
 )
@@ -34,12 +33,7 @@ type StatusReply struct {
 func (s *Service) Status(args *StatusArgs, reply *StatusReply) error {
 	ctx := context.Background()
 
-	dag := &merkledag.ComboService{
-		Read:  s.node,
-		Write: dagutils.NewMemoryDagService(),
-	}
-
-	changes, err := core.Status(ctx, dag, args.Root, args.Ignore, args.Head)
+	changes, err := core.Status(ctx, s.node, args.Root, args.Ignore, args.Head)
 	if err != nil {
 		return err
 	}

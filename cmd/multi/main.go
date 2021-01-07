@@ -17,6 +17,7 @@ var app = &cli.App{
 		{Name: "Keenan Nemetz", Email: "keenan.nemetz@pm.me"},
 	},
 	Commands: []*cli.Command{
+		branchCommand,
 		commitCommand,
 		daemonCommand,
 		initCommand,

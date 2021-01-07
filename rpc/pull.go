@@ -53,20 +53,6 @@ func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	// node, err := s.node.Get(ctx, args.ID)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// _, err := data.CommitFromCBOR(node.RawData())
-	// if err != nil {
-	// 	return err
-	// }
-
-	if err := merkledag.FetchGraph(ctx, args.ID, s.node); err != nil {
-		return err
-	}
-
 	base, err := core.MergeBase(ctx, s.node, args.Head, args.ID)
 	if err != nil {
 		return err

@@ -49,9 +49,7 @@ func NewConfig(root string, name string) *Config {
 // FindConfig searches for the config in parent directories.
 func FindConfig(root string) (string, error) {
 	path := filepath.Join(root, ConfigFile)
-
-	info, err := os.Stat(path)
-	if err == nil && !info.IsDir() {
+	if _, err := os.Stat(path); err == nil {
 		return path, nil
 	}
 
