@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
@@ -18,7 +17,7 @@ func Checkout(ctx context.Context, dag ipld.DAGService, path string, id cid.Cid)
 
 	commit, err := data.CommitFromCBOR(node.RawData())
 	if err != nil {
-		return errors.New("invalid commit")
+		return err
 	}
 
 	tree, err := dag.Get(ctx, commit.Tree)

@@ -32,15 +32,15 @@ type Config struct {
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
 	// Branches is a map of branch heads.
-	Branches map[string]string `json:"branches"`
+	Branches map[string]cid.Cid `json:"branches"`
 }
 
-// DefaultConfig returns a config with default settings.
-func DefaultConfig(root string, name string) *Config {
+// NewConfig returns a config with default settings.
+func NewConfig(root string, name string) *Config {
 	return &Config{
 		Name:     name,
 		Branch:   "default",
-		Branches: make(map[string]string),
+		Branches: make(map[string]cid.Cid),
 		Path:     filepath.Join(root, ConfigFile),
 		Root:     root,
 	}
@@ -84,21 +84,6 @@ func LoadConfig(root string) (*Config, error) {
 	config.Root = filepath.Dir(path)
 
 	return &config, nil
-}
-
-// SetHead sets the cid of the current repo branch.
-func (c *Config) SetHead(id cid.Cid) {
-	c.Branches[c.Branch] = id.String()
-}
-
-// Head returns the cid of the current repo branch.
-func (c *Config) Head() (cid.Cid, error) {
-	id, ok := c.Branches[c.Branch]
-	if !ok {
-		return cid.Cid{}, nil
-	}
-
-	return cid.Parse(id)
 }
 
 // Ignore returns a list of files to ignore.

@@ -36,7 +36,7 @@ func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) 
 		}
 
 		var match bool
-		if match, err0 = IsAncestor(ctx, dag, best, id); !match {
+		if match, err0 = isAncestor(ctx, dag, best, id); !match {
 			best = id
 		}
 
@@ -48,4 +48,23 @@ func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) 
 	}
 
 	return best, err0
+}
+
+// isAncestor returns true if child is an ancestor of parent.
+func isAncestor(ctx context.Context, dag ipld.DAGService, parent, child cid.Cid) (bool, error) {
+	if !(parent.Defined() && child.Defined()) {
+		return false, nil
+	}
+
+	cb := func(id cid.Cid, commit *data.Commit) bool {
+		return id != child
+	}
+
+	history, err := Walk(ctx, dag, parent, cb)
+	if err != nil {
+		return false, err
+	}
+
+	_, ok := history[child.KeyString()]
+	return ok, nil
 }

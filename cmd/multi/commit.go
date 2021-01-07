@@ -37,13 +37,8 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	head, err := config.Head()
-	if err != nil {
-		return err
-	}
-
 	var parents []cid.Cid
-	if head.Defined() {
+	if head, ok := config.Branches[config.Branch]; ok {
 		parents = append(parents, head)
 	}
 
@@ -66,6 +61,6 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	config.SetHead(reply.ID)
+	config.Branches[config.Branch] = reply.ID
 	return config.Save()
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
@@ -30,14 +31,15 @@ func statusAction(c *cli.Context) error {
 		return err
 	}
 
-	head, err := config.Head()
+	ignore, err := config.Ignore()
 	if err != nil {
 		return err
 	}
 
 	args := rpc.StatusArgs{
-		Root: config.Root,
-		Head: head,
+		Root:   config.Root,
+		Head:   config.Branches[config.Branch],
+		Ignore: ignore,
 	}
 
 	var reply rpc.StatusReply
@@ -49,8 +51,21 @@ func statusAction(c *cli.Context) error {
 	fmt.Printf("  (all files are automatically considered for commit)\n")
 	fmt.Printf("  (to stop tracking files add rules to '%s')\n", IgnoreFile)
 
-	for _, diff := range reply.Diffs {
-		fmt.Println(diff)
+	paths := make([]string, 0)
+	for path := range reply.Diffs {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+
+	for _, p := range paths {
+		switch reply.Diffs[p] {
+		case rpc.StatusAdd:
+			fmt.Printf("\tnew file: %s\n", p)
+		case rpc.StatusRemove:
+			fmt.Printf("\tdeleted:  %s\n", p)
+		case rpc.StatusMod:
+			fmt.Printf("\tmodified: %s\n", p)
+		}
 	}
 
 	return nil

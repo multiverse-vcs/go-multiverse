@@ -6,7 +6,9 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag"
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // PullArgs contains the args.
@@ -15,6 +17,8 @@ type PullArgs struct {
 	Root string
 	// Head is the CID of the repo head.
 	Head cid.Cid
+	// Ignore is a list of paths to ignore.
+	Ignore []string
 	// ID is the CID of the commit to pull.
 	ID cid.Cid
 }
@@ -28,15 +32,36 @@ type PullReply struct {
 // Pull merges changes into the repo head.
 func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 	ctx := context.Background()
+	dag := dagutils.NewMemoryDagService()
 
-	diffs, err := core.Status(ctx, s.node, args.Root, args.Head)
+	tree, err := core.Add(ctx, dag, args.Root, args.Ignore)
 	if err != nil {
 		return err
 	}
 
-	if len(diffs) != 0 {
-		return errors.New("repo has uncommitted changes")
+	node, err := s.node.Get(ctx, args.Head)
+	if err != nil {
+		return err
 	}
+
+	commit, err := data.CommitFromCBOR(node.RawData())
+	if err != nil {
+		return err
+	}
+
+	if tree.Cid() != commit.Tree {
+		return errors.New("uncommitted changes")
+	}
+
+	// node, err := s.node.Get(ctx, args.ID)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// _, err := data.CommitFromCBOR(node.RawData())
+	// if err != nil {
+	// 	return err
+	// }
 
 	if err := merkledag.FetchGraph(ctx, args.ID, s.node); err != nil {
 		return err

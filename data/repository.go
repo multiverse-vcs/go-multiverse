@@ -23,8 +23,8 @@ type Repository struct {
 	Metadata map[string]string `json:"metadata"`
 }
 
-// RepositoryFromJON decodes a repo from json.
-func RepositoryFromJON(data []byte) (*Repository, error) {
+// RepositoryFromJSON decodes a repo from json.
+func RepositoryFromJSON(data []byte) (*Repository, error) {
 	var repo Repository
 	if err := json.Unmarshal(data, &repo); err != nil {
 		return nil, err

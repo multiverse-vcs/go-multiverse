@@ -60,7 +60,7 @@ func (n *Node) GetRepositoryOrDefault(ctx context.Context, name string) (*data.R
 	return n.GetRepository(ctx, name)
 }
 
-// List returns a list of all repositories.
+// ListRepositories returns a list of all repositories.
 func (n *Node) ListRepositories(ctx context.Context) ([]*data.Repository, error) {
 	res, err := n.dstore.Query(query.Query{KeysOnly: true})
 	if err != nil {

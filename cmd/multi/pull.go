@@ -35,11 +35,6 @@ func pullAction(c *cli.Context) error {
 		return err
 	}
 
-	head, err := config.Head()
-	if err != nil {
-		return err
-	}
-
 	id, err := cid.Parse(c.Args().Get(0))
 	if err != nil {
 		return err
@@ -47,7 +42,7 @@ func pullAction(c *cli.Context) error {
 
 	args := rpc.PullArgs{
 		Root: config.Root,
-		Head: head,
+		Head: config.Branches[config.Branch],
 		ID:   id,
 	}
 
@@ -56,6 +51,6 @@ func pullAction(c *cli.Context) error {
 		return err
 	}
 
-	config.SetHead(reply.ID)
+	config.Branches[config.Branch] = reply.ID
 	return config.Save()
 }

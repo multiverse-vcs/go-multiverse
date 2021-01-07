@@ -26,6 +26,7 @@ type CommitArgs struct {
 
 // CommitReply contains the reply.
 type CommitReply struct {
+	// ID is the CID of the commit.
 	ID cid.Cid
 }
 
