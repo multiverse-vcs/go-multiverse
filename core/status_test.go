@@ -6,6 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/spf13/afero"
 )
 
@@ -19,7 +20,13 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	head, err := Commit(ctx, dag, "", nil, "init")
+	tree, err := Add(ctx, dag, "", nil)
+	if err != nil {
+		t.Fatalf("failed to add tree")
+	}
+
+	commit := data.NewCommit(tree.Cid(), "init")
+	id, err := data.AddCommit(ctx, dag, commit)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
@@ -28,7 +35,7 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to remove readme file")
 	}
 
-	changes, err := Status(ctx, dag, "/", nil, head)
+	changes, err := Status(ctx, dag, "/", nil, id)
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}

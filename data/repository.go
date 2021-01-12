@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/ipfs/go-cid"
@@ -21,6 +22,30 @@ type Repository struct {
 	Tags map[string]cid.Cid `json:"tags"`
 	// Metadata contains additional data.
 	Metadata map[string]string `json:"metadata"`
+}
+
+// GetRepository returns the repo with the given CID.
+func GetRepository(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Repository, error) {
+	node, err := dag.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return RepositoryFromCBOR(node.RawData())
+}
+
+// AddRepository adds a repo to the given dag.
+func AddRepository(ctx context.Context, dag ipld.DAGService, repo *Repository) (cid.Cid, error) {
+	node, err := cbornode.WrapObject(repo, multihash.SHA2_256, -1)
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
+	if err := dag.Add(ctx, node); err != nil {
+		return cid.Cid{}, err
+	}
+
+	return node.Cid(), nil
 }
 
 // RepositoryFromJSON decodes a repo from json.
@@ -51,22 +76,4 @@ func NewRepository(name string) *Repository {
 		Tags:     make(map[string]cid.Cid),
 		Metadata: make(map[string]string),
 	}
-}
-
-// Node returns an ipld node containing the commit.
-func (r *Repository) Node() (ipld.Node, error) {
-	return cbornode.WrapObject(&r, multihash.SHA2_256, -1)
-}
-
-// DefaultBranch returns the default branch for the repo.
-func (r *Repository) DefaultBranch() string {
-	if _, ok := r.Branches["default"]; ok {
-		return "default"
-	}
-
-	for k := range r.Branches {
-		return k
-	}
-
-	return ""
 }

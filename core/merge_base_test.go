@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/spf13/afero"
 )
 
@@ -14,27 +15,35 @@ func TestMergeBase(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(ctx, dag, "/", nil, "base")
+	tree, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add tree")
 	}
 
-	local, err := Commit(ctx, dag, "/", nil, "local", base)
+	base := data.NewCommit(tree.Cid(), "base")
+	baseId, err := data.AddCommit(ctx, dag, base)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	remote, err := Commit(ctx, dag, "/", nil, "remote", base)
+	local := data.NewCommit(tree.Cid(), "local", baseId)
+	localId, err := data.AddCommit(ctx, dag, local)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	merge, err := MergeBase(ctx, dag, local, remote)
+	remote := data.NewCommit(tree.Cid(), "remote", baseId)
+	remoteId, err := data.AddCommit(ctx, dag, remote)
+	if err != nil {
+		t.Fatalf("failed to add commit")
+	}
+
+	mergeId, err := MergeBase(ctx, dag, localId, remoteId)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
 
-	if merge != base {
+	if mergeId != baseId {
 		t.Errorf("unexpected merge base")
 	}
 }
@@ -45,27 +54,35 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(ctx, dag, "/", nil, "init")
+	tree, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add tree")
 	}
 
-	local, err := Commit(ctx, dag, "/", nil, "local", base)
+	base := data.NewCommit(tree.Cid(), "base")
+	baseId, err := data.AddCommit(ctx, dag, base)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	remote, err := Commit(ctx, dag, "/", nil, "remote", local)
+	local := data.NewCommit(tree.Cid(), "local", baseId)
+	localId, err := data.AddCommit(ctx, dag, local)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	merge, err := MergeBase(ctx, dag, local, remote)
+	remote := data.NewCommit(tree.Cid(), "remote", localId)
+	remoteId, err := data.AddCommit(ctx, dag, remote)
+	if err != nil {
+		t.Fatalf("failed to add commit")
+	}
+
+	mergeId, err := MergeBase(ctx, dag, localId, remoteId)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
 
-	if merge != local {
+	if mergeId != localId {
 		t.Errorf("unexpected merge base")
 	}
 }
@@ -76,27 +93,35 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	base, err := Commit(ctx, dag, "/", nil, "init")
+	tree, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add tree")
 	}
 
-	remote, err := Commit(ctx, dag, "/", nil, "remote", base)
+	base := data.NewCommit(tree.Cid(), "base")
+	baseId, err := data.AddCommit(ctx, dag, base)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	local, err := Commit(ctx, dag, "/", nil, "local", remote)
+	remote := data.NewCommit(tree.Cid(), "remote", baseId)
+	remoteId, err := data.AddCommit(ctx, dag, remote)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	merge, err := MergeBase(ctx, dag, local, remote)
+	local := data.NewCommit(tree.Cid(), "local", remoteId)
+	localId, err := data.AddCommit(ctx, dag, local)
+	if err != nil {
+		t.Fatalf("failed to add commit")
+	}
+
+	mergeId, err := MergeBase(ctx, dag, localId, remoteId)
 	if err != nil {
 		t.Fatalf("failed to get merge base")
 	}
 
-	if merge != remote {
+	if mergeId != remoteId {
 		t.Errorf("unexpected merge base")
 	}
 }
@@ -107,18 +132,29 @@ func TestMergeBaseUnrelated(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	local, err := Commit(ctx, dag, "/", nil, "local")
+	tree, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add tree")
 	}
 
-	remote, err := Commit(ctx, dag, "/", nil, "remote")
+	local := data.NewCommit(tree.Cid(), "local")
+	localId, err := data.AddCommit(ctx, dag, local)
 	if err != nil {
-		t.Fatalf("failed to create commit")
+		t.Fatalf("failed to add commit")
 	}
 
-	merge, err := MergeBase(ctx, dag, local, remote)
-	if merge.Defined() {
+	remote := data.NewCommit(tree.Cid(), "remote")
+	remoteId, err := data.AddCommit(ctx, dag, remote)
+	if err != nil {
+		t.Fatalf("failed to add commit")
+	}
+
+	mergeId, err := MergeBase(ctx, dag, localId, remoteId)
+	if err != nil {
+		t.Fatalf("failed to get merge base")
+	}
+
+	if mergeId.Defined() {
 		t.Errorf("uexpected merge base")
 	}
 }

@@ -11,12 +11,7 @@ import (
 
 // Diff returns a list of changes between the two commit trees.
 func Diff(ctx context.Context, dag ipld.DAGService, a, b cid.Cid) ([]*dagutils.Change, error) {
-	nodeA, err := dag.Get(ctx, a)
-	if err != nil {
-		return nil, err
-	}
-
-	commitA, err := data.CommitFromCBOR(nodeA.RawData())
+	commitA, err := data.GetCommit(ctx, dag, a)
 	if err != nil {
 		return nil, err
 	}
@@ -26,12 +21,7 @@ func Diff(ctx context.Context, dag ipld.DAGService, a, b cid.Cid) ([]*dagutils.C
 		return nil, err
 	}
 
-	nodeB, err := dag.Get(ctx, b)
-	if err != nil {
-		return nil, err
-	}
-
-	commitB, err := data.CommitFromCBOR(nodeB.RawData())
+	commitB, err := data.GetCommit(ctx, dag, b)
 	if err != nil {
 		return nil, err
 	}

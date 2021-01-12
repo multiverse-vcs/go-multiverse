@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/spf13/afero"
 )
 
@@ -14,21 +15,33 @@ func TestDiff(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	commit1, err := Commit(ctx, dag, "", nil, "1")
+	treeA, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to commit")
+		t.Fatalf("failed to add tree")
+	}
+
+	commitA := data.NewCommit(treeA.Cid(), "a")
+	idA, err := data.AddCommit(ctx, dag, commitA)
+	if err != nil {
+		t.Fatalf("failed to add commit")
 	}
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	commit2, err := Commit(ctx, dag, "", nil, "2")
+	treeB, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to commit")
+		t.Fatalf("failed to add tree")
 	}
 
-	changes, err := Diff(ctx, dag, commit1, commit2)
+	commitB := data.NewCommit(treeB.Cid(), "b")
+	idB, err := data.AddCommit(ctx, dag, commitB)
+	if err != nil {
+		t.Fatalf("failed to add commit")
+	}
+
+	changes, err := Diff(ctx, dag, idA, idB)
 	if err != nil {
 		t.Fatalf("failed to get diff")
 	}

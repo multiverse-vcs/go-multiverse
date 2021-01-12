@@ -38,7 +38,7 @@ func statusAction(c *cli.Context) error {
 
 	args := rpc.StatusArgs{
 		Root:   config.Root,
-		Head:   config.Branches[config.Branch],
+		Head:   config.Index,
 		Ignore: ignore,
 	}
 
@@ -47,15 +47,15 @@ func statusAction(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("Tracking changes on branch %s:\n", config.Branch)
-	fmt.Printf("  (all files are automatically considered for commit)\n")
-	fmt.Printf("  (to stop tracking files add rules to '%s')\n", IgnoreFile)
-
 	paths := make([]string, 0)
 	for path := range reply.Diffs {
 		paths = append(paths, path)
 	}
 	sort.Strings(paths)
+
+	fmt.Printf("Tracking changes on branch %s:\n", config.Branch)
+	fmt.Printf("  (all files are automatically considered for commit)\n")
+	fmt.Printf("  (to stop tracking files add rules to '%s')\n", IgnoreFile)
 
 	for _, p := range paths {
 		switch reply.Diffs[p] {

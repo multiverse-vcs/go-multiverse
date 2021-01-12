@@ -2,6 +2,7 @@ package view
 
 import (
 	"context"
+	"errors"
 	"html/template"
 	"net/http"
 	"regexp"
@@ -66,8 +67,15 @@ func (model repoModel) execute(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	branch := repo.DefaultBranch()
-	id := repo.Branches[branch]
+	branch := req.URL.Query().Get("branch")
+	if branch == "" {
+		branch = "default"
+	}
+
+	id, ok := repo.Branches[branch]
+	if !ok {
+		return errors.New("branch does not exist")
+	}
 
 	c, err := model.node.Get(ctx, id)
 	if err != nil {

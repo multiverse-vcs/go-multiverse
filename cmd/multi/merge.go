@@ -8,14 +8,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var pullCommand = &cli.Command{
-	Action:    pullAction,
-	Name:      "pull",
-	Usage:     "Merge changes",
+var mergeCommand = &cli.Command{
+	Action:    mergeAction,
+	Name:      "merge",
+	Usage:     "Merge commits",
 	ArgsUsage: "<cid>",
 }
 
-func pullAction(c *cli.Context) error {
+func mergeAction(c *cli.Context) error {
 	if c.NArg() < 1 {
 		cli.ShowSubcommandHelpAndExit(c, 1)
 	}
@@ -40,17 +40,19 @@ func pullAction(c *cli.Context) error {
 		return err
 	}
 
-	args := rpc.PullArgs{
-		Root: config.Root,
-		Head: config.Branches[config.Branch],
-		ID:   id,
+	args := rpc.MergeArgs{
+		Name:   config.Name,
+		Branch: config.Branch,
+		Root:   config.Root,
+		Index:  config.Index,
+		ID:     id,
 	}
 
-	var reply rpc.PullReply
-	if err = client.Call("Service.Pull", &args, &reply); err != nil {
+	var reply rpc.MergeReply
+	if err = client.Call("Service.Merge", &args, &reply); err != nil {
 		return err
 	}
 
-	config.Branches[config.Branch] = reply.ID
+	config.Index = reply.ID
 	return config.Save()
 }

@@ -11,19 +11,12 @@ import (
 
 // PutRepository stores the given repo.
 func (n *Node) PutRepository(ctx context.Context, repo *data.Repository) error {
-	node, err := repo.Node()
+	id, err := data.AddRepository(ctx, n, repo)
 	if err != nil {
 		return err
 	}
 
-	if err := n.Add(ctx, node); err != nil {
-		return err
-	}
-
-	key := datastore.NewKey(repo.Name)
-	val := node.Cid().Bytes()
-
-	return n.dstore.Put(key, val)
+	return n.dstore.Put(datastore.NewKey(repo.Name), id.Bytes())
 }
 
 // GetRepository returns the repo with the given name.
@@ -38,12 +31,7 @@ func (n *Node) GetRepository(ctx context.Context, name string) (*data.Repository
 		return nil, err
 	}
 
-	node, err := n.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.RepositoryFromCBOR(node.RawData())
+	return data.GetRepository(ctx, n, id)
 }
 
 // GetRepositoryOrDefault returns the repo with the given name or one with default settings.

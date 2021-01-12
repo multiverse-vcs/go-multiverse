@@ -27,7 +27,7 @@ func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node
 
 	changes, conflicts := dagutils.MergeDiffs(changesA, changesB)
 	for _, c := range conflicts {
-		change, err := mergeConflict(ctx, dag, c.A, c.B)
+		change, err := merge(ctx, dag, c.A, c.B)
 		if err != nil {
 			return nil, err
 		}
@@ -35,17 +35,12 @@ func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node
 		changes = append(changes, change)
 	}
 
-	node, err := dag.Get(ctx, o)
+	base, err := data.GetCommit(ctx, dag, o)
 	if err != nil {
 		return nil, err
 	}
 
-	commit, err := data.CommitFromCBOR(node.RawData())
-	if err != nil {
-		return nil, err
-	}
-
-	tree, err := dag.Get(ctx, commit.Tree)
+	tree, err := dag.Get(ctx, base.Tree)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +53,8 @@ func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node
 	return dagutils.ApplyChange(ctx, dag, proto, changes)
 }
 
-// mergeConflict combines the contents of two conflicting dag changes.
-func mergeConflict(ctx context.Context, dag ipld.DAGService, a, b *dagutils.Change) (*dagutils.Change, error) {
+// merge combines the contents of two conflicting dag changes.
+func merge(ctx context.Context, dag ipld.DAGService, a, b *dagutils.Change) (*dagutils.Change, error) {
 	if a.Type == dagutils.Remove {
 		return b, nil
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 
-	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
@@ -37,11 +36,6 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	var parents []cid.Cid
-	if head, ok := config.Branches[config.Branch]; ok {
-		parents = append(parents, head)
-	}
-
 	ignore, err := config.Ignore()
 	if err != nil {
 		return err
@@ -52,7 +46,7 @@ func commitAction(c *cli.Context) error {
 		Ignore:  ignore,
 		Name:    config.Name,
 		Branch:  config.Branch,
-		Parents: parents,
+		Parent:  config.Index,
 		Message: c.String("message"),
 	}
 
@@ -61,6 +55,6 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	config.Branches[config.Branch] = reply.ID
+	config.Index = reply.ID
 	return config.Save()
 }

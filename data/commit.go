@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -24,6 +25,30 @@ type Commit struct {
 	Metadata map[string]string `json:"metadata"`
 }
 
+// GetCommit returns the commit with the given CID.
+func GetCommit(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Commit, error) {
+	node, err := dag.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return CommitFromCBOR(node.RawData())
+}
+
+// AddCommit adds a commit to the given dag.
+func AddCommit(ctx context.Context, dag ipld.DAGService, commit *Commit) (cid.Cid, error) {
+	node, err := cbornode.WrapObject(commit, multihash.SHA2_256, -1)
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
+	if err := dag.Add(ctx, node); err != nil {
+		return cid.Cid{}, err
+	}
+
+	return node.Cid(), nil
+}
+
 // CommitFromJON decodes a commit from json.
 func CommitFromJSON(data []byte) (*Commit, error) {
 	var commit Commit
@@ -44,9 +69,15 @@ func CommitFromCBOR(data []byte) (*Commit, error) {
 	return &commit, nil
 }
 
-// Node returns an ipld node containing the commit.
-func (c *Commit) Node() (ipld.Node, error) {
-	return cbornode.WrapObject(&c, multihash.SHA2_256, -1)
+// NewCommit returns a new commit with default values.
+func NewCommit(tree cid.Cid, message string, parents ...cid.Cid) *Commit {
+	return &Commit{
+		Date:     time.Now(),
+		Message:  message,
+		Metadata: make(map[string]string),
+		Tree:     tree,
+		Parents:  parents,
+	}
 }
 
 // ParentLinks returns parent ipld links.

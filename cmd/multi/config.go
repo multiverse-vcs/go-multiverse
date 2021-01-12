@@ -31,18 +31,17 @@ type Config struct {
 	Name string `json:"name"`
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
-	// Branches is a map of branch heads.
-	Branches map[string]cid.Cid `json:"branches"`
+	// Index is the CID of the current commit.
+	Index cid.Cid `json:"index"`
 }
 
 // NewConfig returns a config with default settings.
 func NewConfig(root string, name string) *Config {
 	return &Config{
-		Name:     name,
-		Branch:   "default",
-		Branches: make(map[string]cid.Cid),
-		Path:     filepath.Join(root, ConfigFile),
-		Root:     root,
+		Name:   name,
+		Branch: "default",
+		Path:   filepath.Join(root, ConfigFile),
+		Root:   root,
 	}
 }
 
@@ -91,13 +90,7 @@ func (c *Config) Ignore() ([]string, error) {
 		return IgnoreRules, nil
 	}
 
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

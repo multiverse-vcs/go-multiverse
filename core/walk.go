@@ -32,12 +32,7 @@ func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map
 			return false
 		}
 
-		node, err := dag.Get(ctx, id)
-		if err != nil {
-			return false
-		}
-
-		commit, err := data.CommitFromCBOR(node.RawData())
+		commit, err := data.GetCommit(ctx, dag, id)
 		if err != nil {
 			return false
 		}

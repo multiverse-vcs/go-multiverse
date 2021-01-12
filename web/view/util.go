@@ -42,10 +42,8 @@ var funcs = template.FuncMap{
 // breadcrumbs returns a list of ascending urls.
 func breadcrumbs(url string) []string {
 	var crumbs []string
-
-	parts := strings.Split(strings.Trim(url, "/"), "/")
-	for i := range parts {
-		crumbs = append(crumbs, path.Join(parts[:i+1]...))
+	for p := url; p != "/"; p = path.Dir(p) {
+		crumbs = append([]string{p}, crumbs...)
 	}
 
 	return crumbs

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/spf13/afero"
 )
 
@@ -18,12 +19,19 @@ func TestWalk(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	idA, err := Commit(ctx, dag, "", nil, "first")
+	tree, err := Add(ctx, dag, "", nil)
+	if err != nil {
+		t.Fatalf("failed to add tree")
+	}
+
+	commitA := data.NewCommit(tree.Cid(), "first")
+	idA, err := data.AddCommit(ctx, dag, commitA)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}
 
-	idB, err := Commit(ctx, dag, "", nil, "second", idA)
+	commitB := data.NewCommit(tree.Cid(), "second", idA)
+	idB, err := data.AddCommit(ctx, dag, commitB)
 	if err != nil {
 		t.Fatalf("failed to commit")
 	}

@@ -17,7 +17,23 @@
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
               {{ range $k, $v := .Repo.Branches }}
-              <a href="#" class="dropdown-item">{{ $k }}</a>
+              <a href="?branch={{ $k }}" class="dropdown-item">
+                <span class="icon is-small">
+                  <i class="fas fa-code-branch" aria-hidden="true"></i>
+                </span>
+                {{ $k }}
+              </a>
+              {{ end }}
+              {{ if .Repo.Tags }}
+              <hr class="dropdown-divider">
+              {{ end }}
+              {{ range $k, $v := .Repo.Tags }}
+              <a href="?tag={{ $k }}" class="dropdown-item">
+                <span class="icon is-small">
+                  <i class="fas fa-tag" aria-hidden="true"></i>
+                </span>
+                {{ $k }}
+              </a>
               {{ end }}
             </div>
           </div>
@@ -27,7 +43,9 @@
         <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
           <ul>
             {{ range breadcrumbs .URL }}
-            <li><a href={{ join "/" . }}>{{ base . }}</a></li>
+            <li {{ if eq $.URL . }} class="is-active" {{ end }}>
+              <a href={{ . }}>{{ base . }}</a>
+            </li>
             {{ end }}
           </ul>
         </nav>
@@ -35,43 +53,43 @@
     </div>
   </nav>
   {{ if .IsDir }}
-    <div class="panel">
-      <div class="panel-heading">
-        <div class="level">
-          <div class="level-left">
-            <div class="level-item">
-              <span class="">{{ .Commit.Message }}</span>
-            </div>
+  <div class="panel">
+    <div class="panel-heading">
+      <div class="level">
+        <div class="level-left">
+          <div class="level-item">
+            <span class="">{{ .Commit.Message }}</span>
           </div>
-          <div class="level-right">
-            <div class="level-item">
-              <span class="">{{ timestamp .Commit.Date }}</span>
-            </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            <span class="">{{ timestamp .Commit.Date }}</span>
           </div>
         </div>
       </div>
-      {{ range .Tree }}
-      <div class="panel-block">
-        <span class="panel-icon">
-        {{ if .IsDir }}
-          <i class="fas fa-folder has-text-info" aria-hidden="true"></i>
-        {{ else }}
-          <i class="far fa-file" aria-hidden="true"></i>
-        {{ end }}
-        </span>
-        <a class="has-text-black" href={{ join "/" $.URL .Name }}>{{ .Name }}</a>
-      </div>
+    </div>
+    {{ range .Tree }}
+    <div class="panel-block">
+      <span class="panel-icon">
+      {{ if .IsDir }}
+        <i class="fas fa-folder has-text-info" aria-hidden="true"></i>
+      {{ else }}
+        <i class="far fa-file" aria-hidden="true"></i>
       {{ end }}
+      </span>
+      <a class="has-text-black" href={{ join "/" $.URL .Name }}>{{ .Name }}</a>
     </div>
+    {{ end }}
+  </div>
   {{ else }}
-    <div class="panel">
-      <p class="panel-heading">
-        Blob
-      </p>
-      <div class="panel-block">
-        {{ highlight .Path .Blob }}
-      </div>
+  <div class="panel">
+    <p class="panel-heading">
+      Blob
+    </p>
+    <div class="panel-block">
+      {{ highlight .Path .Blob }}
     </div>
+  </div>
   {{ end }}
   {{ if $readme := .Readme }}
   <div class="box">

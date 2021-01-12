@@ -8,26 +8,26 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var branchCommand = &cli.Command{
-	Action:    branchAction,
-	Name:      "branch",
-	Usage:     "List, create, or delete branches",
+var tagCommand = &cli.Command{
+	Action:    tagAction,
+	Name:      "tag",
+	Usage:     "List, create, or delete tags",
 	ArgsUsage: "<name>",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:    "delete",
 			Aliases: []string{"d"},
-			Usage:   "Delete branch",
+			Usage:   "Delete tag",
 		},
 		&cli.BoolFlag{
 			Name:    "create",
 			Aliases: []string{"c"},
-			Usage:   "Create branch",
+			Usage:   "Create tag",
 		},
 	},
 }
 
-func branchAction(c *cli.Context) error {
+func tagAction(c *cli.Context) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -43,34 +43,29 @@ func branchAction(c *cli.Context) error {
 		return err
 	}
 
-	args := rpc.BranchArgs{
-		Name:   config.Name,
-		Branch: c.Args().Get(0),
-		Head:   config.Index,
+	args := rpc.TagArgs{
+		Name: config.Name,
+		Tag:  c.Args().Get(0),
+		Head: config.Index,
 	}
 
 	var action string
 	switch {
 	case c.Bool("create"):
-		action = "Service.CreateBranch"
+		action = "Service.CreateTag"
 	case c.Bool("delete"):
-		action = "Service.DeleteBranch"
+		action = "Service.DeleteTag"
 	default:
-		action = "Service.ListBranches"
+		action = "Service.ListTags"
 	}
 
-	var reply rpc.BranchReply
+	var reply rpc.TagReply
 	if err = client.Call(action, &args, &reply); err != nil {
 		return err
 	}
 
-	for branch := range reply.Branches {
-		switch {
-		case branch == config.Branch:
-			fmt.Printf("* %s\n", branch)
-		default:
-			fmt.Println(branch)
-		}
+	for tag := range reply.Tags {
+		fmt.Println(tag)
 	}
 
 	return nil

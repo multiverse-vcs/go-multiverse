@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/spf13/afero"
 )
 
@@ -18,30 +19,48 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to write file")
 	}
 
-	base, err := Commit(ctx, dag, "", nil, "base")
+	treeO, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to commit")
+		t.Fatalf("failed to add tree")
+	}
+
+	commitO := data.NewCommit(treeO.Cid(), "o")
+	o, err := data.AddCommit(ctx, dag, commitO)
+	if err != nil {
+		t.Fatalf("failed to add commit")
 	}
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello\nfoo\n"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	local, err := Commit(ctx, dag, "", nil, "local", base)
+	treeA, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to commit")
+		t.Fatalf("failed to add tree")
+	}
+
+	commitA := data.NewCommit(treeA.Cid(), "a", o)
+	a, err := data.AddCommit(ctx, dag, commitA)
+	if err != nil {
+		t.Fatalf("failed to add commit")
 	}
 
 	if err := afero.WriteFile(fs, "README.md", []byte("hello\nbar\n"), 0644); err != nil {
 		t.Fatalf("failed to write file")
 	}
 
-	remote, err := Commit(ctx, dag, "", nil, "remote", base)
+	treeB, err := Add(ctx, dag, "", nil)
 	if err != nil {
-		t.Fatalf("failed to commit")
+		t.Fatalf("failed to add tree")
 	}
 
-	_, err = Merge(ctx, dag, base, local, remote)
+	commitB := data.NewCommit(treeB.Cid(), "b", o)
+	b, err := data.AddCommit(ctx, dag, commitB)
+	if err != nil {
+		t.Fatalf("failed to add commit")
+	}
+
+	_, err = Merge(ctx, dag, o, a, b)
 	if err != nil {
 		t.Fatalf("failed to merge %s", err)
 	}

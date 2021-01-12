@@ -6,6 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // CommitArgs contains the args.
@@ -20,8 +21,8 @@ type CommitArgs struct {
 	Ignore []string
 	// Message is the description of changes.
 	Message string
-	// Parents contains the parent CIDs.
-	Parents []cid.Cid
+	// Parent is the CID of the parent commit.
+	Parent cid.Cid
 }
 
 // CommitReply contains the reply.
@@ -47,9 +48,22 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		return err
 	}
 
-	// TODO verify that parent cids are valid
+	head, ok := repo.Branches[args.Branch]
+	if ok && args.Parent != head {
+		return errors.New("branch is ahead of parent")
+	}
 
-	id, err := core.Commit(ctx, s.node, args.Root, args.Ignore, args.Message, args.Parents...)
+	tree, err := core.Add(ctx, s.node, args.Root, args.Ignore)
+	if err != nil {
+		return err
+	}
+
+	commit := data.NewCommit(tree.Cid(), args.Message)
+	if args.Parent.Defined() {
+		commit.Parents = append(commit.Parents, args.Parent)
+	}
+
+	id, err := data.AddCommit(ctx, s.node, commit)
 	if err != nil {
 		return err
 	}

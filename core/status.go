@@ -14,26 +14,21 @@ import (
 func Status(ctx context.Context, dag ipld.DAGService, path string, filter Filter, id cid.Cid) ([]*dagutils.Change, error) {
 	mem := dagutils.NewMemoryDagService()
 
-	tree, err := Add(ctx, mem, path, filter)
+	worktree, err := Add(ctx, mem, path, filter)
 	if err != nil {
 		return nil, err
 	}
 
 	if !id.Defined() {
-		return dagutils.Diff(ctx, mem, &merkledag.ProtoNode{}, tree)
+		return dagutils.Diff(ctx, mem, &merkledag.ProtoNode{}, worktree)
 	}
 
-	node, err := dag.Get(ctx, id)
+	commit, err := data.GetCommit(ctx, dag, id)
 	if err != nil {
 		return nil, err
 	}
 
-	commit, err := data.CommitFromCBOR(node.RawData())
-	if err != nil {
-		return nil, err
-	}
-
-	nodeA, err := dag.Get(ctx, commit.Tree)
+	tree, err := dag.Get(ctx, commit.Tree)
 	if err != nil {
 		return nil, err
 	}
@@ -59,5 +54,5 @@ func Status(ctx context.Context, dag ipld.DAGService, path string, filter Filter
 		}
 	}
 
-	return dagutils.Diff(ctx, mem, nodeA, tree)
+	return dagutils.Diff(ctx, mem, tree, worktree)
 }

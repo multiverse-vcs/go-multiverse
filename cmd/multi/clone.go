@@ -22,6 +22,7 @@ var cloneCommand = &cli.Command{
 		&cli.StringFlag{
 			Name:    "branch",
 			Aliases: []string{"b"},
+			Value:   "default",
 			Usage:   "Branch name",
 		},
 		&cli.IntFlag{
@@ -68,6 +69,6 @@ func cloneAction(c *cli.Context) error {
 
 	config := NewConfig(reply.Root, reply.Name)
 	config.Branch = reply.Branch
-	config.Branches = reply.Branches
+	config.Index = reply.ID
 	return config.Save()
 }
