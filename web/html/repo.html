@@ -1,101 +1,79 @@
-{{ define "content" }}
-  <nav class="level">
-    <div class="level-left">
-      <div class="level-item">
-        <div class="dropdown is-hoverable">
-          <div class="dropdown-trigger">
-            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-              <span class="icon is-small">
-                <i class="fas fa-code-branch" aria-hidden="true"></i>
-              </span>
-              <strong>{{ .Branch }}</strong>
-              <span class="icon is-small">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button>
-          </div>
-          <div class="dropdown-menu" id="dropdown-menu" role="menu">
-            <div class="dropdown-content">
-              {{ range $k, $v := .Repo.Branches }}
-              <a href="?branch={{ $k }}" class="dropdown-item">
-                <span class="icon is-small">
-                  <i class="fas fa-code-branch" aria-hidden="true"></i>
-                </span>
-                {{ $k }}
-              </a>
-              {{ end }}
-              {{ if .Repo.Tags }}
-              <hr class="dropdown-divider">
-              {{ end }}
-              {{ range $k, $v := .Repo.Tags }}
-              <a href="?tag={{ $k }}" class="dropdown-item">
-                <span class="icon is-small">
-                  <i class="fas fa-tag" aria-hidden="true"></i>
-                </span>
-                {{ $k }}
-              </a>
-              {{ end }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="level-item">
-        <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
-          <ul>
-            {{ range breadcrumbs .URL }}
-            <li {{ if eq $.URL . }} class="is-active" {{ end }}>
-              <a href={{ . }}>{{ base . }}</a>
-            </li>
-            {{ end }}
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </nav>
-  {{ if .IsDir }}
-  <div class="panel">
-    <div class="panel-heading">
-      <div class="level">
-        <div class="level-left">
-          <div class="level-item">
-            <span class="">{{ .Commit.Message }}</span>
-          </div>
-        </div>
-        <div class="level-right">
-          <div class="level-item">
-            <span class="">{{ timestamp .Commit.Date }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    {{ range .Tree }}
-    <div class="panel-block">
-      <span class="panel-icon">
-      {{ if .IsDir }}
-        <i class="fas fa-folder has-text-info" aria-hidden="true"></i>
-      {{ else }}
-        <i class="far fa-file" aria-hidden="true"></i>
+{{ define "view" }}
+  <div class="tabs">
+    <ul>
+      <li class="is-active">
+        <a href="/{{ .Repo.Name }}">
+          <svg class="icon feather">
+            <use xlink:href="/static/feather-sprite.svg#code"/>
+          </svg>
+          Code
+        </a>
+      </li>
+      <li>
+        <a href="/{{ .Repo.Name }}/commits">
+          <svg class="icon feather">
+            <use xlink:href="/static/feather-sprite.svg#git-commit"/>
+          </svg>
+          Commits
+        </a>
+      </li>
+    </ul>
+  </div>
+  {{ template "subview" . }}
+{{ end }}
+
+{{ define "breadcrumbs" }}
+  <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+    <ul>
+      {{ $href := join "/" .Repo.Name }}
+      <li {{ if eq .URL $href }} class="is-active" {{ end }}>
+        <a href={{ $href }}>{{ .Repo.Name }}</a>
+      </li>
+      {{ range breadcrumbs (join "/" .Path) }}
+      {{ $href := join "/" $.Repo.Name "tree" . }}
+      <li {{ if eq $.URL $href }} class="is-active" {{ end }}>
+        <a href={{ $href }}>{{ base . }}</a>
+      </li>
       {{ end }}
-      </span>
-      <a class="has-text-black" href={{ join "/" $.URL .Name }}>{{ .Name }}</a>
+    </ul>
+  </nav>
+{{ end }}
+
+{{ define "branches" }}
+  <div class="dropdown is-hoverable">
+    <div class="dropdown-trigger">
+      <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+        <svg class="icon">
+          <use xlink:href="/static/feather-sprite.svg#git-branch"/>
+        </svg>
+        <span>{{ .Branch }}</span>
+        <svg class="icon">
+          <use xlink:href="/static/feather-sprite.svg#chevron-down"/>
+        </svg>
+      </button>
     </div>
-    {{ end }}
-  </div>
-  {{ else }}
-  <div class="panel">
-    <p class="panel-heading">
-      Blob
-    </p>
-    <div class="panel-block">
-      {{ highlight .Path .Blob }}
+    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+      <div class="dropdown-content">
+        {{ range $k, $v := .Repo.Branches }}
+        <a href="?branch={{ $k }}" class="dropdown-item">
+          <svg class="icon is-small">
+            <use xlink:href="/static/feather-sprite.svg#git-branch"/>
+          </svg>
+          {{ $k }}
+        </a>
+        {{ end }}
+        {{ if .Repo.Tags }}
+        <hr class="dropdown-divider">
+        {{ end }}
+        {{ range $k, $v := .Repo.Tags }}
+        <a href="?tag={{ $k }}" class="dropdown-item">
+          <svg class="icon is-small">
+            <use xlink:href="/static/feather-sprite.svg#tag"/>
+          </svg>
+          {{ $k }}
+        </a>
+        {{ end }}
+      </div>
     </div>
   </div>
-  {{ end }}
-  {{ if $readme := .Readme }}
-  <div class="box">
-    <div class="content">
-      {{ markdown $readme }}
-    </div>
-  </div>
-  {{ end }}
 {{ end }}

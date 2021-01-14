@@ -1,0 +1,38 @@
+{{ define "subview" }}
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        {{ template "branches" . }}
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-heading">
+      {{ template "breadcrumbs" . }}
+    </div>
+    {{ range .Tree }}
+    <div class="panel-block">
+      <span class="panel-icon">
+      {{ if .IsDir }}
+        <svg class="icon fill has-text-info is-small">
+          <use xlink:href="/static/feather-sprite.svg#folder"/>
+        </svg>
+      {{ else }}
+        <svg class="icon is-small">
+          <use xlink:href="/static/feather-sprite.svg#file"/>
+        </svg>
+      {{ end }}
+      </span>
+      {{ $href := join "/" $.Repo.Name "tree" $.Path .Name }}
+      <a class="has-text-black" href={{ $href }}>{{ .Name }}</a>
+    </div>
+    {{ end }}
+  </div>
+  {{ if $readme := .Readme }}
+  <div class="box">
+    <div class="content">
+      {{ markdown $readme }}
+    </div>
+  </div>
+  {{ end }}
+{{ end }}

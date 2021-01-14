@@ -18,6 +18,7 @@ import (
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-path"
 	"github.com/ipfs/go-path/resolver"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht"
@@ -45,12 +46,7 @@ type Node struct {
 var prefix = datastore.NewKey("multiverse")
 
 // Init initializes and returns a new node.
-func Init(ctx context.Context, dstore datastore.Batching) (*Node, error) {
-	key, err := p2p.GenerateKey()
-	if err != nil {
-		return nil, err
-	}
-
+func Init(ctx context.Context, dstore datastore.Batching, key crypto.PrivKey) (*Node, error) {
 	host, router, err := p2p.NewHost(ctx, key)
 	if err != nil {
 		return nil, err

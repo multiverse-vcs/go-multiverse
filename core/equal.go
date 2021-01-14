@@ -9,7 +9,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
-// Equal returns true if the worktree is equal to the commit tree.
+// Equal returns true if the worktree is equal to the tree of the commit.
 func Equal(ctx context.Context, dag ipld.DAGService, path string, filter Filter, id cid.Cid) (bool, error) {
 	mem := dagutils.NewMemoryDagService()
 

@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
@@ -11,35 +10,28 @@ import (
 )
 
 // WalkFun is called for each commit visited by walk.
-type WalkFun func(cid.Cid, *data.Commit) bool
+type WalkFun func(cid.Cid) bool
 
-// Walk traverses the commit history starting at the given id.
-func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map[string]*data.Commit, error) {
-	history := make(map[string]*data.Commit)
-
-	// perform a depth first traversal of parent commits
+// Walk performs a depth first traversal of parent commits starting at the given id.
+func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map[string]bool, error) {
 	getLinks := func(ctx context.Context, id cid.Cid) ([]*ipld.Link, error) {
-		commit, ok := history[id.KeyString()]
-		if !ok {
-			return nil, errors.New("commit not found")
+		commit, err := data.GetCommit(ctx, dag, id)
+		if err != nil {
+			return nil, err
 		}
 
 		return commit.ParentLinks(), nil
 	}
 
+	history := make(map[string]bool)
 	visit := func(id cid.Cid) bool {
-		if _, ok := history[id.KeyString()]; ok {
+		if history[id.KeyString()] {
 			return false
 		}
 
-		commit, err := data.GetCommit(ctx, dag, id)
-		if err != nil {
-			return false
-		}
-
-		history[id.KeyString()] = commit
+		history[id.KeyString()] = true
 		if cb != nil {
-			return cb(id, commit)
+			return cb(id)
 		}
 
 		return true

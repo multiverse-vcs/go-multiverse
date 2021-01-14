@@ -1,0 +1,17 @@
+{{ define "subview" }}
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        {{ template "branches" . }}
+      </div>
+    </div>
+  </div>
+	<div class="panel">
+    <div class="panel-heading">
+      {{ template "breadcrumbs" . }}
+    </div>
+    <div class="panel-block code">
+      {{ highlight .Path .Blob }}
+    </div>
+  </div>
+{{ end }}

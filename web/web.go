@@ -22,6 +22,15 @@ func ListenAndServe(node *node.Node) error {
 	router := httprouter.New()
 	router.Handler(http.MethodGet, "/", view.Home(node))
 	router.Handler(http.MethodGet, "/:repo", view.Repo(node))
-	router.Handler(http.MethodGet, "/:repo/*file", view.Repo(node))
-	return http.ListenAndServe(BindAddr, router)
+	router.Handler(http.MethodGet, "/:repo/tree/*file", view.Repo(node))
+	// router.Handler(http.MethodGet, "/:repo/commits", view.Repo(node))
+	// router.Handler(http.MethodGet, "/:repo/issues", view.Repo(node))
+
+	var static http.Handler
+	static = http.FileServer(http.Dir("web/static"))
+	static = http.StripPrefix("/static", static)
+
+	http.Handle("/", router)
+	http.Handle("/static/", static)
+	return http.ListenAndServe(BindAddr, nil)
 }

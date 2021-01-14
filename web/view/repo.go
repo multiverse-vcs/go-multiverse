@@ -15,13 +15,12 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/node"
 )
 
-//var repoView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html"))
+var repoBlobView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html", "web/html/repo/blob.html"))
+var repoTreeView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html", "web/html/repo/tree.html"))
 
 type repoModel struct {
 	Blob   string
 	Branch string
-	Commit *data.Commit
-	IsDir  bool
 	Path   string
 	Repo   *data.Repository
 	Tree   []*core.DirEntry
@@ -62,6 +61,9 @@ func (model repoModel) execute(w http.ResponseWriter, req *http.Request) error {
 	name := params.ByName("repo")
 	file := params.ByName("file")
 
+	model.Path = file
+	model.URL = req.URL.Path
+
 	repo, err := model.node.GetRepository(ctx, name)
 	if err != nil {
 		return err
@@ -72,60 +74,45 @@ func (model repoModel) execute(w http.ResponseWriter, req *http.Request) error {
 		branch = "default"
 	}
 
+	model.Repo = repo
+	model.Branch = branch
+
 	id, ok := repo.Branches[branch]
 	if !ok {
 		return errors.New("branch does not exist")
 	}
 
-	c, err := model.node.Get(ctx, id)
+	fpath, err := path.FromSegments("/ipfs/", id.String(), "tree", file)
 	if err != nil {
 		return err
 	}
 
-	commit, err := data.CommitFromCBOR(c.RawData())
+	node, err := model.node.ResolvePath(ctx, fpath)
 	if err != nil {
 		return err
 	}
 
-	p, err := path.FromSegments("/ipfs/", id.String(), "tree", file)
-	if err != nil {
-		return err
-	}
-
-	f, err := model.node.ResolvePath(ctx, p)
-	if err != nil {
-		return err
-	}
-
-	fsnode, err := unixfs.ExtractFSNode(f)
+	fsnode, err := unixfs.ExtractFSNode(node)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case fsnode.IsDir():
-		tree, err := core.Ls(ctx, model.node, f.Cid())
+		tree, err := core.Ls(ctx, model.node, node.Cid())
 		if err != nil {
 			return err
 		}
 
 		model.Tree = tree
+		return repoTreeView.Execute(w, &model)
 	default:
-		blob, err := core.Cat(ctx, model.node, f.Cid())
+		blob, err := core.Cat(ctx, model.node, node.Cid())
 		if err != nil {
 			return err
 		}
 
 		model.Blob = blob
+		return repoBlobView.Execute(w, &model)
 	}
-
-	model.Branch = branch
-	model.Commit = commit
-	model.IsDir = fsnode.IsDir()
-	model.Path = file
-	model.Repo = repo
-	model.URL = req.URL.Path
-
-	repoView := template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html"))
-	return repoView.Execute(w, &model)
 }

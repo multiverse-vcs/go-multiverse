@@ -45,11 +45,11 @@ func TestWalk(t *testing.T) {
 		t.Fatalf("cids do not match")
 	}
 
-	if _, ok := history[idA.KeyString()]; !ok {
+	if !history[idA.KeyString()] {
 		t.Errorf("cids do not match")
 	}
 
-	if _, ok := history[idB.KeyString()]; !ok {
+	if !history[idB.KeyString()] {
 		t.Errorf("cids do not match")
 	}
 }

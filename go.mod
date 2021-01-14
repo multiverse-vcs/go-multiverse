@@ -31,7 +31,6 @@ require (
 	github.com/nasdf/diff3 v0.0.1
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/polydawn/refmt v0.0.0-20190408063855-01bf1e26dd14
-	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94
 	github.com/spf13/afero v1.4.1
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/yuin/goldmark v1.3.1

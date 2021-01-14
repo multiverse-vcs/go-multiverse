@@ -60,7 +60,7 @@ func highlight(name, source string) (template.HTML, error) {
 		lexer = lexers.Fallback
 	}
 
-	style := styles.Get("monokailight")
+	style := styles.Get("monokai")
 	if style == nil {
 		style = styles.Fallback
 	}
