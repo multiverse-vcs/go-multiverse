@@ -1,118 +1,109 @@
 package view
 
 import (
-	"context"
 	"errors"
 	"html/template"
 	"net/http"
-	"regexp"
 
-	"github.com/ipfs/go-path"
-	"github.com/ipfs/go-unixfs"
 	"github.com/julienschmidt/httprouter"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/node"
+	repoView "github.com/multiverse-vcs/go-multiverse/web/view/repo"
 )
 
-var repoBlobView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html", "web/html/repo/blob.html"))
-var repoTreeView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html", "web/html/repo/tree.html"))
+var (
+	codeView    = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html", "web/html/repo/code.html"))
+	commitsView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/repo.html", "web/html/repo/commits.html"))
+)
 
-type repoModel struct {
-	Blob   string
-	Branch string
-	Path   string
-	Repo   *data.Repository
-	Tree   []*core.DirEntry
-	URL    string
-	node   *node.Node
+type repoController struct {
+	node *node.Node
 }
 
-// Repo returns the repo view route.
+type repoModel struct {
+	Branch string
+	Path   string
+	Page   string
+	Repo   *data.Repository
+	Ref    string
+	Tag    string
+	URL    string
+
+	Code    *repoView.CodeModel
+	Commits *repoView.CommitsModel
+}
+
+// Repo returns the code view.
 func Repo(node *node.Node) http.Handler {
-	model := &repoModel{
+	c := &repoController{
 		node: node,
 	}
 
-	return View(model.execute)
+	return View(c.ServeHTTP)
 }
 
-// Readme returns the contents of the readme if it exists.
-func (model repoModel) Readme() (string, error) {
-	for _, e := range model.Tree {
-		matched, err := regexp.MatchString(`(?i)^readme.*`, e.Name)
-		if err != nil {
-			return "", err
-		}
-
-		if matched {
-			return core.Cat(context.Background(), model.node, e.Cid)
-		}
-	}
-
-	return "", nil
-}
-
-// execute renders the template as the http response.
-func (model repoModel) execute(w http.ResponseWriter, req *http.Request) error {
+// ServeHTTP renders the template as the http response.
+func (c *repoController) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 	ctx := req.Context()
 	params := httprouter.ParamsFromContext(ctx)
 
-	name := params.ByName("repo")
+	name := params.ByName("name")
 	file := params.ByName("file")
 
-	model.Path = file
-	model.URL = req.URL.Path
+	ref := params.ByName("ref")
+	if ref == "" {
+		ref = "default"
+	}
 
-	repo, err := model.node.GetRepository(ctx, name)
+	page := params.ByName("page")
+	if page == "" {
+		page = "tree"
+	}
+
+	repo, err := c.node.GetRepository(ctx, name)
 	if err != nil {
 		return err
 	}
 
-	branch := req.URL.Query().Get("branch")
-	if branch == "" {
-		branch = "default"
-	}
-
-	model.Repo = repo
-	model.Branch = branch
-
-	id, ok := repo.Branches[branch]
-	if !ok {
-		return errors.New("branch does not exist")
-	}
-
-	fpath, err := path.FromSegments("/ipfs/", id.String(), "tree", file)
+	id, err := repo.Ref(ref)
 	if err != nil {
 		return err
 	}
 
-	node, err := model.node.ResolvePath(ctx, fpath)
-	if err != nil {
-		return err
+	model := repoModel{
+		Page: page,
+		Path: file,
+		Repo: repo,
+		Ref:  ref,
+		URL:  req.URL.Path,
 	}
 
-	fsnode, err := unixfs.ExtractFSNode(node)
-	if err != nil {
-		return err
+	if _, ok := repo.Branches[ref]; ok {
+		model.Branch = ref
 	}
 
-	switch {
-	case fsnode.IsDir():
-		tree, err := core.Ls(ctx, model.node, node.Cid())
+	if _, ok := repo.Tags[ref]; ok {
+		model.Tag = ref
+	}
+
+	switch page {
+	case "commits":
+		commits, err := repoView.Commits(ctx, c.node, id)
 		if err != nil {
 			return err
 		}
 
-		model.Tree = tree
-		return repoTreeView.Execute(w, &model)
-	default:
-		blob, err := core.Cat(ctx, model.node, node.Cid())
+		model.Commits = commits
+		return commitsView.Execute(w, &model)
+	case "tree":
+		code, err := repoView.Code(ctx, c.node, id, file)
 		if err != nil {
 			return err
 		}
 
-		model.Blob = blob
-		return repoBlobView.Execute(w, &model)
+		model.Code = code
+		return codeView.Execute(w, &model)
 	}
+
+	return errors.New("page not found")
 }

@@ -1,19 +1,19 @@
 {{ define "view" }}
   <div class="tabs">
     <ul>
-      <li class="is-active">
-        <a href="/{{ .Repo.Name }}">
-          <svg class="icon feather">
-            <use xlink:href="/static/feather-sprite.svg#code"/>
-          </svg>
+      <li {{ if eq .Page "tree" }} class="is-active" {{ end }}>
+        <a href={{ join "/" .Repo.Name "tree" .Ref }}>
+          <span class="icon">
+            <svg><use xlink:href="/static/feather-sprite.svg#code"/></svg>
+          </span>
           Code
         </a>
       </li>
-      <li>
-        <a href="/{{ .Repo.Name }}/commits">
-          <svg class="icon feather">
-            <use xlink:href="/static/feather-sprite.svg#git-commit"/>
-          </svg>
+      <li {{ if eq .Page "commits" }} class="is-active" {{ end }}>
+        <a href={{ join "/" .Repo.Name "commits" .Ref }}>
+          <span class="icon">
+            <svg><use xlink:href="/static/feather-sprite.svg#git-commit"/></svg>
+          </span>
           Commits
         </a>
       </li>
@@ -22,43 +22,38 @@
   {{ template "subview" . }}
 {{ end }}
 
-{{ define "breadcrumbs" }}
-  <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
-    <ul>
-      {{ $href := join "/" .Repo.Name }}
-      <li {{ if eq .URL $href }} class="is-active" {{ end }}>
-        <a href={{ $href }}>{{ .Repo.Name }}</a>
-      </li>
-      {{ range breadcrumbs (join "/" .Path) }}
-      {{ $href := join "/" $.Repo.Name "tree" . }}
-      <li {{ if eq $.URL $href }} class="is-active" {{ end }}>
-        <a href={{ $href }}>{{ base . }}</a>
-      </li>
-      {{ end }}
-    </ul>
-  </nav>
-{{ end }}
-
-{{ define "branches" }}
+{{ define "refs" }}
   <div class="dropdown is-hoverable">
     <div class="dropdown-trigger">
       <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-        <svg class="icon">
-          <use xlink:href="/static/feather-sprite.svg#git-branch"/>
-        </svg>
+        {{ if .Branch }}
+        <span class="icon is-small">
+          <svg><use xlink:href="/static/feather-sprite.svg#git-branch"/></svg>
+        </span>
         <span>{{ .Branch }}</span>
-        <svg class="icon">
-          <use xlink:href="/static/feather-sprite.svg#chevron-down"/>
-        </svg>
+        {{ else if .Tag }}
+        <span class="icon is-small">
+          <svg><use xlink:href="/static/feather-sprite.svg#tag"/></svg>
+        </span>
+        <span>{{ .Tag }}</span>
+        {{ else }}
+        <span class="icon is-small">
+          <svg><use xlink:href="/static/feather-sprite.svg#git-commit"/></svg>
+        </span>
+        <span>{{ .Ref | shortcid }}</span>
+        {{ end }}
+        <span class="icon is-small">
+          <svg><use xlink:href="/static/feather-sprite.svg#chevron-down"/></svg>
+        </span>
       </button>
     </div>
     <div class="dropdown-menu" id="dropdown-menu" role="menu">
       <div class="dropdown-content">
         {{ range $k, $v := .Repo.Branches }}
-        <a href="?branch={{ $k }}" class="dropdown-item">
-          <svg class="icon is-small">
-            <use xlink:href="/static/feather-sprite.svg#git-branch"/>
-          </svg>
+        <a href={{ join "/" $.Repo.Name $.Page $k $.Path }} class="dropdown-item">
+          <span class="icon is-small">
+            <svg><use xlink:href="/static/feather-sprite.svg#git-branch"/></svg>
+          </span>
           {{ $k }}
         </a>
         {{ end }}
@@ -66,10 +61,10 @@
         <hr class="dropdown-divider">
         {{ end }}
         {{ range $k, $v := .Repo.Tags }}
-        <a href="?tag={{ $k }}" class="dropdown-item">
-          <svg class="icon is-small">
-            <use xlink:href="/static/feather-sprite.svg#tag"/>
-          </svg>
+        <a href={{ join "/" $.Repo.Name $.Page $k $.Path }} class="dropdown-item">
+          <span class="icon is-small">
+            <svg><use xlink:href="/static/feather-sprite.svg#tag"/></svg>
+          </span>
           {{ $k }}
         </a>
         {{ end }}

@@ -77,3 +77,16 @@ func NewRepository(name string) *Repository {
 		Metadata: make(map[string]string),
 	}
 }
+
+// Ref returns the cid of the given ref.
+func (r *Repository) Ref(ref string) (cid.Cid, error) {
+	if id, ok := r.Branches[ref]; ok {
+		return id, nil
+	}
+
+	if id, ok := r.Tags[ref]; ok {
+		return id, nil
+	}
+
+	return cid.Parse(ref)
+}

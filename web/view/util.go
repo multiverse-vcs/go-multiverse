@@ -34,6 +34,9 @@ var funcs = template.FuncMap{
 	"timestamp": func(t time.Time) string {
 		return t.Format(time.RFC822)
 	},
+	"shortcid": func(c string) string {
+		return c[len(c)-10:]
+	},
 	"breadcrumbs": breadcrumbs,
 	"highlight":   highlight,
 	"markdown":    markdown,

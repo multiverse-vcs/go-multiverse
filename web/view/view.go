@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// View is an http route that renders a view.
+// View is an http handler that renders a view.
 type View func(http.ResponseWriter, *http.Request) error
 
 // ServeHTTP handles http requests to a route.

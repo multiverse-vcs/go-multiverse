@@ -10,27 +10,31 @@ import (
 
 var homeView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("web/html/index.html", "web/html/home.html"))
 
+type homeController struct {
+	node *node.Node
+}
+
 type homeModel struct {
 	List []*data.Repository
-	node *node.Node
 }
 
 // Home returns the home view route.
 func Home(node *node.Node) http.Handler {
-	model := &homeModel{
+	c := &homeController{
 		node: node,
 	}
 
-	return View(model.execute)
+	return View(c.ServeHTTP)
 }
 
-// execute renders the template as the http response.
-func (model homeModel) execute(w http.ResponseWriter, req *http.Request) error {
-	list, err := model.node.ListRepositories(req.Context())
+// ServeHTTP renders the template as the http response.
+func (c *homeController) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
+	ctx := req.Context()
+
+	list, err := c.node.ListRepositories(ctx)
 	if err != nil {
 		return err
 	}
 
-	model.List = list
-	return homeView.Execute(w, &model)
+	return homeView.Execute(w, &homeModel{list})
 }
