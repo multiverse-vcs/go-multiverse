@@ -1,11 +1,4 @@
 {{ define "subview" }}
-  <div class="level">
-    <div class="level-left">
-      <div class="level-item">
-        {{ template "refs" . }}
-      </div>
-    </div>
-  </div>
   {{ range $i, $c := .Commits.List }}
   <div class="box">
     <div class="is-pulled-right">

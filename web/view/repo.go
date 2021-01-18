@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/ipfs/go-cid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/node"
@@ -17,10 +18,12 @@ var (
 )
 
 type repoController struct {
-	node *node.Node
+	node  *node.Node
+	store *data.Store
 }
 
 type repoModel struct {
+	ID     cid.Cid
 	Branch string
 	Path   string
 	Page   string
@@ -34,9 +37,10 @@ type repoModel struct {
 }
 
 // Repo returns the code view.
-func Repo(node *node.Node) http.Handler {
+func Repo(node *node.Node, store *data.Store) http.Handler {
 	c := &repoController{
-		node: node,
+		node:  node,
+		store: store,
 	}
 
 	return View(c.ServeHTTP)
@@ -60,7 +64,12 @@ func (c *repoController) ServeHTTP(w http.ResponseWriter, req *http.Request) err
 		page = "tree"
 	}
 
-	repo, err := c.node.GetRepository(ctx, name)
+	rid, err := c.store.GetCid(name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, c.node, rid)
 	if err != nil {
 		return err
 	}
@@ -71,6 +80,7 @@ func (c *repoController) ServeHTTP(w http.ResponseWriter, req *http.Request) err
 	}
 
 	model := repoModel{
+		ID:   rid,
 		Page: page,
 		Path: file,
 		Repo: repo,

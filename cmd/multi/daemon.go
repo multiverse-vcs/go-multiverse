@@ -8,8 +8,9 @@ import (
 
 	"github.com/ipfs/go-ds-badger2"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/key"
 	"github.com/multiverse-vcs/go-multiverse/node"
-	"github.com/multiverse-vcs/go-multiverse/p2p"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/multiverse-vcs/go-multiverse/web"
 	"github.com/urfave/cli/v2"
@@ -36,17 +37,24 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	path := filepath.Join(home, ".multiverse", "datastore")
-	if err := os.MkdirAll(path, 0755); err != nil {
+	root := filepath.Join(home, ".multiverse")
+	if err := os.MkdirAll(root, 0755); err != nil {
 		return err
 	}
 
-	dstore, err := badger.NewDatastore(path, &badger.DefaultOptions)
+	dpath := filepath.Join(root, "datastore")
+	dstore, err := badger.NewDatastore(dpath, &badger.DefaultOptions)
 	if err != nil {
 		return err
 	}
 
-	key, err := p2p.GenerateKey()
+	kpath := filepath.Join(root, "keystore")
+	kstore, err := key.NewKeystore(kpath)
+	if err != nil {
+		return err
+	}
+
+	key, err := kstore.DefaultKey()
 	if err != nil {
 		return err
 	}
@@ -61,12 +69,14 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	go web.ListenAndServe(node)
-	go rpc.ListenAndServe(node)
+	store := data.NewStore(dstore)
+
+	go web.ListenAndServe(node, store)
+	go rpc.ListenAndServe(node, store)
 
 	fmt.Printf(daemonBanner)
 	fmt.Printf("Peer ID:    %s\n", peerID.Pretty())
-	fmt.Printf("Web Server: %s\n", web.BindAddr)
+	fmt.Printf("Web URL: %s\n", web.BindAddr)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)

@@ -44,7 +44,12 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	rid, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, rid)
 	if err != nil {
 		return err
 	}
@@ -73,17 +78,22 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	}
 
 	commit := data.NewCommit(merge.Cid(), "merge", head, args.ID)
-
 	id, err := data.AddCommit(ctx, s.node, commit)
 	if err != nil {
 		return err
 	}
 
 	repo.Branches[args.Branch] = id
-	if err := s.node.PutRepository(ctx, repo); err != nil {
+	reply.ID = id
+
+	rid, err = data.AddRepository(ctx, s.node, repo)
+	if err != nil {
 		return err
 	}
 
-	reply.ID = id
+	if err := s.store.PutCid(repo.Name, rid); err != nil {
+		return err
+	}
+
 	return core.Write(ctx, s.node, args.Root, merge)
 }

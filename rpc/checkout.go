@@ -41,7 +41,12 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}

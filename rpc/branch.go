@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/ipfs/go-cid"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // BranchArgs contains the args.
@@ -26,7 +27,12 @@ type BranchReply struct {
 func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -39,7 +45,12 @@ func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -54,14 +65,25 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 
 	repo.Branches[args.Branch] = args.Head
 	reply.Branches = repo.Branches
-	return s.node.PutRepository(ctx, repo)
+
+	id, err = data.AddRepository(ctx, s.node, repo)
+	if err != nil {
+		return err
+	}
+
+	return s.store.PutCid(repo.Name, id)
 }
 
 // DeleteBranch deletes an existing branch.
 func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -76,5 +98,11 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 
 	delete(repo.Branches, args.Branch)
 	reply.Branches = repo.Branches
-	return s.node.PutRepository(ctx, repo)
+
+	id, err = data.AddRepository(ctx, s.node, repo)
+	if err != nil {
+		return err
+	}
+
+	return s.store.PutCid(repo.Name, id)
 }

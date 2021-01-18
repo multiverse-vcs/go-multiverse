@@ -9,7 +9,6 @@ import (
 	bsnet "github.com/ipfs/go-bitswap/network"
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-datastore/namespace"
 	"github.com/ipfs/go-ipfs-blockstore"
 	"github.com/ipfs/go-ipfs-provider"
 	"github.com/ipfs/go-ipfs-provider/queue"
@@ -41,9 +40,6 @@ type Node struct {
 	router routing.Routing
 	system provider.System
 }
-
-// prefix is the datastore key prefix.
-var prefix = datastore.NewKey("multiverse")
 
 // Init initializes and returns a new node.
 func Init(ctx context.Context, dstore datastore.Batching, key crypto.PrivKey) (*Node, error) {
@@ -81,7 +77,7 @@ func Init(ctx context.Context, dstore datastore.Batching, key crypto.PrivKey) (*
 		DAGService: merkledag.NewDAGService(bserv),
 		host:       host,
 		bstore:     bstore,
-		dstore:     namespace.Wrap(dstore, prefix),
+		dstore:     dstore,
 		router:     router,
 		system:     system,
 	}, nil

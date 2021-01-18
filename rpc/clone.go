@@ -42,7 +42,12 @@ type CloneReply struct {
 func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	ctx := context.Background()
 
-	repo, err := data.GetRepository(ctx, s.node, args.ID)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}

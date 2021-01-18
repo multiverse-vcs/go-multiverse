@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/ipfs/go-cid"
+	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 // TagArgs contains the args.
@@ -26,7 +27,12 @@ type TagReply struct {
 func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -39,7 +45,12 @@ func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -54,14 +65,25 @@ func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 
 	repo.Tags[args.Tag] = args.Head
 	reply.Tags = repo.Tags
-	return s.node.PutRepository(ctx, repo)
+
+	id, err = data.AddRepository(ctx, s.node, repo)
+	if err != nil {
+		return err
+	}
+
+	return s.store.PutCid(repo.Name, id)
 }
 
 // DeleteTag deletes an existing tag.
 func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 
-	repo, err := s.node.GetRepository(ctx, args.Name)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -76,5 +98,11 @@ func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 
 	delete(repo.Tags, args.Tag)
 	reply.Tags = repo.Tags
-	return s.node.PutRepository(ctx, repo)
+
+	id, err = data.AddRepository(ctx, s.node, repo)
+	if err != nil {
+		return err
+	}
+
+	return s.store.PutCid(repo.Name, id)
 }

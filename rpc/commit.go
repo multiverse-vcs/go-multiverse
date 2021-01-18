@@ -43,7 +43,12 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		return errors.New("branch cannot be empty")
 	}
 
-	repo, err := s.node.GetRepositoryOrDefault(ctx, args.Name)
+	rid, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.node, rid)
 	if err != nil {
 		return err
 	}
@@ -71,5 +76,10 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	reply.ID = id
 	repo.Branches[args.Branch] = id
 
-	return s.node.PutRepository(ctx, repo)
+	rid, err = data.AddRepository(ctx, s.node, repo)
+	if err != nil {
+		return err
+	}
+
+	return s.store.PutCid(repo.Name, rid)
 }
