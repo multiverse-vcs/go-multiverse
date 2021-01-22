@@ -15,21 +15,21 @@ var cloneCommand = &cli.Command{
 	ArgsUsage: "<cid>",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:    "name",
-			Aliases: []string{"n"},
+			Name:    "dir",
+			Aliases: []string{"d"},
 			Usage:   "Directory name",
 		},
 		&cli.StringFlag{
 			Name:    "branch",
 			Aliases: []string{"b"},
-			Value:   "default",
 			Usage:   "Branch name",
+			Value:   "default",
 		},
 		&cli.IntFlag{
 			Name:    "limit",
 			Aliases: []string{"l"},
-			Value:   -1,
 			Usage:   "Fetch limit",
+			Value:   -1,
 		},
 	},
 }
@@ -56,9 +56,9 @@ func cloneAction(c *cli.Context) error {
 
 	args := rpc.CloneArgs{
 		Cwd:    cwd,
-		ID:     id,
+		Dir:    c.String("dir"),
+		Repo:   id,
 		Limit:  c.Int("limit"),
-		Name:   c.String("name"),
 		Branch: c.String("branch"),
 	}
 
@@ -67,8 +67,9 @@ func cloneAction(c *cli.Context) error {
 		return err
 	}
 
-	config := NewConfig(reply.Root, reply.Name)
-	config.Branch = reply.Branch
+	config := NewConfig(reply.Root)
+	config.Branch = c.String("branch")
 	config.Index = reply.ID
+	config.Repo = id
 	return config.Save()
 }

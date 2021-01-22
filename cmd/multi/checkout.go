@@ -41,7 +41,7 @@ func checkoutAction(c *cli.Context) error {
 	}
 
 	args := rpc.CheckoutArgs{
-		Name:   config.Name,
+		Repo:   config.Repo,
 		Branch: config.Branch,
 		Root:   config.Root,
 		Index:  config.Index,

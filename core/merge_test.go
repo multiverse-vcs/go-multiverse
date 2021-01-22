@@ -6,20 +6,14 @@ import (
 
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 func TestMergeConflicts(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(fs, "README.md", []byte("hello\n"), 0644); err != nil {
-		t.Fatalf("failed to write file")
-	}
-
-	treeO, err := Add(ctx, dag, "", nil)
+	treeO, err := unixfs.Add(ctx, dag, "testdata/2", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -30,11 +24,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to add commit")
 	}
 
-	if err := afero.WriteFile(fs, "README.md", []byte("hello\nfoo\n"), 0644); err != nil {
-		t.Fatalf("failed to write file")
-	}
-
-	treeA, err := Add(ctx, dag, "", nil)
+	treeA, err := unixfs.Add(ctx, dag, "testdata/3", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -45,11 +35,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatalf("failed to add commit")
 	}
 
-	if err := afero.WriteFile(fs, "README.md", []byte("hello\nbar\n"), 0644); err != nil {
-		t.Fatalf("failed to write file")
-	}
-
-	treeB, err := Add(ctx, dag, "", nil)
+	treeB, err := unixfs.Add(ctx, dag, "testdata/4", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -62,6 +48,6 @@ func TestMergeConflicts(t *testing.T) {
 
 	_, err = Merge(ctx, dag, o, a, b)
 	if err != nil {
-		t.Fatalf("failed to merge %s", err)
+		t.Fatalf("failed to merge")
 	}
 }

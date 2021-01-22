@@ -6,16 +6,14 @@ import (
 
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 func TestDiff(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	treeA, err := Add(ctx, dag, "", nil)
+	treeA, err := unixfs.Add(ctx, dag, "testdata/1", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -26,11 +24,7 @@ func TestDiff(t *testing.T) {
 		t.Fatalf("failed to add commit")
 	}
 
-	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
-		t.Fatalf("failed to write file")
-	}
-
-	treeB, err := Add(ctx, dag, "", nil)
+	treeB, err := unixfs.Add(ctx, dag, "testdata/2", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -50,7 +44,7 @@ func TestDiff(t *testing.T) {
 		t.Fatalf("unexpected changes")
 	}
 
-	if changes[0].Path != "README.md" {
+	if changes[0].Path != "README.txt" {
 		t.Fatalf("unexpected change path")
 	}
 

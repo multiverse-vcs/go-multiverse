@@ -8,13 +8,14 @@ import (
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 // Status returns a list of changes between the worktree and commit with the given id.
-func Status(ctx context.Context, dag ipld.DAGService, path string, filter Filter, id cid.Cid) ([]*dagutils.Change, error) {
+func Status(ctx context.Context, dag ipld.DAGService, path string, ignore unixfs.Ignore, id cid.Cid) ([]*dagutils.Change, error) {
 	mem := dagutils.NewMemoryDagService()
 
-	worktree, err := Add(ctx, mem, path, filter)
+	worktree, err := unixfs.Add(ctx, mem, path, ignore)
 	if err != nil {
 		return nil, err
 	}

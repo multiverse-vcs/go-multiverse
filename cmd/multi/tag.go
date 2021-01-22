@@ -44,7 +44,7 @@ func tagAction(c *cli.Context) error {
 	}
 
 	args := rpc.TagArgs{
-		Name: config.Name,
+		Repo: config.Repo,
 		Tag:  c.Args().Get(0),
 		Head: config.Index,
 	}
@@ -68,5 +68,6 @@ func tagAction(c *cli.Context) error {
 		fmt.Println(tag)
 	}
 
-	return nil
+	config.Repo = reply.Repo
+	return config.Save()
 }

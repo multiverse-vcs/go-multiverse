@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,6 +29,21 @@ func initAction(c *cli.Context) error {
 		return errors.New("repo already exists")
 	}
 
-	config := NewConfig(cwd, c.Args().Get(0))
+	client, err := rpc.NewClient()
+	if err != nil {
+		return err
+	}
+
+	args := rpc.InitArgs{
+		Name: c.Args().Get(0),
+	}
+
+	var reply rpc.InitReply
+	if err = client.Call("Service.Init", &args, &reply); err != nil {
+		return err
+	}
+
+	config := NewConfig(cwd)
+	config.Repo = reply.Repo
 	return config.Save()
 }

@@ -5,13 +5,17 @@ import (
 	"encoding/json"
 
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-ipfs-pinner"
 	"github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multihash"
 )
 
 // Repository contains all versions of a project.
 type Repository struct {
+	// Author is the peer id of the author.
+	Author peer.ID `json:"author"`
 	// Name is the human friendly name of the repo.
 	Name string `json:"name"`
 	// Description describes the project.
@@ -42,6 +46,20 @@ func AddRepository(ctx context.Context, dag ipld.DAGService, repo *Repository) (
 	}
 
 	if err := dag.Add(ctx, node); err != nil {
+		return cid.Cid{}, err
+	}
+
+	return node.Cid(), nil
+}
+
+// PinRepository pins a repo using the given pinner.
+func PinRepository(ctx context.Context, pinner pin.Pinner, repo *Repository) (cid.Cid, error) {
+	node, err := cbornode.WrapObject(repo, multihash.SHA2_256, -1)
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
+	if err := pinner.Pin(ctx, node, true); err != nil {
 		return cid.Cid{}, err
 	}
 

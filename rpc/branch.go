@@ -10,16 +10,19 @@ import (
 
 // BranchArgs contains the args.
 type BranchArgs struct {
-	// Name is the repo name.
-	Name string
+	// Repo is the CID of the repo.
+	Repo cid.Cid
 	// Branch is the name of the branch.
 	Branch string
-	// Head is the CID of the repo head.
+	// Head is the CID of the branch head.
 	Head cid.Cid
 }
 
 // BranchReply contains the reply.
 type BranchReply struct {
+	// Repo is the CID of the repo.
+	Repo cid.Cid
+	// Branches is the map of repo branch heads.
 	Branches map[string]cid.Cid
 }
 
@@ -27,16 +30,12 @@ type BranchReply struct {
 func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
-	if err != nil {
-		return err
-	}
-
+	reply.Repo = args.Repo
 	reply.Branches = repo.Branches
 	return nil
 }
@@ -45,12 +44,7 @@ func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -64,26 +58,23 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	}
 
 	repo.Branches[args.Branch] = args.Head
-	reply.Branches = repo.Branches
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err := data.PinRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	s.client.Unpin(ctx, args.Repo, true)
 
-	return s.store.PutCid(repo.Name, id)
+	reply.Repo = id
+	reply.Branches = repo.Branches
+	return nil
 }
 
 // DeleteBranch deletes an existing branch.
 func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -97,12 +88,14 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	}
 
 	delete(repo.Branches, args.Branch)
-	reply.Branches = repo.Branches
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err := data.PinRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	s.client.Unpin(ctx, args.Repo, true)
 
-	return s.store.PutCid(repo.Name, id)
+	reply.Repo = id
+	reply.Branches = repo.Branches
+	return nil
 }

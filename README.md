@@ -10,7 +10,7 @@ An open source decentralized version control system for peer-to-peer software de
 
 ### Install
 
-Go 1.14 or higher is required.
+Go 1.16 or higher is required.
 
 ```bash
 $ git clone https://github.com/multiverse-vcs/go-multiverse.git

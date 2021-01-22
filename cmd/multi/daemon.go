@@ -7,10 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/ipfs/go-ds-badger2"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/key"
-	"github.com/multiverse-vcs/go-multiverse/node"
+	"github.com/multiverse-vcs/go-multiverse/peer"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/multiverse-vcs/go-multiverse/web"
 	"github.com/urfave/cli/v2"
@@ -59,23 +57,21 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	peerID, err := peer.IDFromPrivateKey(key)
+	client, err := peer.New(c.Context, dstore, key)
 	if err != nil {
 		return err
 	}
 
-	node, err := node.Init(c.Context, dstore, key)
+	peerId, err := client.PeerID()
 	if err != nil {
 		return err
 	}
 
-	store := data.NewStore(dstore)
-
-	go web.ListenAndServe(node, store)
-	go rpc.ListenAndServe(node, store)
+	go web.ListenAndServe(client)
+	go rpc.ListenAndServe(client)
 
 	fmt.Printf(daemonBanner)
-	fmt.Printf("Peer ID:    %s\n", peerID.Pretty())
+	fmt.Printf("Peer ID: %s\n", peerId.Pretty())
 	fmt.Printf("Web URL: %s\n", web.BindAddr)
 
 	quit := make(chan os.Signal, 1)

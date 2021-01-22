@@ -7,12 +7,13 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 // MergeArgs contains the args.
 type MergeArgs struct {
-	// Name is the name of the repo.
-	Name string
+	// Repo is the CID of the repo.
+	Repo cid.Cid
 	// Branch is the name of the repo branch.
 	Branch string
 	// Root is the repo root path.
@@ -27,15 +28,17 @@ type MergeArgs struct {
 
 // MergeReply contains the reply.
 type MergeReply struct {
-	// ID is the CID of the merged commits.
-	ID cid.Cid
+	// Repo is the CID of the repo.
+	Repo cid.Cid
+	// Index is the CID of the merged commits.
+	Index cid.Cid
 }
 
 // Merge merges changes into the repo head.
 func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	ctx := context.Background()
 
-	equal, err := core.Equal(ctx, s.node, args.Root, args.Ignore, args.Index)
+	equal, err := core.Equal(ctx, s.client, args.Root, args.Ignore, args.Index)
 	if err != nil {
 		return err
 	}
@@ -44,12 +47,7 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	rid, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, rid)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -63,7 +61,7 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("index is behind branch head")
 	}
 
-	base, err := core.MergeBase(ctx, s.node, head, args.ID)
+	base, err := core.MergeBase(ctx, s.client, head, args.ID)
 	if err != nil {
 		return err
 	}
@@ -72,28 +70,26 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("local is ahead of remote")
 	}
 
-	merge, err := core.Merge(ctx, s.node, head, base, args.ID)
+	merge, err := core.Merge(ctx, s.client, head, base, args.ID)
 	if err != nil {
 		return err
 	}
 
 	commit := data.NewCommit(merge.Cid(), "merge", head, args.ID)
-	id, err := data.AddCommit(ctx, s.node, commit)
+	index, err := data.AddCommit(ctx, s.client, commit)
 	if err != nil {
 		return err
 	}
 
-	repo.Branches[args.Branch] = id
-	reply.ID = id
+	repo.Branches[args.Branch] = index
 
-	rid, err = data.AddRepository(ctx, s.node, repo)
+	id, err := data.PinRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	s.client.Unpin(ctx, args.Repo, true)
 
-	if err := s.store.PutCid(repo.Name, rid); err != nil {
-		return err
-	}
-
-	return core.Write(ctx, s.node, args.Root, merge)
+	reply.Repo = id
+	reply.Index = index
+	return unixfs.Write(ctx, s.client, args.Root, merge)
 }

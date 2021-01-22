@@ -7,14 +7,15 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 // CheckoutArgs contains the args.
 type CheckoutArgs struct {
+	// Repo is the CID of the repo.
+	Repo cid.Cid
 	// Root is the repo root path.
 	Root string
-	// Name is the name of the repo.
-	Name string
 	// Branch is the name of the repo branch.
 	Branch string
 	// Index is the CID of the current commit.
@@ -32,7 +33,7 @@ type CheckoutReply struct{}
 func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 	ctx := context.Background()
 
-	equal, err := core.Equal(ctx, s.node, args.Root, args.Ignore, args.Index)
+	equal, err := core.Equal(ctx, s.client, args.Root, args.Ignore, args.Index)
 	if err != nil {
 		return err
 	}
@@ -41,12 +42,7 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -56,7 +52,7 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("branch does not exist")
 	}
 
-	child, err := core.IsAncestor(ctx, s.node, head, args.ID)
+	child, err := core.IsAncestor(ctx, s.client, head, args.ID)
 	if err != nil {
 		return err
 	}
@@ -65,15 +61,15 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("commit is not in branch")
 	}
 
-	commit, err := data.GetCommit(ctx, s.node, args.ID)
+	commit, err := data.GetCommit(ctx, s.client, args.ID)
 	if err != nil {
 		return err
 	}
 
-	tree, err := s.node.Get(ctx, commit.Tree)
+	tree, err := s.client.Get(ctx, commit.Tree)
 	if err != nil {
 		return err
 	}
 
-	return core.Write(ctx, s.node, args.Root, tree)
+	return unixfs.Write(ctx, s.client, args.Root, tree)
 }

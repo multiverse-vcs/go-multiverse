@@ -1,0 +1,122 @@
+{{ define "page" }}
+  <div class="tabs">
+    <ul>
+      <li {{ if or (eq .Page "tree") (eq .Page "blob") }} class="is-active" {{ end }}>
+        <a href={{ join "/" .ID.String .Ref "tree" }}>
+          <span class="icon">
+            <svg><use xlink:href="/static/feather-sprite.svg#code"/></svg>
+          </span>
+          Code
+        </a>
+      </li>
+      <li {{ if eq .Page "commits" }} class="is-active" {{ end }}>
+        <a href={{ join "/" .ID.String .Ref "commits" }}>
+          <span class="icon">
+            <svg><use xlink:href="/static/feather-sprite.svg#git-commit"/></svg>
+          </span>
+          Commits
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="level is-mobile">
+    <div class="level-left">
+      <div class="level-item">
+        <div class="dropdown is-hoverable">
+          <div class="dropdown-trigger">
+            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+              {{ if .Branch }}
+              <span class="icon is-small">
+                <svg><use xlink:href="/static/feather-sprite.svg#git-branch"/></svg>
+              </span>
+              <span class="mx-2">{{ .Branch }}</span>
+              {{ else if .Tag }}
+              <span class="icon is-small">
+                <svg><use xlink:href="/static/feather-sprite.svg#tag"/></svg>
+              </span>
+              <span class="mx-2">{{ .Tag }}</span>
+              {{ else }}
+              <span class="icon is-small">
+                <svg><use xlink:href="/static/feather-sprite.svg#git-commit"/></svg>
+              </span>
+              <span class="mx-2">{{ .Ref | shortcid }}</span>
+              {{ end }}
+              <span class="icon is-small">
+                <svg><use xlink:href="/static/feather-sprite.svg#chevron-down"/></svg>
+              </span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content">
+              {{ range $k, $v := .Repo.Branches }}
+              <a href={{ join "/" $.ID.String $k $.Page $.Path }} class="dropdown-item">
+                <span class="icon is-small">
+                  <svg><use xlink:href="/static/feather-sprite.svg#git-branch"/></svg>
+                </span>
+                <span class="mx-2">{{ $k }}</span>
+              </a>
+              {{ end }}
+              {{ if .Repo.Tags }}
+              <hr class="dropdown-divider">
+              {{ end }}
+              {{ range $k, $v := .Repo.Tags }}
+              <a href={{ join "/" $.ID.String $k $.Page $.Path }} class="dropdown-item">
+                <span class="icon is-small">
+                  <svg><use xlink:href="/static/feather-sprite.svg#tag"/></svg>
+                </span>
+                <span class="mx-2">{{ $k }}</span>
+              </a>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="level-right">
+      <div class="level-item">
+        <div class="dropdown is-right is-hoverable">
+          <div class="dropdown-trigger">
+            <button class="button is-primary" aria-haspopup="true" aria-controls="dropdown-menu">
+              <span class="icon is-small">
+                <svg><use xlink:href="/static/feather-sprite.svg#download"/></svg>
+              </span>
+              <span class="mx-2">Code</span>
+              <span class="icon is-small">
+                <svg><use xlink:href="/static/feather-sprite.svg#chevron-down"/></svg>
+              </span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content">
+              <div class="dropdown-item">
+                <div class="is-flex is-align-items-center">
+                  <span class="icon is-small">
+                    <svg><use xlink:href="/static/feather-sprite.svg#terminal"/></svg>
+                  </span>
+                  <span class="ml-4 is-family-code">
+                    multi clone
+                  </span>
+                </div>
+              </div>
+              <div class="dropdown-item">
+                <div class="field has-addons">
+                  <div class="control">
+                    <input class="input is-small is-family-monospace" type="text" value={{ .ID.String }} readonly>
+                  </div>
+                  <div class="control">
+                    <button class="button is-small" data-copy-text={{ .ID.String }}>
+                      <span class="icon is-small">
+                        <svg><use xlink:href="/static/feather-sprite.svg#clipboard"/></svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{ template "partial" . }}
+{{ end }}

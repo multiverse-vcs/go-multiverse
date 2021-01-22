@@ -7,20 +7,14 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 func TestStatusRemove(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
-		t.Fatalf("failed to write file")
-	}
-
-	tree, err := Add(ctx, dag, "", nil)
+	tree, err := unixfs.Add(ctx, dag, "testdata/2", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -31,11 +25,7 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("failed to commit")
 	}
 
-	if err := fs.Remove("README.md"); err != nil {
-		t.Fatalf("failed to remove readme file")
-	}
-
-	changes, err := Status(ctx, dag, "/", nil, id)
+	changes, err := Status(ctx, dag, "testdata/1", nil, id)
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}
@@ -44,7 +34,7 @@ func TestStatusRemove(t *testing.T) {
 		t.Fatalf("unexpected changes")
 	}
 
-	if changes[0].Path != "README.md" {
+	if changes[0].Path != "README.txt" {
 		t.Fatalf("unexpected change path")
 	}
 
@@ -54,16 +44,10 @@ func TestStatusRemove(t *testing.T) {
 }
 
 func TestStatusBare(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	if err := afero.WriteFile(fs, "README.md", []byte("hello"), 0644); err != nil {
-		t.Fatalf("failed to write file")
-	}
-
-	changes, err := Status(ctx, dag, "", nil, cid.Cid{})
+	changes, err := Status(ctx, dag, "testdata/2", nil, cid.Cid{})
 	if err != nil {
 		t.Fatalf("failed to get status")
 	}
@@ -72,7 +56,7 @@ func TestStatusBare(t *testing.T) {
 		t.Fatalf("unexpected changes")
 	}
 
-	if changes[0].Path != "README.md" {
+	if changes[0].Path != "README.txt" {
 		t.Fatalf("unexpected change path")
 	}
 

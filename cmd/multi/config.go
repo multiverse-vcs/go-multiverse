@@ -27,8 +27,8 @@ type Config struct {
 	Path string `json:"-"`
 	// Root is the path to the root directory.
 	Root string `json:"-"`
-	// Name is the human friendly name of the repo.
-	Name string `json:"name"`
+	// Repo is the CID of the repository.
+	Repo cid.Cid `json:"repo"`
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
 	// Index is the CID of the current commit.
@@ -36,9 +36,8 @@ type Config struct {
 }
 
 // NewConfig returns a config with default settings.
-func NewConfig(root string, name string) *Config {
+func NewConfig(root string) *Config {
 	return &Config{
-		Name:   name,
 		Branch: "default",
 		Path:   filepath.Join(root, ConfigFile),
 		Root:   root,

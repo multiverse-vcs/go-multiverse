@@ -82,7 +82,7 @@ func NewCommit(tree cid.Cid, message string, parents ...cid.Cid) *Commit {
 
 // ParentLinks returns parent ipld links.
 func (c *Commit) ParentLinks() []*ipld.Link {
-	out := make([]*ipld.Link, 0)
+	var out []*ipld.Link
 	for _, p := range c.Parents {
 		out = append(out, &ipld.Link{Cid: p})
 	}

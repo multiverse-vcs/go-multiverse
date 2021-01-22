@@ -44,7 +44,7 @@ func commitAction(c *cli.Context) error {
 	args := rpc.CommitArgs{
 		Root:    config.Root,
 		Ignore:  ignore,
-		Name:    config.Name,
+		Repo:    config.Repo,
 		Branch:  config.Branch,
 		Parent:  config.Index,
 		Message: c.String("message"),
@@ -55,6 +55,7 @@ func commitAction(c *cli.Context) error {
 		return err
 	}
 
-	config.Index = reply.ID
+	config.Repo = reply.Repo
+	config.Index = reply.Index
 	return config.Save()
 }

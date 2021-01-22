@@ -3,14 +3,13 @@ package core
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/nasdf/diff3"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 // Merge combines the work trees of a and b into the base o.
@@ -27,7 +26,7 @@ func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node
 
 	changes, conflicts := dagutils.MergeDiffs(changesA, changesB)
 	for _, c := range conflicts {
-		change, err := merge(ctx, dag, c.A, c.B)
+		change, err := conflict(ctx, dag, c)
 		if err != nil {
 			return nil, err
 		}
@@ -53,49 +52,30 @@ func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node
 	return dagutils.ApplyChange(ctx, dag, proto, changes)
 }
 
-// merge combines the contents of two conflicting dag changes.
-func merge(ctx context.Context, dag ipld.DAGService, a, b *dagutils.Change) (*dagutils.Change, error) {
-	if a.Type == dagutils.Remove {
-		return b, nil
+// conflict combines the contents of two conflicting dag changes.
+func conflict(ctx context.Context, dag ipld.DAGService, c dagutils.Conflict) (*dagutils.Change, error) {
+	if c.A.Type == dagutils.Remove {
+		return c.B, nil
 	}
 
-	if b.Type == dagutils.Remove {
-		return a, nil
+	if c.B.Type == dagutils.Remove {
+		return c.A, nil
 	}
 
-	textO, err := Cat(ctx, dag, a.Before)
+	merge, err := unixfs.Merge(ctx, dag, c.A.Before, c.A.After, c.B.After)
 	if err != nil {
 		return nil, err
 	}
 
-	textA, err := Cat(ctx, dag, a.After)
-	if err != nil {
-		return nil, err
+	change := dagutils.Mod
+	if c.A.Type == dagutils.Add && c.B.Type == dagutils.Add {
+		change = dagutils.Add
 	}
 
-	textB, err := Cat(ctx, dag, b.After)
-	if err != nil {
-		return nil, err
-	}
-
-	merged := diff3.Merge(textO, textA, textB)
-	reader := strings.NewReader(merged)
-
-	merge, err := add(ctx, dag, reader)
-	if err != nil {
-		return nil, err
-	}
-
-	change := dagutils.Change{
-		Type:   dagutils.Mod,
-		Path:   a.Path,
-		Before: a.Before,
+	return &dagutils.Change{
+		Type:   change,
+		Path:   c.A.Path,
+		Before: c.A.Before,
 		After:  merge.Cid(),
-	}
-
-	if a.Type == dagutils.Add && b.Type == dagutils.Add {
-		change.Type = dagutils.Add
-	}
-
-	return &change, nil
+	}, nil
 }

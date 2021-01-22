@@ -10,8 +10,8 @@ import (
 
 // TagArgs contains the args.
 type TagArgs struct {
-	// Name is the repo name.
-	Name string
+	// Repo is the CID of the repo.
+	Repo cid.Cid
 	// Tag is the name of the tag.
 	Tag string
 	// Head is the CID of the repo head.
@@ -20,6 +20,9 @@ type TagArgs struct {
 
 // TagReply contains the reply.
 type TagReply struct {
+	// Repo is the CID of the repo.
+	Repo cid.Cid
+	// Tags is a map of commit CIDs.
 	Tags map[string]cid.Cid
 }
 
@@ -27,12 +30,7 @@ type TagReply struct {
 func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -45,12 +43,7 @@ func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -64,26 +57,23 @@ func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	}
 
 	repo.Tags[args.Tag] = args.Head
-	reply.Tags = repo.Tags
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err := data.PinRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	s.client.Unpin(ctx, args.Repo, true)
 
-	return s.store.PutCid(repo.Name, id)
+	reply.Repo = id
+	reply.Tags = repo.Tags
+	return nil
 }
 
 // DeleteTag deletes an existing tag.
 func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
-	}
-
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
@@ -97,12 +87,14 @@ func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	}
 
 	delete(repo.Tags, args.Tag)
-	reply.Tags = repo.Tags
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err := data.PinRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	s.client.Unpin(ctx, args.Repo, true)
 
-	return s.store.PutCid(repo.Name, id)
+	reply.Repo = id
+	reply.Tags = repo.Tags
+	return nil
 }

@@ -2,37 +2,47 @@
 package web
 
 import (
+	"embed"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/multiverse-vcs/go-multiverse/node"
-	"github.com/multiverse-vcs/go-multiverse/web/view"
+	"github.com/multiverse-vcs/go-multiverse/peer"
 )
+
+//go:embed static/*
+var static embed.FS
 
 // BindAddr is the address the http server binds to.
 const BindAddr = "127.0.0.1:2020"
 
 // Server contains http services.
 type Server struct {
-	node  *node.Node
-	store *data.Store
+	client *peer.Client
+}
+
+// View is an http handler that renders a view.
+type View func(http.ResponseWriter, *http.Request) error
+
+// ServeHTTP handles http requests to a route.
+func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if err := v(w, req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 // ListenAndServe starts an HTTP listener.
-func ListenAndServe(node *node.Node, store *data.Store) error {
-	router := httprouter.New()
-	router.Handler(http.MethodGet, "/", view.Home(node, store))
-	router.Handler(http.MethodGet, "/:name", view.Repo(node, store))
-	router.Handler(http.MethodGet, "/:name/:page", view.Repo(node, store))
-	router.Handler(http.MethodGet, "/:name/:page/:ref", view.Repo(node, store))
-	router.Handler(http.MethodGet, "/:name/:page/:ref/*file", view.Repo(node, store))
+func ListenAndServe(client *peer.Client) error {
+	server := &Server{client}
 
-	var static http.Handler
-	static = http.FileServer(http.Dir("web/static"))
-	static = http.StripPrefix("/static", static)
+	router := httprouter.New()
+	router.Handler(http.MethodGet, "/", View(server.Home))
+	router.Handler(http.MethodGet, "/:id", View(server.Tree))
+	router.Handler(http.MethodGet, "/:id/:ref/commits", View(server.Commits))
+	router.Handler(http.MethodGet, "/:id/:ref/tree", View(server.Tree))
+	router.Handler(http.MethodGet, "/:id/:ref/tree/*file", View(server.Tree))
+	router.Handler(http.MethodGet, "/:id/:ref/blob/*file", View(server.Blob))
 
 	http.Handle("/", router)
-	http.Handle("/static/", static)
+	http.Handle("/static/", http.FileServer(http.FS(static)))
 	return http.ListenAndServe(BindAddr, nil)
 }

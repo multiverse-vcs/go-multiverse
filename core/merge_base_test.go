@@ -6,16 +6,14 @@ import (
 
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/spf13/afero"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 func TestMergeBase(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	tree, err := Add(ctx, dag, "", nil)
+	tree, err := unixfs.Add(ctx, dag, "testdata/1", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -49,12 +47,10 @@ func TestMergeBase(t *testing.T) {
 }
 
 func TestMergeBaseRemoteAhead(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	tree, err := Add(ctx, dag, "", nil)
+	tree, err := unixfs.Add(ctx, dag, "testdata/1", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -88,12 +84,10 @@ func TestMergeBaseRemoteAhead(t *testing.T) {
 }
 
 func TestMergeBaseLocalAhead(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	tree, err := Add(ctx, dag, "", nil)
+	tree, err := unixfs.Add(ctx, dag, "testdata/1", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}
@@ -127,12 +121,10 @@ func TestMergeBaseLocalAhead(t *testing.T) {
 }
 
 func TestMergeBaseUnrelated(t *testing.T) {
-	fs = afero.NewMemMapFs()
-
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	tree, err := Add(ctx, dag, "", nil)
+	tree, err := unixfs.Add(ctx, dag, "testdata/1", nil)
 	if err != nil {
 		t.Fatalf("failed to add tree")
 	}

@@ -13,8 +13,8 @@ import (
 const (
 	// DefaultType is the default private key type.
 	DefaultType = crypto.Ed25519
-	// DefaultKeyName is the name of the default key.
-	DefaultKeyName = "default"
+	// DefaultName is the name of the default key.
+	DefaultName = "default"
 )
 
 // Keystore stores keys in directory.
@@ -33,9 +33,9 @@ func NewKeystore(root string) (*Keystore, error) {
 
 // DefaultKey returns the default key from the store.
 func (ks *Keystore) DefaultKey() (crypto.PrivKey, error) {
-	key, err := ks.GetKey(DefaultKeyName)
+	key, err := ks.GetKey(DefaultName)
 	if os.IsNotExist(err) {
-		return ks.NewKey(DefaultKeyName)
+		return ks.NewKey(DefaultName)
 	}
 
 	return key, nil

@@ -8,20 +8,20 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag"
-	"github.com/multiverse-vcs/go-multiverse/core"
 	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
 // CloneArgs contains the args.
 type CloneArgs struct {
 	// Cwd is the current working directory.
 	Cwd string
-	// ID is the CID of the repo.
-	ID cid.Cid
+	// Dir is the name of the directory to create.
+	Dir string
+	// Repo is the CID of the repo.
+	Repo cid.Cid
 	// Limit is the number of children to fetch.
 	Limit int
-	// Name is the name of the directory to create.
-	Name string
 	// Branch is the name of the branch to clone.
 	Branch string
 }
@@ -32,28 +32,19 @@ type CloneReply struct {
 	ID cid.Cid
 	// Root is the repo root path.
 	Root string
-	// Name is the name of the repo.
-	Name string
-	// Branch is the name of the repo branch.
-	Branch string
 }
 
 // Clone copies a commit tree to the working directory.
 func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	ctx := context.Background()
 
-	id, err := s.store.GetCid(args.Name)
+	repo, err := data.GetRepository(ctx, s.client, args.Repo)
 	if err != nil {
 		return err
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
-	if err != nil {
-		return err
-	}
-
-	if args.Name == "" {
-		args.Name = repo.Name
+	if args.Dir == "" {
+		args.Dir = repo.Name
 	}
 
 	id, ok := repo.Branches[args.Branch]
@@ -61,29 +52,27 @@ func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 		return errors.New("branch does not exist")
 	}
 
-	if err := merkledag.FetchGraphWithDepthLimit(ctx, id, args.Limit, s.node); err != nil {
+	if err := merkledag.FetchGraphWithDepthLimit(ctx, id, args.Limit, s.client); err != nil {
 		return err
 	}
 
-	commit, err := data.GetCommit(ctx, s.node, id)
+	commit, err := data.GetCommit(ctx, s.client, id)
 	if err != nil {
 		return err
 	}
 
-	tree, err := s.node.Get(ctx, commit.Tree)
+	tree, err := s.client.Get(ctx, commit.Tree)
 	if err != nil {
 		return err
 	}
 
-	path := filepath.Join(args.Cwd, args.Name)
+	path := filepath.Join(args.Cwd, args.Dir)
 	if err := os.Mkdir(path, 0755); err != nil {
 		return err
 	}
 
 	reply.ID = id
 	reply.Root = path
-	reply.Name = repo.Name
-	reply.Branch = args.Branch
 
-	return core.Write(ctx, s.node, path, tree)
+	return unixfs.Write(ctx, s.client, path, tree)
 }

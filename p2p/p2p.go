@@ -12,14 +12,12 @@ import (
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht/dual"
 	"github.com/libp2p/go-libp2p-noise"
-	"github.com/libp2p/go-libp2p-quic-transport"
 	"github.com/libp2p/go-libp2p-tls"
 )
 
 // ListenAddresses is a list of addresses to listen on.
 var ListenAddresses = []string{
 	"/ip4/0.0.0.0/tcp/9000",
-	"/ip4/0.0.0.0/udp/9000/quic",
 }
 
 const (
@@ -41,7 +39,6 @@ func NewHost(ctx context.Context, priv crypto.PrivKey) (host.Host, routing.Routi
 		libp2p.ListenAddrStrings(ListenAddresses...),
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		libp2p.Security(noise.ID, noise.New),
-		libp2p.Transport(libp2pquic.NewTransport),
 		libp2p.DefaultTransports,
 		libp2p.NATPortMap(),
 		libp2p.EnableNATService(),
