@@ -31,6 +31,7 @@ require (
 	github.com/libp2p/go-libp2p-tls v0.1.3
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/nasdf/diff3 v0.0.1
+	github.com/nasdf/ulimit v0.0.1
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/polydawn/refmt v0.0.0-20190807091052-3d65705ee9f1

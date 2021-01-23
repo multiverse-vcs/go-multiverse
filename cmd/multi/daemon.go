@@ -11,6 +11,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/peer"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/multiverse-vcs/go-multiverse/web"
+	"github.com/nasdf/ulimit"
 	"github.com/urfave/cli/v2"
 )
 
@@ -23,6 +24,8 @@ const daemonBanner = `
                                                
 `
 
+const daemonUlimit = 8096
+
 var daemonCommand = &cli.Command{
 	Action: daemonAction,
 	Name:   "daemon",
@@ -30,6 +33,10 @@ var daemonCommand = &cli.Command{
 }
 
 func daemonAction(c *cli.Context) error {
+	if err := ulimit.SetRlimit(daemonUlimit); err != nil {
+		return err
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
