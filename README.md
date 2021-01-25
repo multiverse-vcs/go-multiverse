@@ -4,6 +4,8 @@
 
 A decentralized version control system for peer-to-peer software development.
 
+> This project is currently alpha quality. We are looking for feedback from the open source community.
+
 ### Features
 
 - ***Peer-to-peer*** - self host your repositories
