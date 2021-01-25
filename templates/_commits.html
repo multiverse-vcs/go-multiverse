@@ -9,7 +9,7 @@
             {{ $cid.String | shortcid }}
           </span>
         </button>
-        <a href={{ join "/" $.ID.String $cid.String "tree" }} class="button">
+        <a href={{ join "/" $.Repo.Name $cid.String "tree" }} class="button">
           <span class="icon">
             <svg><use xlink:href="/static/feather-sprite.svg#code"/></svg>
           </span>

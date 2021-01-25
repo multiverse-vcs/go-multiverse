@@ -12,8 +12,8 @@ import (
 
 // CheckoutArgs contains the args.
 type CheckoutArgs struct {
-	// Repo is the CID of the repo.
-	Repo cid.Cid
+	// Name is the name of the repo.
+	Name string
 	// Root is the repo root path.
 	Root string
 	// Branch is the name of the repo branch.
@@ -42,7 +42,12 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, args.Repo)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.client, id)
 	if err != nil {
 		return err
 	}

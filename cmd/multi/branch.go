@@ -44,7 +44,7 @@ func branchAction(c *cli.Context) error {
 	}
 
 	args := rpc.BranchArgs{
-		Repo:   config.Repo,
+		Name:   config.Name,
 		Branch: c.Args().Get(0),
 		Head:   config.Index,
 	}
@@ -73,6 +73,5 @@ func branchAction(c *cli.Context) error {
 		}
 	}
 
-	config.Repo = reply.Repo
-	return config.Save()
+	return nil
 }

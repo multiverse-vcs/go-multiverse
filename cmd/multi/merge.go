@@ -41,7 +41,7 @@ func mergeAction(c *cli.Context) error {
 	}
 
 	args := rpc.MergeArgs{
-		Repo:   config.Repo,
+		Name:   config.Name,
 		Branch: config.Branch,
 		Root:   config.Root,
 		Index:  config.Index,
@@ -53,7 +53,6 @@ func mergeAction(c *cli.Context) error {
 		return err
 	}
 
-	config.Repo = reply.Repo
 	config.Index = reply.Index
 	return config.Save()
 }

@@ -11,8 +11,8 @@ import (
 
 // CommitArgs contains the args.
 type CommitArgs struct {
-	// Repo is the CID of the repo.
-	Repo cid.Cid
+	// Name is the name of the repo.
+	Name string
 	// Branch is the name of the branch to update.
 	Branch string
 	// Root is the repo root path.
@@ -27,8 +27,6 @@ type CommitArgs struct {
 
 // CommitReply contains the reply.
 type CommitReply struct {
-	// Repo is the CID of the repo.
-	Repo cid.Cid
 	// Index is the CID of the commit.
 	Index cid.Cid
 }
@@ -41,7 +39,12 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		return errors.New("branch cannot be empty")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, args.Repo)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.client, id)
 	if err != nil {
 		return err
 	}
@@ -61,20 +64,18 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		commit.Parents = append(commit.Parents, args.Parent)
 	}
 
-	index, err := data.AddCommit(ctx, s.client, commit)
+	head, err = data.AddCommit(ctx, s.client, commit)
 	if err != nil {
 		return err
 	}
 
-	repo.Branches[args.Branch] = index
+	repo.Branches[args.Branch] = head
 
-	id, err := data.PinRepository(ctx, s.client, repo)
+	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
-	s.client.Unpin(ctx, args.Repo, true)
 
-	reply.Repo = id
-	reply.Index = index
-	return nil
+	reply.Index = head
+	return s.store.PutCid(repo.Name, id)
 }

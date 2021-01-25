@@ -2,7 +2,13 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
 
-An open source decentralized version control system for peer-to-peer software development.
+A decentralized version control system for peer-to-peer software development.
+
+### Features
+
+- ***Peer-to-peer*** - self host your repositories
+- ***Works offline*** - integrated local code viewer
+- ***Secure*** - all communications are encrypted
 
 ### Getting Started
 

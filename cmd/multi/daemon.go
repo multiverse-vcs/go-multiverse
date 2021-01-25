@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/ipfs/go-ds-badger2"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/key"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
@@ -74,8 +75,9 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	go web.ListenAndServe(client)
-	go rpc.ListenAndServe(client)
+	store := data.NewStore(dstore)
+	go web.ListenAndServe(client, store)
+	go rpc.ListenAndServe(client, store)
 
 	fmt.Printf(daemonBanner)
 	fmt.Printf("Peer ID: %s\n", peerId.Pretty())

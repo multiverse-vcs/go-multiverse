@@ -7,7 +7,6 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipfs-blockstore"
 	"github.com/ipfs/go-ipfs-exchange-offline"
-	"github.com/ipfs/go-ipfs-pinner/dspinner"
 	"github.com/ipfs/go-ipfs-provider"
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-path/resolver"
@@ -15,8 +14,7 @@ import (
 )
 
 // Mock returns an offline peer with in memory storage.
-func Mock(ctx context.Context) (*Client, error) {
-	dstore := datastore.NewMapDatastore()
+func Mock(ctx context.Context, dstore datastore.Batching) (*Client, error) {
 	bstore := blockstore.NewBlockstore(dstore)
 	exc := offline.Exchange(bstore)
 	bserv := blockservice.New(bstore, exc)
@@ -29,14 +27,8 @@ func Mock(ctx context.Context) (*Client, error) {
 		return nil, err
 	}
 
-	pinner, err := dspinner.New(ctx, dstore, dag)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Client{
 		DAGService: dag,
-		Pinner:     pinner,
 		priv:       priv,
 		bstore:     bstore,
 		dstore:     dstore,

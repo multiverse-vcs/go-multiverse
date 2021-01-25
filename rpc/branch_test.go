@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
@@ -19,7 +20,10 @@ var repositoryJSON = []byte(`{
 func TestListBranches(t *testing.T) {
 	ctx := context.Background()
 
-	mock, err := peer.Mock(ctx)
+	dstore := datastore.NewMapDatastore()
+	store := data.NewStore(dstore)
+
+	mock, err := peer.Mock(ctx, dstore)
 	if err != nil {
 		t.Fatalf("failed to create peer")
 	}
@@ -34,13 +38,17 @@ func TestListBranches(t *testing.T) {
 		t.Fatalf("failed to create repository %s", err)
 	}
 
-	client, err := connect(mock)
+	if err := store.PutCid(repo.Name, id); err != nil {
+		t.Fatalf("failed to put cid in store")
+	}
+
+	client, err := connect(mock, store)
 	if err != nil {
 		t.Fatalf("failed to connect to rpc server")
 	}
 
 	args := BranchArgs{
-		Repo: id,
+		Name: repo.Name,
 	}
 
 	var reply BranchReply

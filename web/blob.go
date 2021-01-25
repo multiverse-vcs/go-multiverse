@@ -29,11 +29,11 @@ func (s *Server) Blob(w http.ResponseWriter, req *http.Request) error {
 	ctx := req.Context()
 	params := httprouter.ParamsFromContext(ctx)
 
-	sid := params.ByName("id")
+	name := params.ByName("name")
 	file := params.ByName("file")
 	ref := params.ByName("ref")
 
-	id, err := cid.Decode(sid)
+	id, err := s.store.GetCid(name)
 	if err != nil {
 		return err
 	}

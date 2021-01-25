@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
@@ -18,6 +19,7 @@ const BindAddr = "127.0.0.1:2020"
 // Server contains http services.
 type Server struct {
 	client *peer.Client
+	store  *data.Store
 }
 
 // View is an http handler that renders a view.
@@ -31,16 +33,16 @@ func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 // ListenAndServe starts an HTTP listener.
-func ListenAndServe(client *peer.Client) error {
-	server := &Server{client}
+func ListenAndServe(client *peer.Client, store *data.Store) error {
+	server := &Server{client, store}
 
 	router := httprouter.New()
 	router.Handler(http.MethodGet, "/", View(server.Home))
-	router.Handler(http.MethodGet, "/:id", View(server.Tree))
-	router.Handler(http.MethodGet, "/:id/:ref/commits", View(server.Commits))
-	router.Handler(http.MethodGet, "/:id/:ref/tree", View(server.Tree))
-	router.Handler(http.MethodGet, "/:id/:ref/tree/*file", View(server.Tree))
-	router.Handler(http.MethodGet, "/:id/:ref/blob/*file", View(server.Blob))
+	router.Handler(http.MethodGet, "/:name", View(server.Tree))
+	router.Handler(http.MethodGet, "/:name/:ref/commits", View(server.Commits))
+	router.Handler(http.MethodGet, "/:name/:ref/tree", View(server.Tree))
+	router.Handler(http.MethodGet, "/:name/:ref/tree/*file", View(server.Tree))
+	router.Handler(http.MethodGet, "/:name/:ref/blob/*file", View(server.Blob))
 
 	http.Handle("/", router)
 	http.Handle("/static/", http.FileServer(http.FS(static)))

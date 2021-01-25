@@ -4,11 +4,11 @@
       <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
         <ul>
           <li {{ if not .Path }} class="is-active" {{ end }}>
-            <a href={{ join "/" .ID.String .Ref "tree" }}>{{ .Repo.Name }}</a>
+            <a href={{ join "/" .Repo.Name .Ref "tree" }}>{{ .Repo.Name }}</a>
           </li>
           {{ range (join "/" .Path | dir | breadcrumbs) }}
           <li>
-            <a href={{ join "/" $.ID.String $.Ref "tree" . }}>{{ base . }}</a>
+            <a href={{ join "/" $.Repo.Name $.Ref "tree" . }}>{{ base . }}</a>
           </li>
           {{ end }}
           {{ if .Path }}
@@ -21,7 +21,7 @@
     </div>
   {{ range .Tree }}
     {{ if .IsDir }}
-    <a href={{ join "/" $.ID.String $.Ref "tree" $.Path .Name }} class="panel-block" >
+    <a href={{ join "/" $.Repo.Name $.Ref "tree" $.Path .Name }} class="panel-block" >
       <span class="panel-icon">
         <span class="icon fill has-text-info is-small">
           <svg><use xlink:href="/static/feather-sprite.svg#folder"/></svg>
@@ -30,7 +30,7 @@
       <span class="has-text-black" >{{ .Name }}</span>
     </a>
     {{ else }}
-    <a href={{ join "/" $.ID.String $.Ref "blob" $.Path .Name }} class="panel-block">
+    <a href={{ join "/" $.Repo.Name $.Ref "blob" $.Path .Name }} class="panel-block">
       <span class="panel-icon">
         <span class="icon is-small">
           <svg><use xlink:href="/static/feather-sprite.svg#file"/></svg>

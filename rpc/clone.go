@@ -18,8 +18,8 @@ type CloneArgs struct {
 	Cwd string
 	// Dir is the name of the directory to create.
 	Dir string
-	// Repo is the CID of the repo.
-	Repo cid.Cid
+	// ID is the CID of the repo.
+	ID cid.Cid
 	// Limit is the number of children to fetch.
 	Limit int
 	// Branch is the name of the branch to clone.
@@ -38,7 +38,7 @@ type CloneReply struct {
 func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	ctx := context.Background()
 
-	repo, err := data.GetRepository(ctx, s.client, args.Repo)
+	repo, err := data.GetRepository(ctx, s.client, args.ID)
 	if err != nil {
 		return err
 	}

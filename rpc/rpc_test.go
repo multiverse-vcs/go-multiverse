@@ -4,13 +4,19 @@ import (
 	"net"
 	"net/rpc"
 
+	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
 // connect starts an rpc server and returns a connected client.
-func connect(client *peer.Client) (*rpc.Client, error) {
+func connect(client *peer.Client, store *data.Store) (*rpc.Client, error) {
+	service := Service{
+		client: client,
+		store:  store,
+	}
+
 	server := rpc.NewServer()
-	if err := server.Register(&Service{client}); err != nil {
+	if err := server.Register(&service); err != nil {
 		return nil, err
 	}
 

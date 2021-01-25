@@ -57,7 +57,7 @@ func cloneAction(c *cli.Context) error {
 	args := rpc.CloneArgs{
 		Cwd:    cwd,
 		Dir:    c.String("dir"),
-		Repo:   id,
+		ID:     id,
 		Limit:  c.Int("limit"),
 		Branch: c.String("branch"),
 	}
@@ -70,6 +70,5 @@ func cloneAction(c *cli.Context) error {
 	config := NewConfig(reply.Root)
 	config.Branch = c.String("branch")
 	config.Index = reply.ID
-	config.Repo = id
 	return config.Save()
 }

@@ -4,11 +4,11 @@
       <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
         <ul>
           <li {{ if not .Path }} class="is-active" {{ end }}>
-            <a href={{ join "/" .ID.String .Ref "tree" }}>{{ .Repo.Name }}</a>
+            <a href={{ join "/" .Repo.Name .Ref "tree" }}>{{ .Repo.Name }}</a>
           </li>
           {{ range (join "/" .Path | dir | breadcrumbs) }}
           <li>
-            <a href={{ join "/" $.ID.String $.Ref "tree" . }}>{{ base . }}</a>
+            <a href={{ join "/" $.Repo.Name $.Ref "tree" . }}>{{ base . }}</a>
           </li>
           {{ end }}
           {{ if .Path }}

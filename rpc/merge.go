@@ -12,8 +12,8 @@ import (
 
 // MergeArgs contains the args.
 type MergeArgs struct {
-	// Repo is the CID of the repo.
-	Repo cid.Cid
+	// Name is the name of the repo.
+	Name string
 	// Branch is the name of the repo branch.
 	Branch string
 	// Root is the repo root path.
@@ -28,8 +28,6 @@ type MergeArgs struct {
 
 // MergeReply contains the reply.
 type MergeReply struct {
-	// Repo is the CID of the repo.
-	Repo cid.Cid
 	// Index is the CID of the merged commits.
 	Index cid.Cid
 }
@@ -47,7 +45,12 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, args.Repo)
+	id, err := s.store.GetCid(args.Name)
+	if err != nil {
+		return err
+	}
+
+	repo, err := data.GetRepository(ctx, s.client, id)
 	if err != nil {
 		return err
 	}
@@ -83,13 +86,15 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 
 	repo.Branches[args.Branch] = index
 
-	id, err := data.PinRepository(ctx, s.client, repo)
+	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
-	s.client.Unpin(ctx, args.Repo, true)
 
-	reply.Repo = id
+	if err := s.store.PutCid(repo.Name, id); err != nil {
+		return err
+	}
+
 	reply.Index = index
 	return unixfs.Write(ctx, s.client, args.Root, merge)
 }

@@ -20,6 +20,8 @@ func initAction(c *cli.Context) error {
 		cli.ShowSubcommandHelpAndExit(c, 1)
 	}
 
+	name := c.Args().Get(0)
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -35,7 +37,7 @@ func initAction(c *cli.Context) error {
 	}
 
 	args := rpc.InitArgs{
-		Name: c.Args().Get(0),
+		Name: name,
 	}
 
 	var reply rpc.InitReply
@@ -44,6 +46,6 @@ func initAction(c *cli.Context) error {
 	}
 
 	config := NewConfig(cwd)
-	config.Repo = reply.Repo
+	config.Name = name
 	return config.Save()
 }

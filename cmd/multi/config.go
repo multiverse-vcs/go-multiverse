@@ -27,8 +27,8 @@ type Config struct {
 	Path string `json:"-"`
 	// Root is the path to the root directory.
 	Root string `json:"-"`
-	// Repo is the CID of the repository.
-	Repo cid.Cid `json:"repo"`
+	// Name is the name of the repository.
+	Name string `json:"repo"`
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
 	// Index is the CID of the current commit.

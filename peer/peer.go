@@ -10,8 +10,6 @@ import (
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipfs-blockstore"
-	"github.com/ipfs/go-ipfs-pinner"
-	"github.com/ipfs/go-ipfs-pinner/dspinner"
 	"github.com/ipfs/go-ipfs-provider"
 	"github.com/ipfs/go-ipfs-provider/queue"
 	"github.com/ipfs/go-ipfs-provider/simple"
@@ -37,8 +35,6 @@ const (
 // Client manages peer services.
 type Client struct {
 	ipld.DAGService
-	pin.Pinner
-
 	host   host.Host
 	priv   crypto.PrivKey
 	bstore blockstore.Blockstore
@@ -62,18 +58,13 @@ func New(ctx context.Context, dstore datastore.Batching, priv crypto.PrivKey) (*
 	dag := merkledag.NewDAGService(bserv)
 	resolv := resolver.NewBasicResolver(dag)
 
-	pinner, err := dspinner.New(ctx, dstore, dag)
-	if err != nil {
-		return nil, err
-	}
-
 	queue, err := queue.NewQueue(ctx, QueueName, dstore)
 	if err != nil {
 		return nil, err
 	}
 
 	prov := simple.NewProvider(ctx, queue, router)
-	keys := simple.NewPinnedProvider(false, pinner, dag)
+	keys := simple.NewBlockstoreProvider(bstore)
 	reprov := simple.NewReprovider(ctx, ReprovideInterval, router, keys)
 
 	system := provider.NewSystem(prov, reprov)
@@ -89,7 +80,6 @@ func New(ctx context.Context, dstore datastore.Batching, priv crypto.PrivKey) (*
 
 	return &Client{
 		DAGService: dag,
-		Pinner:     pinner,
 		host:       host,
 		priv:       priv,
 		bstore:     bstore,

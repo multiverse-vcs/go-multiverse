@@ -4,14 +4,13 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/ipfs/go-cid"
 	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
 var homeView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("templates/index.html", "templates/home.html"))
 
 type homeModel struct {
-	IDs  []cid.Cid
+	Keys []string
 	List []*data.Repository
 }
 
@@ -19,13 +18,18 @@ type homeModel struct {
 func (s *Server) Home(w http.ResponseWriter, req *http.Request) error {
 	ctx := req.Context()
 
-	pins, err := s.client.RecursiveKeys(ctx)
+	keys, err := s.store.Keys()
 	if err != nil {
 		return err
 	}
 
 	var list []*data.Repository
-	for _, id := range pins {
+	for _, k := range keys {
+		id, err := s.store.GetCid(k)
+		if err != nil {
+			return err
+		}
+
 		repo, err := data.GetRepository(ctx, s.client, id)
 		if err != nil {
 			return err
@@ -35,7 +39,7 @@ func (s *Server) Home(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	model := homeModel{
-		IDs:  pins,
+		Keys: keys,
 		List: list,
 	}
 

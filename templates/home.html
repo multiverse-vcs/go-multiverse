@@ -2,8 +2,11 @@
 	<section class="container">
 	  {{ range $i, $v := .List }}
 	  <section class="section">
-	  	{{ $id := index $.IDs $i }}
-	    <h1 class="title"><a href={{ $id.String }}>{{ $v.Name }}</a></h1>
+	    <h1 class="title">
+	    	<a href={{ index $.Keys $i }}>
+	    		{{ $v.Name }}
+	    	</a>
+	    </h1>
 	  </section>
 	  {{ end }}
 	</section>
