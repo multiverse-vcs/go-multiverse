@@ -22,6 +22,23 @@ $ cd go-multiverse
 $ make install
 ```
 
+### Usage
+
+```
+USAGE:
+   multi [global options] command [command options] [arguments...]
+   
+COMMANDS:
+   branch   List, create, or delete branches
+   commit   Record changes
+   daemon   Starts a client
+   init     Create a repo
+   merge    Merge commits
+   status   Print changes
+   tag      List, create, or delete tags
+   help, h  Shows a list of commands or help for one command
+```
+
 ### Getting Started
 
 [Read the manual](https://www.multiverse-vcs.com/docs/).
