@@ -10,7 +10,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
-var commitsView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("templates/index.html", "templates/repo.html", "templates/_commits.html"))
+var commitsView = template.Must(template.New("index.html").Funcs(funcs).ParseFS(templates, "templates/index.html", "templates/repo.html", "templates/_commits.html"))
 
 type commitsModel struct {
 	ID     cid.Cid

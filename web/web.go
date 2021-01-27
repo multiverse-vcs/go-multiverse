@@ -13,6 +13,9 @@ import (
 //go:embed static/*
 var static embed.FS
 
+//go:embed templates/*
+var templates embed.FS
+
 // BindAddr is the address the http server binds to.
 const BindAddr = "127.0.0.1:2020"
 

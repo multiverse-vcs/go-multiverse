@@ -7,7 +7,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
-var homeView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("templates/index.html", "templates/home.html"))
+var homeView = template.Must(template.New("index.html").Funcs(funcs).ParseFS(templates, "templates/index.html", "templates/home.html"))
 
 type homeModel struct {
 	Keys []string

@@ -11,7 +11,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
-var blobView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("templates/index.html", "templates/repo.html", "templates/_blob.html"))
+var blobView = template.Must(template.New("index.html").Funcs(funcs).ParseFS(templates, "templates/index.html", "templates/repo.html", "templates/_blob.html"))
 
 type blobModel struct {
 	ID     cid.Cid

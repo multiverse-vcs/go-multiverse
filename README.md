@@ -4,13 +4,17 @@
 
 A decentralized version control system for peer-to-peer software development.
 
-> This project is currently alpha quality. We are looking for feedback from the open source community.
+> This project is currently alpha quality.
 
 ### Features
 
 - ***Peer-to-peer*** - self host your repositories
 - ***Works offline*** - integrated local code viewer
 - ***Secure*** - all communications are encrypted
+
+### Getting Started
+
+[Read the manual](https://www.multiverse-vcs.com/docs/).
 
 ### Building
 
@@ -45,10 +49,6 @@ COMMANDS:
    tag      List, create, or delete tags
    help, h  Shows a list of commands or help for one command
 ```
-
-### Getting Started
-
-[Read the manual](https://www.multiverse-vcs.com/docs/).
 
 ### Contributing
 

@@ -14,7 +14,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
 
-var treeView = template.Must(template.New("index.html").Funcs(funcs).ParseFiles("templates/index.html", "templates/repo.html", "templates/_tree.html"))
+var treeView = template.Must(template.New("index.html").Funcs(funcs).ParseFS(templates, "templates/index.html", "templates/repo.html", "templates/_tree.html"))
 
 type treeModel struct {
 	ID     cid.Cid
