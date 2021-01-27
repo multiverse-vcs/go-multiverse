@@ -12,9 +12,16 @@ A decentralized version control system for peer-to-peer software development.
 - ***Works offline*** - integrated local code viewer
 - ***Secure*** - all communications are encrypted
 
-### Install
+### Building
 
 Go 1.16 or higher is required.
+
+```bash
+$ go get golang.org/dl/go1.16beta1
+$ go1.16beta1 download
+```
+
+Build and install from sources.
 
 ```bash
 $ git clone https://github.com/multiverse-vcs/go-multiverse.git
