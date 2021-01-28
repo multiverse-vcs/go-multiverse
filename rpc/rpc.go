@@ -2,6 +2,7 @@
 package rpc
 
 import (
+	"errors"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -11,6 +12,11 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
+
+// ErrConnect is the human friendly error message for failed connections.
+var ErrConnect = errors.New(`Could not connect to local RPC server.
+Make sure the Multiverse daemon is up.
+See 'multi help daemon' for more info.`)
 
 // Service implements an RPC service.
 type Service struct {
@@ -35,7 +41,12 @@ func NewClient() (*rpc.Client, error) {
 		return nil, err
 	}
 
-	return rpc.DialHTTP("unix", sock)
+	client, err := rpc.DialHTTP("unix", sock)
+	if err != nil {
+		return nil, ErrConnect
+	}
+
+	return client, nil
 }
 
 // ListenAndServer starts an RPC listener.
