@@ -13,9 +13,9 @@ func TestDiff(t *testing.T) {
 	ctx := context.Background()
 	dag := dagutils.NewMemoryDagService()
 
-	treeA, err := unixfs.Add(ctx, dag, "testdata/1", nil)
+	treeA, err := unixfs.Add(ctx, dag, "testdata/1", unixfs.Ignore{".gitkeep"})
 	if err != nil {
-		t.Fatalf("failed to add tree")
+		t.Fatalf("failed to add tree %s", err)
 	}
 
 	commitA := data.NewCommit(treeA.Cid(), "a")

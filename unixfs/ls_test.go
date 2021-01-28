@@ -21,7 +21,7 @@ func TestLs(t *testing.T) {
 		t.Fatalf("failed to ls")
 	}
 
-	if len(entries) != 5 {
+	if len(entries) != 6 {
 		t.Fatalf("unexpected entries")
 	}
 
@@ -49,7 +49,7 @@ func TestLs(t *testing.T) {
 		t.Error("unexpected dir entry")
 	}
 
-	if entries[3].Name != "o.txt" {
+	if entries[3].Name != "l" {
 		t.Error("unexpected dir entry")
 	}
 
@@ -57,11 +57,19 @@ func TestLs(t *testing.T) {
 		t.Error("unexpected dir entry")
 	}
 
-	if entries[4].Name != "r.txt" {
+	if entries[4].Name != "o.txt" {
 		t.Error("unexpected dir entry")
 	}
 
 	if entries[4].IsDir != false {
+		t.Error("unexpected dir entry")
+	}
+
+	if entries[5].Name != "r.txt" {
+		t.Error("unexpected dir entry")
+	}
+
+	if entries[5].IsDir != false {
 		t.Error("unexpected dir entry")
 	}
 }

@@ -71,7 +71,7 @@ func TestWriteDir(t *testing.T) {
 		t.Fatalf("failed to read dir")
 	}
 
-	if len(entries) != 5 {
+	if len(entries) != 6 {
 		t.Fatalf("unexpected directory entries")
 	}
 
@@ -99,19 +99,27 @@ func TestWriteDir(t *testing.T) {
 		t.Error("unexpected dir entry")
 	}
 
-	if entries[3].Name() != "o.txt" {
+	if entries[3].Name() != "l" {
 		t.Error("unexpected dir entry")
 	}
 
-	if entries[3].IsDir() != false {
+	if entries[3].Mode()&os.ModeSymlink == 0 {
 		t.Error("unexpected dir entry")
 	}
 
-	if entries[4].Name() != "r.txt" {
+	if entries[4].Name() != "o.txt" {
 		t.Error("unexpected dir entry")
 	}
 
 	if entries[4].IsDir() != false {
+		t.Error("unexpected dir entry")
+	}
+
+	if entries[5].Name() != "r.txt" {
+		t.Error("unexpected dir entry")
+	}
+
+	if entries[5].IsDir() != false {
 		t.Error("unexpected dir entry")
 	}
 }

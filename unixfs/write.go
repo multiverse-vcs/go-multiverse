@@ -24,7 +24,7 @@ func Write(ctx context.Context, dag ipld.DAGService, path string, node ipld.Node
 	case ufs.TDirectory:
 		return writeDir(ctx, dag, path, node)
 	case ufs.TSymlink:
-		return os.Symlink(path, string(fsnode.Data()))
+		return os.Symlink(string(fsnode.Data()), path)
 	default:
 		return errors.New("invalid file type")
 	}

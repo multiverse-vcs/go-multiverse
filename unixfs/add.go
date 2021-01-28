@@ -41,7 +41,7 @@ func (i Ignore) Match(path string) bool {
 
 // Add creates a node from the file at path and adds it to the merkle dag.
 func Add(ctx context.Context, dag ipld.DAGService, path string, ignore Ignore) (ipld.Node, error) {
-	stat, err := os.Stat(path)
+	stat, err := os.Lstat(path)
 	if err != nil {
 		return nil, err
 	}
