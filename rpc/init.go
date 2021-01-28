@@ -14,7 +14,7 @@ type InitArgs struct {
 }
 
 // InitReply contains the reply.
-type InitReply struct {}
+type InitReply struct{}
 
 // Init creates a new empty repository.
 func (s *Service) Init(args *InitArgs, reply *InitReply) error {

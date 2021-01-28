@@ -60,7 +60,7 @@ func branchAction(c *cli.Context) error {
 	}
 
 	var reply rpc.BranchReply
-	if err = client.Call(action, &args, &reply); err != nil {
+	if err := client.Call(action, &args, &reply); err != nil {
 		return err
 	}
 

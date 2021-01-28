@@ -51,7 +51,7 @@ func commitAction(c *cli.Context) error {
 	}
 
 	var reply rpc.CommitReply
-	if err = client.Call("Service.Commit", &args, &reply); err != nil {
+	if err := client.Call("Service.Commit", &args, &reply); err != nil {
 		return err
 	}
 

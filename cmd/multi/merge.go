@@ -49,7 +49,7 @@ func mergeAction(c *cli.Context) error {
 	}
 
 	var reply rpc.MergeReply
-	if err = client.Call("Service.Merge", &args, &reply); err != nil {
+	if err := client.Call("Service.Merge", &args, &reply); err != nil {
 		return err
 	}
 

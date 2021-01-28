@@ -63,7 +63,7 @@ func cloneAction(c *cli.Context) error {
 	}
 
 	var reply rpc.CloneReply
-	if err = client.Call("Service.Clone", &args, &reply); err != nil {
+	if err := client.Call("Service.Clone", &args, &reply); err != nil {
 		return err
 	}
 

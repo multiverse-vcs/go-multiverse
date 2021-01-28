@@ -9,11 +9,8 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/data"
 )
 
-// WalkFun is called for each commit visited by walk.
-type WalkFun func(cid.Cid) bool
-
 // Walk performs a depth first traversal of parent commits starting at the given id.
-func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map[string]bool, error) {
+func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, visit func(cid.Cid) bool) error {
 	getLinks := func(ctx context.Context, id cid.Cid) ([]*ipld.Link, error) {
 		commit, err := data.GetCommit(ctx, dag, id)
 		if err != nil {
@@ -23,19 +20,15 @@ func Walk(ctx context.Context, dag ipld.DAGService, id cid.Cid, cb WalkFun) (map
 		return commit.ParentLinks(), nil
 	}
 
-	history := make(map[string]bool)
-	visit := func(id cid.Cid) bool {
-		if history[id.KeyString()] {
+	seen := make(map[string]bool)
+	wrap := func(id cid.Cid) bool {
+		if seen[id.KeyString()] {
 			return false
 		}
 
-		history[id.KeyString()] = true
-		if cb != nil {
-			return cb(id)
-		}
-
-		return true
+		seen[id.KeyString()] = true
+		return visit(id)
 	}
 
-	return history, merkledag.Walk(ctx, getLinks, id, visit)
+	return merkledag.Walk(ctx, getLinks, id, wrap)
 }

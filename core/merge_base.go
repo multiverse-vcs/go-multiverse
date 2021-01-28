@@ -9,8 +9,13 @@ import (
 
 // MergeBase returns the best common ancestor of local and remote.
 func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) (cid.Cid, error) {
-	history, err := Walk(ctx, dag, local, nil)
-	if err != nil {
+	history := make(map[string]bool)
+	visit := func(id cid.Cid) bool {
+		history[id.KeyString()] = true
+		return true
+	}
+
+	if err := Walk(ctx, dag, local, visit); err != nil {
 		return cid.Cid{}, err
 	}
 
@@ -26,7 +31,7 @@ func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) 
 	// find the least common ancestor by searching
 	// for commits that are in both local and remote
 	// and that are also independent from each other
-	cb := func(id cid.Cid) bool {
+	visit = func(id cid.Cid) bool {
 		if err0 != nil {
 			return false
 		}
@@ -42,7 +47,7 @@ func MergeBase(ctx context.Context, dag ipld.DAGService, local, remote cid.Cid) 
 		return false
 	}
 
-	if _, err := Walk(ctx, dag, remote, cb); err != nil {
+	if err := Walk(ctx, dag, remote, visit); err != nil {
 		return cid.Cid{}, err
 	}
 
@@ -55,14 +60,15 @@ func IsAncestor(ctx context.Context, dag ipld.DAGService, parent, child cid.Cid)
 		return false, nil
 	}
 
-	cb := func(id cid.Cid) bool {
-		return id != child
+	var match bool
+	visit := func(id cid.Cid) bool {
+		match = (id == child)
+		return !match
 	}
 
-	history, err := Walk(ctx, dag, parent, cb)
-	if err != nil {
+	if err := Walk(ctx, dag, parent, visit); err != nil {
 		return false, err
 	}
 
-	return history[child.KeyString()], nil
+	return match, nil
 }

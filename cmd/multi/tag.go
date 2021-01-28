@@ -60,7 +60,7 @@ func tagAction(c *cli.Context) error {
 	}
 
 	var reply rpc.TagReply
-	if err = client.Call(action, &args, &reply); err != nil {
+	if err := client.Call(action, &args, &reply); err != nil {
 		return err
 	}
 

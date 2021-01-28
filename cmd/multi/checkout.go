@@ -49,7 +49,7 @@ func checkoutAction(c *cli.Context) error {
 	}
 
 	var reply rpc.CheckoutReply
-	if err = client.Call("Service.Checkout", &args, &reply); err != nil {
+	if err := client.Call("Service.Checkout", &args, &reply); err != nil {
 		return err
 	}
 

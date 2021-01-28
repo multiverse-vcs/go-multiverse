@@ -43,7 +43,7 @@ func statusAction(c *cli.Context) error {
 	}
 
 	var reply rpc.StatusReply
-	if err = client.Call("Service.Status", &args, &reply); err != nil {
+	if err := client.Call("Service.Status", &args, &reply); err != nil {
 		return err
 	}
 

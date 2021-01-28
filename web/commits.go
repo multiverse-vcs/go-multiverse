@@ -53,7 +53,7 @@ func (s *Server) Commits(w http.ResponseWriter, req *http.Request) error {
 		return true
 	}
 
-	if _, err := core.Walk(ctx, s.client, head, visit); err != nil {
+	if err := core.Walk(ctx, s.client, head, visit); err != nil {
 		return err
 	}
 

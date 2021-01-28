@@ -41,7 +41,7 @@ func initAction(c *cli.Context) error {
 	}
 
 	var reply rpc.InitReply
-	if err = client.Call("Service.Init", &args, &reply); err != nil {
+	if err := client.Call("Service.Init", &args, &reply); err != nil {
 		return err
 	}
 

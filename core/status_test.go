@@ -64,5 +64,3 @@ func TestStatus(t *testing.T) {
 		t.Fatalf("unexpected change type")
 	}
 }
-
-

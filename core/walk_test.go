@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/unixfs"
@@ -30,20 +31,25 @@ func TestWalk(t *testing.T) {
 		t.Fatalf("failed to commit")
 	}
 
-	history, err := Walk(ctx, dag, idB, nil)
-	if err != nil {
+	var ids []cid.Cid
+	cb := func(id cid.Cid) bool {
+		ids = append(ids, id)
+		return true
+	}
+
+	if err := Walk(ctx, dag, idB, cb); err != nil {
 		t.Fatalf("failed to walk")
 	}
 
-	if len(history) != 2 {
+	if len(ids) != 2 {
 		t.Fatalf("cids do not match")
 	}
 
-	if !history[idA.KeyString()] {
+	if ids[0] != idB {
 		t.Errorf("cids do not match")
 	}
 
-	if !history[idB.KeyString()] {
+	if ids[1] != idA {
 		t.Errorf("cids do not match")
 	}
 }

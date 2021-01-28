@@ -44,6 +44,7 @@ COMMANDS:
    commit   Record changes
    daemon   Starts a client
    init     Create a repo
+   log      Print repo history
    merge    Merge commits
    status   Print changes
    tag      List, create, or delete tags

@@ -21,6 +21,7 @@ var app = &cli.App{
 		commitCommand,
 		daemonCommand,
 		initCommand,
+		logCommand,
 		mergeCommand,
 		statusCommand,
 		tagCommand,

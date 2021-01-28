@@ -10,7 +10,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
-func TestListBranches(t *testing.T) {
+func TestLog(t *testing.T) {
 	ctx := context.Background()
 
 	dstore := datastore.NewMapDatastore()
@@ -33,11 +33,26 @@ func TestListBranches(t *testing.T) {
 
 	id, err := data.AddRepository(ctx, mock, repo)
 	if err != nil {
-		t.Fatal("failed to create repository")
+		t.Fatal("failed to add repository")
 	}
 
 	if err := store.PutCid(repo.Name, id); err != nil {
 		t.Fatal("failed to put cid in store")
+	}
+
+	json, err = ioutil.ReadFile("testdata/commit.json")
+	if err != nil {
+		t.Fatal("failed to read json")
+	}
+
+	commit, err := data.CommitFromJSON(json)
+	if err != nil {
+		t.Fatal("failed to parse commit json")
+	}
+
+	head, err := data.AddCommit(ctx, mock, commit)
+	if err != nil {
+		t.Fatal("failed to add commit")
 	}
 
 	client, err := connect(mock, store)
@@ -45,20 +60,26 @@ func TestListBranches(t *testing.T) {
 		t.Fatal("failed to connect to rpc server")
 	}
 
-	args := BranchArgs{
-		Name: repo.Name,
+	args := LogArgs{
+		Name:   repo.Name,
+		Branch: "default",
+		Limit:  1,
 	}
 
-	var reply BranchReply
-	if err := client.Call("Service.ListBranches", &args, &reply); err != nil {
+	var reply LogReply
+	if err := client.Call("Service.Log", &args, &reply); err != nil {
 		t.Fatal("failed to call rpc")
 	}
 
-	if len(reply.Branches) != 1 {
-		t.Error("unexpected branches")
+	if len(reply.IDs) != 1 {
+		t.Fatal("unexpected ids")
 	}
 
-	if reply.Branches["default"] != repo.Branches["default"] {
-		t.Error("unexpected branches")
+	if reply.IDs[0] != head {
+		t.Error("unexpected log id")
+	}
+
+	if len(reply.Commits) != 1 {
+		t.Fatal("unexpected commits")
 	}
 }

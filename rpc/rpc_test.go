@@ -25,7 +25,7 @@ func connect(client *peer.Client, store *data.Store) (*rpc.Client, error) {
 		return nil, err
 	}
 
-	defer listener.Close()
+	//defer listener.Close()
 	go server.Accept(listener)
 
 	return rpc.Dial("tcp", listener.Addr().String())
