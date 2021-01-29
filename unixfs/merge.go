@@ -29,5 +29,5 @@ func Merge(ctx context.Context, dag ipld.DAGService, o, a, b cid.Cid) (ipld.Node
 	merged := diff3.Merge(textO, textA, textB)
 	reader := strings.NewReader(merged)
 
-	return addReader(ctx, dag, reader)
+	return Chunk(ctx, dag, reader)
 }
