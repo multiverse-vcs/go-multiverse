@@ -4,6 +4,7 @@ package git
 import (
 	"context"
 	"io/ioutil"
+	"path"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -27,6 +28,7 @@ type importer struct {
 	dag      ipld.DAGService
 	name     string
 	repo     *git.Repository
+	objects  map[string]cid.Cid
 	branches map[string]cid.Cid
 	tags     map[string]cid.Cid
 }
@@ -64,6 +66,7 @@ func NewImporter(ctx context.Context, dag ipld.DAGService, repo *git.Repository,
 		dag:      dag,
 		name:     name,
 		repo:     repo,
+		objects:  make(map[string]cid.Cid),
 		branches: make(map[string]cid.Cid),
 		tags:     make(map[string]cid.Cid),
 	}
@@ -103,7 +106,10 @@ func (i *importer) AddBranch(ref *plumbing.Reference) error {
 		return err
 	}
 
-	i.branches[string(ref.Name())] = id
+	name := string(ref.Name())
+	name = path.Base(name)
+
+	i.branches[name] = id
 	return nil
 }
 
@@ -114,12 +120,19 @@ func (i *importer) AddTag(ref *plumbing.Reference) error {
 		return err
 	}
 
-	i.tags[string(ref.Name())] = id
+	name := string(ref.Name())
+	name = path.Base(name)
+
+	i.tags[name] = id
 	return nil
 }
 
 // AddCommit adds the commit with the given hash to the dag.
 func (i *importer) AddCommit(hash plumbing.Hash) (cid.Cid, error) {
+	if id, ok := i.objects[hash.String()]; ok {
+		return id, nil
+	}
+
 	commit, err := i.repo.CommitObject(hash)
 	if err != nil {
 		return cid.Cid{}, err
@@ -149,11 +162,21 @@ func (i *importer) AddCommit(hash plumbing.Hash) (cid.Cid, error) {
 	mcommit.Metadata["git_committer_email"] = commit.Committer.Email
 	mcommit.Metadata["git_committer_date"] = commit.Committer.When.Format(DateFormat)
 
-	return data.AddCommit(i.ctx, i.dag, mcommit)
+	id, err := data.AddCommit(i.ctx, i.dag, mcommit)
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
+	i.objects[hash.String()] = id
+	return id, nil
 }
 
 // AddTree adds the tree with the given hash to the dag.
 func (i *importer) AddTree(hash plumbing.Hash) (ipld.Node, error) {
+	if id, ok := i.objects[hash.String()]; ok {
+		return i.dag.Get(i.ctx, id)
+	}
+
 	tree, err := i.repo.TreeObject(hash)
 	if err != nil {
 		return nil, err
@@ -180,6 +203,7 @@ func (i *importer) AddTree(hash plumbing.Hash) (ipld.Node, error) {
 		return nil, err
 	}
 
+	i.objects[hash.String()] = node.Cid()
 	return node, nil
 }
 

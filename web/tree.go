@@ -47,11 +47,7 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) error {
 
 	name := params.ByName("name")
 	file := params.ByName("file")
-
 	ref := params.ByName("ref")
-	if ref == "" {
-		ref = "default"
-	}
 
 	id, err := s.store.GetCid(name)
 	if err != nil {
@@ -61,6 +57,10 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) error {
 	repo, err := data.GetRepository(ctx, s.client, id)
 	if err != nil {
 		return err
+	}
+
+	if ref == "" {
+		ref = repo.DefaultBranch()
 	}
 
 	head, err := repo.Ref(ref)

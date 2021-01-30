@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/urfave/cli/v2"
@@ -49,6 +50,11 @@ func importAction(c *cli.Context) error {
 		return errors.New("repo already exists")
 	}
 
+	dir, err := filepath.Abs(c.String("dir"))
+	if err != nil {
+		return err
+	}
+
 	client, err := rpc.NewClient()
 	if err != nil {
 		return err
@@ -58,7 +64,7 @@ func importAction(c *cli.Context) error {
 		Name: name,
 		Type: c.String("type"),
 		URL:  c.String("url"),
-		Dir:  c.String("dir"),
+		Dir:  dir,
 	}
 
 	var reply rpc.ImportReply

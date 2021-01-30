@@ -96,6 +96,14 @@ func NewRepository(name string) *Repository {
 	}
 }
 
+// DefaultBranch returns the default branch of the repo.
+func (r *Repository) DefaultBranch() string {
+	for branch := range r.Branches {
+		return branch
+	}
+	return ""
+}
+
 // Ref returns the cid of the given ref.
 func (r *Repository) Ref(ref string) (cid.Cid, error) {
 	if id, ok := r.Branches[ref]; ok {
