@@ -43,6 +43,7 @@ COMMANDS:
    branch   List, create, or delete branches
    commit   Record changes
    daemon   Starts a client
+   import   Import a repo
    init     Create a repo
    log      Print repo history
    merge    Merge commits
