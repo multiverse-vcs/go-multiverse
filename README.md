@@ -1,10 +1,11 @@
 # Multiverse
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
+[![Gitter](https://badges.gitter.im/multiverse-vcs/community.svg)](https://gitter.im/multiverse-vcs/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-A decentralized version control system for peer-to-peer software development.
+> A decentralized version control system for peer-to-peer software development.
 
-> This project is currently alpha quality.
+*This project is under heavy development. Changes may cause compatibility issues with previous versions.*
 
 ### Features
 
