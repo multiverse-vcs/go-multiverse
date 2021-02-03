@@ -3,8 +3,10 @@ package git
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -35,7 +37,9 @@ type importer struct {
 
 // ImportFromFS is a helper to import a git repo from a directory.
 func ImportFromFS(ctx context.Context, dag ipld.DAGService, name, dir string) (cid.Cid, error) {
-	repo, err := git.PlainOpen(dir)
+	dot := filepath.Join(dir, ".git")
+
+	repo, err := git.PlainOpen(dot)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -209,8 +213,11 @@ func (i *importer) AddTree(hash plumbing.Hash) (ipld.Node, error) {
 
 // AddTreeEntry adds the tree entry with the given hash to the dag.
 func (i *importer) AddTreeEntry(entry object.TreeEntry) (ipld.Node, error) {
-	if entry.Mode == filemode.Dir {
+	switch entry.Mode {
+	case filemode.Dir:
 		return i.AddTree(entry.Hash)
+	case filemode.Submodule:
+		return nil, errors.New("submodules not supported")
 	}
 
 	blob, err := i.repo.BlobObject(entry.Hash)
