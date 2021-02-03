@@ -41,7 +41,7 @@ func TestImportFromFS(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	opts := git.CloneOptions{
-		URL: "https://github.com/multiverse-vcs/go-multiverse",
+		URL: "https://github.com/hsoft/collapseos",
 	}
 
 	_, err = git.PlainClone(dir, false, &opts)

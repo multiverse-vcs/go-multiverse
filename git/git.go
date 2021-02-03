@@ -3,7 +3,6 @@ package git
 
 import (
 	"context"
-	"errors"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -16,6 +15,7 @@ import (
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-merkledag"
+	ufs "github.com/ipfs/go-unixfs"
 	ufsio "github.com/ipfs/go-unixfs/io"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/unixfs"
@@ -217,7 +217,7 @@ func (i *importer) AddTreeEntry(entry object.TreeEntry) (ipld.Node, error) {
 	case filemode.Dir:
 		return i.AddTree(entry.Hash)
 	case filemode.Submodule:
-		return nil, errors.New("submodules not supported")
+		return ufs.EmptyDirNode(), nil
 	}
 
 	blob, err := i.repo.BlobObject(entry.Hash)
