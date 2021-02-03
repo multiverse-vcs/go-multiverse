@@ -11,6 +11,8 @@ import (
 type InitArgs struct {
 	// Name is the name of the repo.
 	Name string
+	// Branch is the name of the default branch.
+	Branch string
 }
 
 // InitReply contains the reply.
@@ -24,11 +26,16 @@ func (s *Service) Init(args *InitArgs, reply *InitReply) error {
 		return errors.New("name cannot be empty")
 	}
 
+	if args.Branch == "" {
+		return errors.New("branch cannot be empty")
+	}
+
 	if _, err := s.store.GetCid(args.Name); err == nil {
 		return errors.New("repo with name already exists")
 	}
 
 	repo := data.NewRepository(args.Name)
+	repo.DefaultBranch = args.Branch
 
 	id, err := data.AddRepository(ctx, s.client, repo)
 	if err != nil {

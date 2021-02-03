@@ -17,7 +17,7 @@ import (
 var formatter = html.New(
 	html.WithLineNumbers(true),
 	html.LineNumbersInTable(true),
-	html.LinkableLineNumbers(true, "line-"),
+	html.LinkableLineNumbers(true, ""),
 )
 
 // funcs contains template helpers.

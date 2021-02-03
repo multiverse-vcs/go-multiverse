@@ -1,8 +1,8 @@
 {{ define "partial" }}
-  {{ range $i, $c := .List }}
+  {{ range $i, $c := .Commits.List }}
   <div class="box">
     <div class="is-pulled-right">
-      {{ $cid := index $.IDs $i }}
+      {{ $cid := index $.Commits.IDs $i }}
       <div class="buttons">
         <button class="button">
           <span class="is-family-monospace">

@@ -19,7 +19,7 @@
         </ul>
       </nav>
     </div>
-  {{ range .Tree }}
+  {{ range .Tree.Entries }}
     {{ if .IsDir }}
     <a href={{ join "/" $.Repo.Name $.Ref "tree" $.Path .Name }} class="panel-block" >
       <span class="panel-icon">
@@ -41,10 +41,10 @@
     {{ end }}
   {{ end }}
   </div>
-  {{ if .Readme }}
+  {{ if .Tree.Readme }}
     <div class="box">
       <div class="content">
-        {{ markdown .Readme }}
+        {{ markdown .Tree.Readme }}
       </div>
     </div>
   {{ end }}

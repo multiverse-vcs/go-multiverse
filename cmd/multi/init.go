@@ -13,14 +13,20 @@ var initCommand = &cli.Command{
 	Name:      "init",
 	Usage:     "Create a repo",
 	ArgsUsage: "<name>",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    "branch",
+			Aliases: []string{"b"},
+			Usage:   "Default branch",
+			Value:   DefaultBranch,
+		},
+	},
 }
 
 func initAction(c *cli.Context) error {
 	if c.NArg() < 1 {
 		cli.ShowSubcommandHelpAndExit(c, 1)
 	}
-
-	name := c.Args().Get(0)
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -37,7 +43,8 @@ func initAction(c *cli.Context) error {
 	}
 
 	args := rpc.InitArgs{
-		Name: name,
+		Name:   c.Args().Get(0),
+		Branch: c.String("branch"),
 	}
 
 	var reply rpc.InitReply
@@ -46,6 +53,7 @@ func initAction(c *cli.Context) error {
 	}
 
 	config := NewConfig(cwd)
-	config.Name = name
+	config.Name = args.Name
+	config.Branch = args.Branch
 	return config.Save()
 }

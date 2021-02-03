@@ -28,7 +28,7 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 	ctx := context.Background()
 
 	if args.Type != "git" {
-		return errors.New("unsupported repo format")
+		return errors.New("type not supported")
 	}
 
 	if args.Name == "" {

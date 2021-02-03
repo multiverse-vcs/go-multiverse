@@ -17,7 +17,6 @@ import (
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-path"
 	"github.com/ipfs/go-path/resolver"
-	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
@@ -36,7 +35,6 @@ const (
 type Client struct {
 	ipld.DAGService
 	host   host.Host
-	priv   crypto.PrivKey
 	bstore blockstore.Blockstore
 	dstore datastore.Batching
 	resolv *resolver.Resolver
@@ -45,7 +43,12 @@ type Client struct {
 }
 
 // New returns a peer with a p2p host and persistent storage.
-func New(ctx context.Context, dstore datastore.Batching, priv crypto.PrivKey) (*Client, error) {
+func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Client, error) {
+	priv, err := p2p.DecodeKey(config.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
 	host, router, err := p2p.NewHost(ctx, priv)
 	if err != nil {
 		return nil, err
@@ -80,8 +83,8 @@ func New(ctx context.Context, dstore datastore.Batching, priv crypto.PrivKey) (*
 
 	return &Client{
 		DAGService: dag,
+		config:     config,
 		host:       host,
-		priv:       priv,
 		bstore:     bstore,
 		dstore:     dstore,
 		resolv:     resolv,
@@ -90,9 +93,14 @@ func New(ctx context.Context, dstore datastore.Batching, priv crypto.PrivKey) (*
 	}, nil
 }
 
+// Config returns the peer config.
+func (c *Client) Config() *Config {
+	return c.config
+}
+
 // PeerID returns the peer id of the client.
-func (c *Client) PeerID() (peer.ID, error) {
-	return peer.IDFromPrivateKey(c.priv)
+func (c *Client) PeerID() peer.ID {
+	return c.host.ID()
 }
 
 // ResolvePath resolves the node from the given path.

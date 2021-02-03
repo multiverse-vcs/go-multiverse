@@ -3,7 +3,7 @@
 	  {{ range $i, $v := .List }}
 	  <section class="section">
 	    <h1 class="title">
-	    	<a href={{ index $.Keys $i }}>
+	    	<a href={{ join "/repo" (index $.Keys $i) }}>
 	    		{{ $v.Name }}
 	    	</a>
 	    </h1>

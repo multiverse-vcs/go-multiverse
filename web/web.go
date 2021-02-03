@@ -5,7 +5,6 @@ import (
 	"embed"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
@@ -39,15 +38,14 @@ func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func ListenAndServe(client *peer.Client, store *data.Store) error {
 	server := &Server{client, store}
 
-	router := httprouter.New()
-	router.Handler(http.MethodGet, "/", View(server.Home))
-	router.Handler(http.MethodGet, "/:name", View(server.Tree))
-	router.Handler(http.MethodGet, "/:name/:ref/commits", View(server.Commits))
-	router.Handler(http.MethodGet, "/:name/:ref/tree", View(server.Tree))
-	router.Handler(http.MethodGet, "/:name/:ref/tree/*file", View(server.Tree))
-	router.Handler(http.MethodGet, "/:name/:ref/blob/*file", View(server.Blob))
+	// router := httprouter.New()
+	// router.Handler(http.MethodGet, "/", View(server.Home))
+	// router.Handler(http.MethodGet, "/:name", View(server.Repo))
+	// router.Handler(http.MethodGet, "/:name/:ref/:page", View(server.Repo))
+	// router.Handler(http.MethodGet, "/:name/:ref/:page/*file", View(server.Repo))
 
-	http.Handle("/", router)
+	http.Handle("/", View(server.Home))
+	http.Handle("/repo/", View(server.Repo))
 	http.Handle("/static/", http.FileServer(http.FS(static)))
 	return http.ListenAndServe(BindAddr, nil)
 }

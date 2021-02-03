@@ -23,7 +23,7 @@ var cloneCommand = &cli.Command{
 			Name:    "branch",
 			Aliases: []string{"b"},
 			Usage:   "Branch name",
-			Value:   "default",
+			Value:   "main",
 		},
 		&cli.IntFlag{
 			Name:    "limit",
