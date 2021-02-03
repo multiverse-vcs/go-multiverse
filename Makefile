@@ -13,6 +13,10 @@ multi:
 install:
 	$(GOCC) install ./cmd/multi
 
+install-systemd: install
+	mkdir -p $(HOME)/.config/systemd/user/
+	cp multiverse.service $(HOME)/.config/systemd/user
+
 test:
 	$(GOCC) test ./... -cover
 
