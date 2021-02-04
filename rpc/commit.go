@@ -34,14 +34,15 @@ type CommitReply struct {
 // Commit records changes to the repo
 func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
 	if args.Branch == "" {
 		return errors.New("branch cannot be empty")
 	}
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)
@@ -68,14 +69,14 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	if err != nil {
 		return err
 	}
-
 	repo.Branches[args.Branch] = head
 
 	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	cfg.Author.Repositories[args.Name] = id
 
 	reply.Index = head
-	return s.store.PutCid(repo.Name, id)
+	return cfg.Save()
 }

@@ -12,11 +12,14 @@ import (
 
 func TestListBranches(t *testing.T) {
 	ctx := context.Background()
-
 	dstore := datastore.NewMapDatastore()
-	store := data.NewStore(dstore)
 
-	mock, err := peer.Mock(ctx, dstore)
+	config, err := peer.NewConfig("")
+	if err != nil {
+		t.Fatal("failed to create config")
+	}
+
+	mock, err := peer.Mock(ctx, dstore, config)
 	if err != nil {
 		t.Fatal("failed to create peer")
 	}
@@ -35,12 +38,9 @@ func TestListBranches(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed to create repository")
 	}
+	config.Author.Repositories[repo.Name] = id
 
-	if err := store.PutCid(repo.Name, id); err != nil {
-		t.Fatal("failed to put cid in store")
-	}
-
-	client, err := connect(mock, store)
+	client, err := connect(mock)
 	if err != nil {
 		t.Fatal("failed to connect to rpc server")
 	}

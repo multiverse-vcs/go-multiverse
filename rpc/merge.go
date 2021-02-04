@@ -35,6 +35,7 @@ type MergeReply struct {
 // Merge merges changes into the repo head.
 func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
 	equal, err := core.Equal(ctx, s.client, args.Root, args.Ignore, args.Index)
 	if err != nil {
@@ -45,9 +46,9 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)
@@ -83,15 +84,15 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	if err != nil {
 		return err
 	}
-
 	repo.Branches[args.Branch] = index
 
 	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	cfg.Author.Repositories[args.Name] = id
 
-	if err := s.store.PutCid(repo.Name, id); err != nil {
+	if err := cfg.Save(); err != nil {
 		return err
 	}
 

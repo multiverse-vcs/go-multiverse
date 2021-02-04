@@ -12,11 +12,14 @@ import (
 
 func TestLog(t *testing.T) {
 	ctx := context.Background()
-
 	dstore := datastore.NewMapDatastore()
-	store := data.NewStore(dstore)
 
-	mock, err := peer.Mock(ctx, dstore)
+	config, err := peer.NewConfig("")
+	if err != nil {
+		t.Fatal("failed to create config")
+	}
+
+	mock, err := peer.Mock(ctx, dstore, config)
 	if err != nil {
 		t.Fatal("failed to create peer")
 	}
@@ -35,10 +38,7 @@ func TestLog(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed to add repository")
 	}
-
-	if err := store.PutCid(repo.Name, id); err != nil {
-		t.Fatal("failed to put cid in store")
-	}
+	config.Author.Repositories[repo.Name] = id
 
 	json, err = ioutil.ReadFile("testdata/commit.json")
 	if err != nil {
@@ -55,7 +55,7 @@ func TestLog(t *testing.T) {
 		t.Fatal("failed to add commit")
 	}
 
-	client, err := connect(mock, store)
+	client, err := connect(mock)
 	if err != nil {
 		t.Fatal("failed to connect to rpc server")
 	}

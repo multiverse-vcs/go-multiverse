@@ -22,8 +22,8 @@ type Config struct {
 	path string
 }
 
-// GenerateConfig creates and saves a config with default settings.
-func GenerateConfig(root string) (*Config, error) {
+// NewConfig creates and saves a config with default settings.
+func NewConfig(root string) (*Config, error) {
 	priv, err := p2p.GenerateKey()
 	if err != nil {
 		return nil, err
@@ -40,23 +40,14 @@ func GenerateConfig(root string) (*Config, error) {
 		path:       filepath.Join(root, ConfigFile),
 	}
 
-	if err := config.Save(); err != nil {
-		return nil, err
-	}
-
 	return &config, nil
 }
 
 // LoadConfig returns a config from the given root dir.
-// If it does not exist a new default config is returned.
 func LoadConfig(root string) (*Config, error) {
 	path := filepath.Join(root, ConfigFile)
 
 	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
-		return GenerateConfig(root)
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +59,26 @@ func LoadConfig(root string) (*Config, error) {
 
 	config.path = path
 	return &config, nil
+}
+
+// OpenConfig loads the config from the given root dir.
+// If the config does not exist a new one is generated.
+func OpenConfig(root string) (*Config, error) {
+	config, err := LoadConfig(root)
+	if err == nil {
+		return config, nil
+	}
+
+	if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	config, err = NewConfig(root)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, config.Save()
 }
 
 // Save writes the config to the path.

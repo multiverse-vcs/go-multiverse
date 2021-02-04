@@ -28,10 +28,11 @@ type LogReply struct {
 // Log returns the changes between the working directory and repo head.
 func (s *Service) Log(args *LogArgs, reply *LogReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)

@@ -26,6 +26,7 @@ type ImportReply struct{}
 // Import creates a new repo from an existing git repo.
 func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
 	if args.Type != "git" {
 		return errors.New("type not supported")
@@ -35,7 +36,7 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 		return errors.New("name cannot be empty")
 	}
 
-	if _, err := s.store.GetCid(args.Name); err == nil {
+	if _, ok := cfg.Author.Repositories[args.Name]; ok {
 		return errors.New("repo with name already exists")
 	}
 
@@ -55,5 +56,6 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 		return err
 	}
 
-	return s.store.PutCid(args.Name, id)
+	cfg.Author.Repositories[args.Name] = id
+	return cfg.Save()
 }

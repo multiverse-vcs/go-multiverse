@@ -13,7 +13,7 @@ import (
 )
 
 // Mock returns an offline peer with in memory storage.
-func Mock(ctx context.Context, dstore datastore.Batching) (*Client, error) {
+func Mock(ctx context.Context, dstore datastore.Batching, config *Config) (*Client, error) {
 	bstore := blockstore.NewBlockstore(dstore)
 	exc := offline.Exchange(bstore)
 	bserv := blockservice.New(bstore, exc)
@@ -23,6 +23,7 @@ func Mock(ctx context.Context, dstore datastore.Batching) (*Client, error) {
 
 	return &Client{
 		DAGService: dag,
+		config:     config,
 		bstore:     bstore,
 		dstore:     dstore,
 		resolv:     resolv,

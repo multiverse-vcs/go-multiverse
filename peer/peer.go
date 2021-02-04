@@ -35,6 +35,7 @@ const (
 type Client struct {
 	ipld.DAGService
 	host   host.Host
+	config *Config
 	bstore blockstore.Blockstore
 	dstore datastore.Batching
 	resolv *resolver.Resolver
@@ -83,8 +84,8 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 
 	return &Client{
 		DAGService: dag,
-		config:     config,
 		host:       host,
+		config:     config,
 		bstore:     bstore,
 		dstore:     dstore,
 		resolv:     resolv,

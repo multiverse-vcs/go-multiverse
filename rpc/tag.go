@@ -27,10 +27,11 @@ type TagReply struct {
 // ListTags returns the repo tags.
 func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)
@@ -45,10 +46,11 @@ func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 // CreateTag creates a new tag.
 func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)
@@ -65,23 +67,25 @@ func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	}
 
 	repo.Tags[args.Tag] = args.Head
+	reply.Tags = repo.Tags
 
 	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	cfg.Author.Repositories[args.Name] = id
 
-	reply.Tags = repo.Tags
-	return s.store.PutCid(repo.Name, id)
+	return cfg.Save()
 }
 
 // DeleteTag deletes an existing tag.
 func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)
@@ -98,12 +102,13 @@ func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	}
 
 	delete(repo.Tags, args.Tag)
+	reply.Tags = repo.Tags
 
 	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+	cfg.Author.Repositories[args.Name] = id
 
-	reply.Tags = repo.Tags
-	return s.store.PutCid(repo.Name, id)
+	return cfg.Save()
 }

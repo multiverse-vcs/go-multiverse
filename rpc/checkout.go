@@ -32,6 +32,7 @@ type CheckoutReply struct{}
 // Checkout copies the tree of an existing commit to the root.
 func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 	ctx := context.Background()
+	cfg := s.client.Config()
 
 	equal, err := core.Equal(ctx, s.client, args.Root, args.Ignore, args.Index)
 	if err != nil {
@@ -42,9 +43,9 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
 	repo, err := data.GetRepository(ctx, s.client, id)
