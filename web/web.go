@@ -4,6 +4,7 @@ package web
 import (
 	"embed"
 	"net/http"
+	"path"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/multiverse-vcs/go-multiverse/peer"
@@ -28,11 +29,19 @@ func ListenAndServe(client *peer.Client) error {
 	server := &Server{client}
 
 	router := httprouter.New()
-	router.Handler(http.MethodGet, "/", View(server.Home))
-	router.Handler(http.MethodGet, "/:name/:refs/:head/tree", View(server.Tree))
-	router.Handler(http.MethodGet, "/:name/:refs/:head/tree/*file", View(server.Tree))
+	router.HandlerFunc(http.MethodGet, "/", server.Index)
+	router.Handler(http.MethodGet, "/:peer_id", View(server.Author))
+	router.Handler(http.MethodGet, "/:peer_id/repositories/:name/:refs/:head/tree", View(server.Tree))
+	router.Handler(http.MethodGet, "/:peer_id/repositories/:name/:refs/:head/tree/*file", View(server.Tree))
 
 	http.Handle("/", router)
 	http.Handle("/static/", http.FileServer(http.FS(static)))
 	return http.ListenAndServe(BindAddr, nil)
+}
+
+// Index redirects to the current author page.
+func (s *Server) Index(w http.ResponseWriter, req *http.Request) {
+	peerID := s.client.PeerID().String()
+	url := path.Join("/", peerID)
+	http.Redirect(w, req, url, http.StatusTemporaryRedirect)
 }

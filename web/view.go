@@ -9,6 +9,7 @@ import (
 
 	"github.com/ipfs/go-path"
 	"github.com/julienschmidt/httprouter"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/unixfs"
 )
@@ -23,15 +24,11 @@ type View func(http.ResponseWriter, *http.Request) (*ViewModel, error)
 // ViewModel contains the data for the template.
 type ViewModel struct {
 	Name string
-	Page template.HTML
 	Data interface{}
 }
 
 // ServeHTTP handles http requests to a route.
 func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// uncomment below for development page reloads
-	layout = template.Must(template.New("index.html").Funcs(funcs).ParseGlob("web/html/*"))
-
 	model, err := v(w, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -42,21 +39,33 @@ func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	model.Page = template.HTML(page.String())
-	if err := layout.Execute(w, &model); err != nil {
+	data := template.HTML(page.String())
+	if err := layout.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-// Home renders the repository list.
-func (s *Server) Home(w http.ResponseWriter, req *http.Request) (*ViewModel, error) {
+// Author renders the repository list.
+func (s *Server) Author(w http.ResponseWriter, req *http.Request) (*ViewModel, error) {
 	ctx := req.Context()
-	cfg := s.client.Config()
+
+	params := httprouter.ParamsFromContext(ctx)
+	peerID := params.ByName("peer_id")
+
+	pid, err := peer.Decode(peerID)
+	if err != nil {
+		return nil, err
+	}
+
+	author, err := s.client.Pubsub().SearchAuthor(ctx, pid)
+	if err != nil {
+		return nil, err
+	}
 
 	var keys []string
 	var list []*data.Repository
 
-	for name, id := range cfg.Author.Repositories {
+	for name, id := range author.Repositories {
 		repo, err := data.GetRepository(ctx, s.client, id)
 		if err != nil {
 			return nil, err
@@ -66,17 +75,12 @@ func (s *Server) Home(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 		list = append(list, repo)
 	}
 
-	metrics, err := s.client.GetMetrics()
-	if err != nil {
-		return nil, err
-	}
-
 	return &ViewModel{
-		Name: "home.html",
+		Name: "author.html",
 		Data: map[string]interface{}{
-			"Keys":    keys,
-			"List":    list,
-			"Metrics": metrics,
+			"Keys":   keys,
+			"List":   list,
+			"PeerID": peerID,
 		},
 	}, nil
 }
@@ -84,25 +88,35 @@ func (s *Server) Home(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 // Tree renders the blob and tree file viewer.
 func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, error) {
 	ctx := req.Context()
-	cfg := s.client.Config()
 
 	params := httprouter.ParamsFromContext(ctx)
+	peerID := params.ByName("peer_id")
 	name := params.ByName("name")
 	refs := params.ByName("refs")
 	head := params.ByName("head")
 	file := params.ByName("file")
 
-	id, ok := cfg.Author.Repositories[name]
-	if !ok {
-		return nil, errors.New("repository does not exist")
-	}
-
-	repo, err := data.GetRepository(ctx, s.client, id)
+	pid, err := peer.Decode(peerID)
 	if err != nil {
 		return nil, err
 	}
 
-	fpath, err := path.FromSegments("/ipfs/", id.String(), refs, head, "tree", file)
+	author, err := s.client.Pubsub().SearchAuthor(ctx, pid)
+	if err != nil {
+		return nil, err
+	}
+
+	repoID, ok := author.Repositories[name]
+	if !ok {
+		return nil, errors.New("repository does not exist")
+	}
+
+	repo, err := data.GetRepository(ctx, s.client, repoID)
+	if err != nil {
+		return nil, err
+	}
+
+	fpath, err := path.FromSegments("/ipfs/", repoID.String(), refs, head, "tree", file)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +145,7 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 		}
 
 		entry, err := unixfs.Find(ctx, s.client, fnode.Cid(), readmePattern)
-		if err != nil {
-			return nil, err
-		}
-
-		if entry == nil {
+		if err != nil || entry == nil {
 			break
 		}
 
@@ -154,7 +164,8 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 	return &ViewModel{
 		Name: "tree.html",
 		Data: map[string]interface{}{
-			"ID":         id,
+			"RepoID":     repoID,
+			"PeerID":     peerID,
 			"Repo":       repo,
 			"Refs":       refs,
 			"File":       file,

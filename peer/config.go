@@ -22,7 +22,7 @@ type Config struct {
 	path string
 }
 
-// NewConfig creates and saves a config with default settings.
+// NewConfig creates a config with default settings.
 func NewConfig(root string) (*Config, error) {
 	priv, err := p2p.GenerateKey()
 	if err != nil {

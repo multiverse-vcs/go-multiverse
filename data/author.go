@@ -32,7 +32,7 @@ func GetAuthor(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Author, e
 
 // AddAuthor adds a author to the given dag.
 func AddAuthor(ctx context.Context, dag ipld.DAGService, author *Author) (cid.Cid, error) {
-	node, err := cbornode.WrapObject(author, multihash.SHA2_256, -1)
+	node, err := author.Node()
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -44,7 +44,7 @@ func AddAuthor(ctx context.Context, dag ipld.DAGService, author *Author) (cid.Ci
 	return node.Cid(), nil
 }
 
-// AuthorFromJON decodes a author from json.
+// AuthorFromJSON decodes a author from json.
 func AuthorFromJSON(data []byte) (*Author, error) {
 	var author Author
 	if err := json.Unmarshal(data, &author); err != nil {
@@ -69,4 +69,9 @@ func NewAuthor() *Author {
 	return &Author{
 		Repositories: make(map[string]cid.Cid),
 	}
+}
+
+// Node returns a cbornode containing the author.
+func (a *Author) Node() (ipld.Node, error) {
+	return cbornode.WrapObject(a, multihash.SHA2_256, -1)
 }

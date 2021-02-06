@@ -38,6 +38,7 @@ type Client struct {
 	config *Config
 	bstore blockstore.Blockstore
 	dstore datastore.Batching
+	pubsub *p2p.Pubsub
 	resolv *resolver.Resolver
 	router routing.Routing
 	system provider.System
@@ -51,6 +52,11 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 	}
 
 	host, router, err := p2p.NewHost(ctx, priv)
+	if err != nil {
+		return nil, err
+	}
+
+	pubsub, err := p2p.NewPubsub(ctx, host)
 	if err != nil {
 		return nil, err
 	}
@@ -82,16 +88,27 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 		return nil, err
 	}
 
+	// TODO use persistent store for pubsub so we don't have to add everytime
+	if err := pubsub.PutAuthor(ctx, host.ID(), config.Author); err != nil {
+		return nil, err
+	}
+
 	return &Client{
 		DAGService: dag,
 		host:       host,
 		config:     config,
 		bstore:     bstore,
 		dstore:     dstore,
+		pubsub:     pubsub,
 		resolv:     resolv,
 		router:     router,
 		system:     system,
 	}, nil
+}
+
+// Pubsub returns the pubsub api.
+func (c *Client) Pubsub() *p2p.Pubsub {
+	return c.pubsub
 }
 
 // Config returns the peer config.

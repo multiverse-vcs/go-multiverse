@@ -37,7 +37,7 @@ func GetCommit(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Commit, e
 
 // AddCommit adds a commit to the given dag.
 func AddCommit(ctx context.Context, dag ipld.DAGService, commit *Commit) (cid.Cid, error) {
-	node, err := cbornode.WrapObject(commit, multihash.SHA2_256, -1)
+	node, err := commit.Node()
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -49,7 +49,7 @@ func AddCommit(ctx context.Context, dag ipld.DAGService, commit *Commit) (cid.Ci
 	return node.Cid(), nil
 }
 
-// CommitFromJON decodes a commit from json.
+// CommitFromJSON decodes a commit from json.
 func CommitFromJSON(data []byte) (*Commit, error) {
 	var commit Commit
 	if err := json.Unmarshal(data, &commit); err != nil {
@@ -78,6 +78,11 @@ func NewCommit(tree cid.Cid, message string, parents ...cid.Cid) *Commit {
 		Tree:     tree,
 		Parents:  parents,
 	}
+}
+
+// Node returns a cbornode containing the commit.
+func (c *Commit) Node() (ipld.Node, error) {
+	return cbornode.WrapObject(c, multihash.SHA2_256, -1)
 }
 
 // ParentLinks returns parent ipld links.
