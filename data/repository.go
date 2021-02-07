@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipld-cbor"
+	cbornode "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiformats/go-multihash"
 )
@@ -38,7 +38,7 @@ func GetRepository(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Repos
 
 // AddRepository adds a repo to the given dag.
 func AddRepository(ctx context.Context, dag ipld.DAGService, repo *Repository) (cid.Cid, error) {
-	node, err := repo.Node()
+	node, err := cbornode.WrapObject(repo, multihash.SHA2_256, -1)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -78,9 +78,4 @@ func NewRepository(name string) *Repository {
 		Tags:     make(map[string]cid.Cid),
 		Metadata: make(map[string]string),
 	}
-}
-
-// Node returns a cbornode containing the repository.
-func (r *Repository) Node() (ipld.Node, error) {
-	return cbornode.WrapObject(r, multihash.SHA2_256, -1)
 }

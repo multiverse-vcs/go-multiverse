@@ -64,6 +64,10 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
+	if err := client.Authors().Publish(c.Context); err != nil {
+		return err
+	}
+
 	go web.ListenAndServe(client)
 	go rpc.ListenAndServe(client)
 

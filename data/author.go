@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipld-cbor"
+	cbornode "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiformats/go-multihash"
 )
@@ -32,7 +32,7 @@ func GetAuthor(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Author, e
 
 // AddAuthor adds a author to the given dag.
 func AddAuthor(ctx context.Context, dag ipld.DAGService, author *Author) (cid.Cid, error) {
-	node, err := author.Node()
+	node, err := cbornode.WrapObject(author, multihash.SHA2_256, -1)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -69,9 +69,4 @@ func NewAuthor() *Author {
 	return &Author{
 		Repositories: make(map[string]cid.Cid),
 	}
-}
-
-// Node returns a cbornode containing the author.
-func (a *Author) Node() (ipld.Node, error) {
-	return cbornode.WrapObject(a, multihash.SHA2_256, -1)
 }

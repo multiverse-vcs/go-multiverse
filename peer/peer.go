@@ -3,19 +3,16 @@ package peer
 
 import (
 	"context"
-	"time"
 
-	"github.com/ipfs/go-bitswap"
+	bitswap "github.com/ipfs/go-bitswap"
 	bsnet "github.com/ipfs/go-bitswap/network"
-	"github.com/ipfs/go-blockservice"
-	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ipfs-blockstore"
-	"github.com/ipfs/go-ipfs-provider"
-	"github.com/ipfs/go-ipfs-provider/queue"
-	"github.com/ipfs/go-ipfs-provider/simple"
+	blockservice "github.com/ipfs/go-blockservice"
+	datastore "github.com/ipfs/go-datastore"
+	blockstore "github.com/ipfs/go-ipfs-blockstore"
+	provider "github.com/ipfs/go-ipfs-provider"
 	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/ipfs/go-merkledag"
-	"github.com/ipfs/go-path"
+	merkledag "github.com/ipfs/go-merkledag"
+	path "github.com/ipfs/go-path"
 	"github.com/ipfs/go-path/resolver"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -24,24 +21,17 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
-const (
-	// ReprovideInterval is the time between reprovides.
-	ReprovideInterval = 12 * time.Hour
-	// QueueName is the name for the provider queue.
-	QueueName = "repro"
-)
-
 // Client manages peer services.
 type Client struct {
 	ipld.DAGService
-	host   host.Host
-	config *Config
-	bstore blockstore.Blockstore
-	dstore datastore.Batching
-	pubsub *p2p.Pubsub
-	resolv *resolver.Resolver
-	router routing.Routing
-	system provider.System
+	host    host.Host
+	config  *Config
+	bstore  blockstore.Blockstore
+	dstore  datastore.Batching
+	namesys routing.ValueStore
+	provsys provider.System
+	resolv  *resolver.Resolver
+	router  routing.Routing
 }
 
 // New returns a peer with a p2p host and persistent storage.
@@ -56,7 +46,7 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 		return nil, err
 	}
 
-	pubsub, err := p2p.NewPubsub(ctx, host)
+	namesys, err := p2p.NewNamesys(ctx, host)
 	if err != nil {
 		return nil, err
 	}
@@ -68,17 +58,11 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 	dag := merkledag.NewDAGService(bserv)
 	resolv := resolver.NewBasicResolver(dag)
 
-	queue, err := queue.NewQueue(ctx, QueueName, dstore)
+	provsys, err := p2p.NewProvider(ctx, dstore, bstore, router)
 	if err != nil {
 		return nil, err
 	}
-
-	prov := simple.NewProvider(ctx, queue, router)
-	keys := simple.NewBlockstoreProvider(bstore)
-	reprov := simple.NewReprovider(ctx, ReprovideInterval, router, keys)
-
-	system := provider.NewSystem(prov, reprov)
-	system.Run()
+	provsys.Run()
 
 	for _, info := range dht.GetDefaultBootstrapPeerAddrInfos() {
 		go host.Connect(ctx, info)
@@ -88,27 +72,22 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 		return nil, err
 	}
 
-	// TODO use persistent store for pubsub so we don't have to add everytime
-	if err := pubsub.PutAuthor(ctx, host.ID(), config.Author); err != nil {
-		return nil, err
-	}
-
 	return &Client{
 		DAGService: dag,
 		host:       host,
 		config:     config,
 		bstore:     bstore,
 		dstore:     dstore,
-		pubsub:     pubsub,
 		resolv:     resolv,
 		router:     router,
-		system:     system,
+		provsys:    provsys,
+		namesys:    namesys,
 	}, nil
 }
 
-// Pubsub returns the pubsub api.
-func (c *Client) Pubsub() *p2p.Pubsub {
-	return c.pubsub
+// Authors returns the authors api.
+func (c *Client) Authors() *authors {
+	return (*authors)(c)
 }
 
 // Config returns the peer config.

@@ -1,8 +1,6 @@
 package peer
 
 import (
-	"context"
-
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipfs-blockstore"
@@ -13,13 +11,19 @@ import (
 )
 
 // Mock returns an offline peer with in memory storage.
-func Mock(ctx context.Context, dstore datastore.Batching, config *Config) (*Client, error) {
+func Mock() (*Client, error) {
+	config, err := NewConfig("")
+	if err != nil {
+		return nil, err
+	}
+
+	dstore := datastore.NewMapDatastore()
 	bstore := blockstore.NewBlockstore(dstore)
 	exc := offline.Exchange(bstore)
 	bserv := blockservice.New(bstore, exc)
 	dag := merkledag.NewDAGService(bserv)
 	resolv := resolver.NewBasicResolver(dag)
-	system := provider.NewOfflineProvider()
+	provsys := provider.NewOfflineProvider()
 
 	return &Client{
 		DAGService: dag,
@@ -27,6 +31,6 @@ func Mock(ctx context.Context, dstore datastore.Batching, config *Config) (*Clie
 		bstore:     bstore,
 		dstore:     dstore,
 		resolv:     resolv,
-		system:     system,
+		provsys:    provsys,
 	}, nil
 }

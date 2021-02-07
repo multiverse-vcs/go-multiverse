@@ -73,6 +73,8 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	if err != nil {
 		return err
 	}
+
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
 	return cfg.Save()
@@ -108,6 +110,8 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	if err != nil {
 		return err
 	}
+
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
 	return cfg.Save()

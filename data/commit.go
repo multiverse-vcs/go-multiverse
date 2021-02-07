@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipld-cbor"
+	cbornode "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiformats/go-multihash"
 )
@@ -37,7 +37,7 @@ func GetCommit(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Commit, e
 
 // AddCommit adds a commit to the given dag.
 func AddCommit(ctx context.Context, dag ipld.DAGService, commit *Commit) (cid.Cid, error) {
-	node, err := commit.Node()
+	node, err := cbornode.WrapObject(commit, multihash.SHA2_256, -1)
 	if err != nil {
 		return cid.Cid{}, err
 	}
@@ -78,11 +78,6 @@ func NewCommit(tree cid.Cid, message string, parents ...cid.Cid) *Commit {
 		Tree:     tree,
 		Parents:  parents,
 	}
-}
-
-// Node returns a cbornode containing the commit.
-func (c *Commit) Node() (ipld.Node, error) {
-	return cbornode.WrapObject(c, multihash.SHA2_256, -1)
 }
 
 // ParentLinks returns parent ipld links.

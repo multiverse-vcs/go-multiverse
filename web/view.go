@@ -57,7 +57,7 @@ func (s *Server) Author(w http.ResponseWriter, req *http.Request) (*ViewModel, e
 		return nil, err
 	}
 
-	author, err := s.client.Pubsub().SearchAuthor(ctx, pid)
+	author, err := s.client.Authors().Search(ctx, pid)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 		return nil, err
 	}
 
-	author, err := s.client.Pubsub().SearchAuthor(ctx, pid)
+	author, err := s.client.Authors().Search(ctx, pid)
 	if err != nil {
 		return nil, err
 	}

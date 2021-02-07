@@ -25,5 +25,6 @@ func init() {
 	cbornode.RegisterCborType(timeAtlasEntry)
 	cbornode.RegisterCborType(Author{})
 	cbornode.RegisterCborType(Commit{})
+	cbornode.RegisterCborType(Record{})
 	cbornode.RegisterCborType(Repository{})
 }

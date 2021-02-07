@@ -16,6 +16,8 @@ const ConfigFile = "config.json"
 type Config struct {
 	// Author contains the current author.
 	Author *data.Author `json:"author"`
+	// Sequence is the version number to publish.
+	Sequence uint64 `json:"sequence"`
 	// PrivateKey is the base64 encoded private key.
 	PrivateKey string `json:"private_key"`
 

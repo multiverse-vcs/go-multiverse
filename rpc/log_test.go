@@ -5,21 +5,14 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
 func TestLog(t *testing.T) {
 	ctx := context.Background()
-	dstore := datastore.NewMapDatastore()
 
-	config, err := peer.NewConfig("")
-	if err != nil {
-		t.Fatal("failed to create config")
-	}
-
-	mock, err := peer.Mock(ctx, dstore, config)
+	mock, err := peer.Mock()
 	if err != nil {
 		t.Fatal("failed to create peer")
 	}
@@ -38,7 +31,7 @@ func TestLog(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed to add repository")
 	}
-	config.Author.Repositories[repo.Name] = id
+	mock.Config().Author.Repositories[repo.Name] = id
 
 	json, err = ioutil.ReadFile("testdata/commit.json")
 	if err != nil {
