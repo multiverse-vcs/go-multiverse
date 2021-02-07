@@ -1,7 +1,8 @@
 # Multiverse
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
 [![Gitter](https://badges.gitter.im/multiverse-vcs/community.svg)](https://gitter.im/multiverse-vcs/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
+[![codecov](https://codecov.io/gh/multiverse-vcs/go-multiverse/branch/master/graph/badge.svg?token=Y6UBYBD56P)](https://codecov.io/gh/multiverse-vcs/go-multiverse)
 
 > A decentralized version control system for peer-to-peer software development.
 
