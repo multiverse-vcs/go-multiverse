@@ -77,7 +77,11 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
-	return cfg.Save()
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.client.Authors().Publish(ctx)
 }
 
 // DeleteBranch deletes an existing branch.
@@ -114,5 +118,9 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
-	return cfg.Save()
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.client.Authors().Publish(ctx)
 }

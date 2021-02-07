@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"os"
 	"path/filepath"
 
 	"github.com/multiverse-vcs/go-multiverse/rpc"
@@ -39,17 +37,6 @@ func importAction(c *cli.Context) error {
 		cli.ShowSubcommandHelpAndExit(c, 1)
 	}
 
-	name := c.Args().Get(0)
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	if _, err := FindConfig(cwd); err == nil {
-		return errors.New("repo already exists")
-	}
-
 	dir, err := filepath.Abs(c.String("dir"))
 	if err != nil {
 		return err
@@ -61,7 +48,7 @@ func importAction(c *cli.Context) error {
 	}
 
 	args := rpc.ImportArgs{
-		Name: name,
+		Name: c.Args().Get(0),
 		Type: c.String("type"),
 		URL:  c.String("url"),
 		Dir:  dir,
@@ -72,7 +59,5 @@ func importAction(c *cli.Context) error {
 		return err
 	}
 
-	config := NewConfig(cwd)
-	config.Name = name
-	return config.Save()
+	return nil
 }

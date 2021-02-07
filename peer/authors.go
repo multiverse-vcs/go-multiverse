@@ -2,6 +2,7 @@ package peer
 
 import (
 	"context"
+	"errors"
 
 	cbornode "github.com/ipfs/go-ipld-cbor"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -28,12 +29,14 @@ func (a *authors) Publish(ctx context.Context) error {
 		return err
 	}
 
-	rec, err := data.NewRecord(payload, a.config.Sequence, key)
+	signature, err := key.Sign(payload)
 	if err != nil {
 		return err
 	}
 
-	val, err := rec.Encode()
+	rec := data.NewRecord(payload, a.config.Sequence, signature)
+
+	val, err := cbornode.DumpObject(rec)
 	if err != nil {
 		return err
 	}
@@ -50,7 +53,7 @@ func (a *authors) Search(ctx context.Context, id peer.ID) (*data.Author, error) 
 
 	val, ok := <-out
 	if !ok {
-		return nil, nil
+		return nil, errors.New("author not found")
 	}
 
 	rec, err := data.RecordFromCBOR(val)

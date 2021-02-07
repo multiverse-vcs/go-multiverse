@@ -12,12 +12,10 @@ import (
 
 // Author contains info about a user.
 type Author struct {
-	// Name is the human friendly name of the author.
-	Name string `json:"name"`
-	// Email is the email address of the author.
-	Email string `json:"email"`
 	// Repositories is a map of repositories.
 	Repositories map[string]cid.Cid `json:"repositories"`
+	// Metadata contains additional data.
+	Metadata map[string]string `json:"metadata"`
 }
 
 // GetAuthor returns the author with the given CID.
@@ -68,5 +66,6 @@ func AuthorFromCBOR(data []byte) (*Author, error) {
 func NewAuthor() *Author {
 	return &Author{
 		Repositories: make(map[string]cid.Cid),
+		Metadata:     make(map[string]string),
 	}
 }

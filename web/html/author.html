@@ -2,8 +2,9 @@
   {{ range $i, $v := .List }}
 	  <section class="section">
 	    <h1 class="title">
-	    	<a href={{ join $.PeerID "repositories" (index $.Keys $i) "branches" $v.DefaultBranch "tree" }}>
-	    		{{ $v.Name }}
+	    	{{ $name := (index $.Keys $i) }}
+	    	<a href={{ join $.PeerID "repositories" $name "branches" $v.DefaultBranch "tree" }}>
+	    		{{ $name }}
 	    	</a>
 	    </h1>
 	  </section>

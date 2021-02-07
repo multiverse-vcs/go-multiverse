@@ -56,6 +56,12 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 		return err
 	}
 
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
-	return cfg.Save()
+	
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.client.Authors().Publish(ctx)
 }

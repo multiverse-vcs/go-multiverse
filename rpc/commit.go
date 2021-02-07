@@ -69,14 +69,21 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	if err != nil {
 		return err
 	}
+
 	repo.Branches[args.Branch] = head
+	reply.Index = head
 
 	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
-	reply.Index = head
-	return cfg.Save()
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.client.Authors().Publish(ctx)
 }

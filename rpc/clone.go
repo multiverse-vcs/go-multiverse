@@ -38,13 +38,13 @@ type CloneReply struct {
 func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	ctx := context.Background()
 
+	if args.Dir == "" {
+		return errors.New("dir is required")
+	}
+
 	repo, err := data.GetRepository(ctx, s.client, args.ID)
 	if err != nil {
 		return err
-	}
-
-	if args.Dir == "" {
-		args.Dir = repo.Name
 	}
 
 	id, ok := repo.Branches[args.Branch]

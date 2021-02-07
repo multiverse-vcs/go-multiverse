@@ -64,6 +64,7 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
+	// ensure any changes made offline will be published
 	if err := client.Authors().Publish(c.Context); err != nil {
 		return err
 	}

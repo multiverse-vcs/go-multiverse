@@ -32,16 +32,19 @@ func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	model, err := v(w, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	var page bytes.Buffer
 	if err := layout.ExecuteTemplate(&page, model.Name, model.Data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	data := template.HTML(page.String())
 	if err := layout.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -166,6 +169,7 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 		Data: map[string]interface{}{
 			"RepoID":     repoID,
 			"PeerID":     peerID,
+			"Name":       name,
 			"Repo":       repo,
 			"Refs":       refs,
 			"File":       file,

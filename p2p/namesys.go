@@ -64,7 +64,7 @@ func (v validator) Validate(key string, value []byte) error {
 		return err
 	}
 
-	match, err := rec.Verify(pub)
+	match, err := pub.Verify(rec.Payload, rec.Signature)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,6 @@ package data
 
 import (
 	cbornode "github.com/ipfs/go-ipld-cbor"
-	"github.com/libp2p/go-libp2p-core/crypto"
 )
 
 // Record contains named record info.
@@ -25,26 +24,11 @@ func RecordFromCBOR(data []byte) (*Record, error) {
 	return &rec, nil
 }
 
-// NewRecord returns a signed record containing the given payload.
-func NewRecord(payload []byte, sequence uint64, key crypto.PrivKey) (*Record, error) {
-	signature, err := key.Sign(payload)
-	if err != nil {
-		return nil, err
-	}
-
+// NewRecord returns a record containing the given payload.
+func NewRecord(payload []byte, sequence uint64, signature []byte) *Record {
 	return &Record{
 		Payload:   payload,
 		Sequence:  sequence,
 		Signature: signature,
-	}, nil
-}
-
-// Encode returns the record raw bytes.
-func (r *Record) Encode() ([]byte, error) {
-	return cbornode.DumpObject(r)
-}
-
-// Verify returns true if the payload signature matches the given public key.
-func (r *Record) Verify(key crypto.PubKey) (bool, error) {
-	return key.Verify(r.Payload, r.Signature)
+	}
 }

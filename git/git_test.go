@@ -17,12 +17,8 @@ func TestImportFromURL(t *testing.T) {
 		t.Fatal("failed to import git repo")
 	}
 
-	repo, err := data.GetRepository(ctx, dag, id)
+	_, err = data.GetRepository(ctx, dag, id)
 	if err != nil {
 		t.Fatal("failed to get repo")
-	}
-
-	if repo.Name != "go-multiverse" {
-		t.Error("unexpected repo name")
 	}
 }

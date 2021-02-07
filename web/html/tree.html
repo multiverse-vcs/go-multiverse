@@ -20,7 +20,7 @@
         <div class="dropdown-menu" id="dropdown-menu" role="menu">
           <div class="dropdown-content">
             {{ range $k, $v := .Repo.Branches }}
-            <a href={{ join "/" $.PeerID "repositories" $.Repo.Name "branches" $k "tree" $.File }} class="dropdown-item">
+            <a href={{ join "/" $.PeerID "repositories" $.Name "branches" $k "tree" $.File }} class="dropdown-item">
               <span class="icon is-small">
                 <svg><use xlink:href="/static/feather-sprite.svg#git-branch"/></svg>
               </span>
@@ -31,7 +31,7 @@
             <hr class="dropdown-divider">
             {{ end }}
             {{ range $k, $v := .Repo.Tags }}
-            <a href={{ join "/" $.PeerID "repositories" $.Repo.Name "tags" $k "tree" $.File }} class="dropdown-item">
+            <a href={{ join "/" $.PeerID "repositories" $.Name "tags" $k "tree" $.File }} class="dropdown-item">
               <span class="icon is-small">
                 <svg><use xlink:href="/static/feather-sprite.svg#tag"/></svg>
               </span>
@@ -95,11 +95,11 @@
     <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
       <ul>
         <li {{ if not .File }} class="is-active" {{ end }}>
-          <a href={{ join "/" .PeerID "repositories" .Repo.Name .Refs .Head "tree" }}>tree</a>
+          <a href={{ join "/" .PeerID "repositories" .Name .Refs .Head "tree" }}>tree</a>
         </li>
         {{ range (join "/" .File | dir | breadcrumbs) }}
         <li>
-          <a href={{ join "/" $.PeerID "repositories" $.Repo.Name $.Refs $.Head "tree" . }}>{{ base . }}</a>
+          <a href={{ join "/" $.PeerID "repositories" $.Name $.Refs $.Head "tree" . }}>{{ base . }}</a>
         </li>
         {{ end }}
         {{ if .File }}
@@ -116,7 +116,7 @@
   </div>
 {{ else }}
   {{ range .Tree }}
-    <a href={{ join "/" $.PeerID "repositories" $.Repo.Name $.Refs $.Head "tree" $.File .Name }} class="panel-block" >
+    <a href={{ join "/" $.PeerID "repositories" $.Name $.Refs $.Head "tree" $.File .Name }} class="panel-block" >
       <span class="panel-icon">
         {{ if .IsDir }}
         <span class="icon fill has-text-info is-small">

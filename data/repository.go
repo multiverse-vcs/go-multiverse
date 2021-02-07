@@ -12,12 +12,8 @@ import (
 
 // Repository contains all versions of a project.
 type Repository struct {
-	// Name is the human friendly name of the repo.
-	Name string `json:"name"`
 	// DefaultBranch is the base branch of the repo.
 	DefaultBranch string `json:"default_branch"`
-	// Description describes the project.
-	Description string `json:"description"`
 	// Branches is a map of names to commit CIDs.
 	Branches map[string]cid.Cid `json:"branches"`
 	// Tags is a map of names to commit CIDs.
@@ -71,9 +67,8 @@ func RepositoryFromCBOR(data []byte) (*Repository, error) {
 }
 
 // NewRepository returns a new repo.
-func NewRepository(name string) *Repository {
+func NewRepository() *Repository {
 	return &Repository{
-		Name:     name,
 		Branches: make(map[string]cid.Cid),
 		Tags:     make(map[string]cid.Cid),
 		Metadata: make(map[string]string),

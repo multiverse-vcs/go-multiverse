@@ -84,18 +84,25 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	if err != nil {
 		return err
 	}
+
 	repo.Branches[args.Branch] = index
+	reply.Index = index
 
 	id, err = data.AddRepository(ctx, s.client, repo)
 	if err != nil {
 		return err
 	}
+
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
 	if err := cfg.Save(); err != nil {
 		return err
 	}
 
-	reply.Index = index
+	if err := s.client.Authors().Publish(ctx); err != nil {
+		return err
+	}
+
 	return unixfs.Write(ctx, s.client, args.Root, merge)
 }

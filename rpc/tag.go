@@ -73,9 +73,15 @@ func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	if err != nil {
 		return err
 	}
+
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
-	return cfg.Save()
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.client.Authors().Publish(ctx)
 }
 
 // DeleteTag deletes an existing tag.
@@ -108,7 +114,13 @@ func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	if err != nil {
 		return err
 	}
+
+	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
 
-	return cfg.Save()
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.client.Authors().Publish(ctx)
 }
