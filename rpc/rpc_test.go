@@ -1,16 +1,30 @@
 package rpc
 
 import (
+	"context"
 	"net"
 	"net/rpc"
 
+	datastore "github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
-// connect starts an rpc server and returns a connected client.
-func connect(client *peer.Client) (*rpc.Client, error) {
+// makeNode returns a new peer node.
+func makeNode(ctx context.Context) (*peer.Node, error) {
+	dstore := datastore.NewMapDatastore()
+
+	config, err := peer.NewConfig("")
+	if err != nil {
+		return nil, err
+	}
+
+	return peer.New(ctx, dstore, config)
+}
+
+// makeClient starts an rpc server and returns a connected client.
+func makeClient(node *peer.Node) (*rpc.Client, error) {
 	service := Service{
-		client: client,
+		node: node,
 	}
 
 	server := rpc.NewServer()

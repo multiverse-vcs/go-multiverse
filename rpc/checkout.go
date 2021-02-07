@@ -32,9 +32,9 @@ type CheckoutReply struct{}
 // Checkout copies the tree of an existing commit to the root.
 func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 	ctx := context.Background()
-	cfg := s.client.Config()
+	cfg := s.node.Config()
 
-	equal, err := core.Equal(ctx, s.client, args.Root, args.Ignore, args.Index)
+	equal, err := core.Equal(ctx, s.node, args.Root, args.Ignore, args.Index)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, id)
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("branch does not exist")
 	}
 
-	child, err := core.IsAncestor(ctx, s.client, head, args.ID)
+	child, err := core.IsAncestor(ctx, s.node, head, args.ID)
 	if err != nil {
 		return err
 	}
@@ -67,15 +67,15 @@ func (s *Service) Checkout(args *CheckoutArgs, reply *CheckoutReply) error {
 		return errors.New("commit is not in branch")
 	}
 
-	commit, err := data.GetCommit(ctx, s.client, args.ID)
+	commit, err := data.GetCommit(ctx, s.node, args.ID)
 	if err != nil {
 		return err
 	}
 
-	tree, err := s.client.Get(ctx, commit.Tree)
+	tree, err := s.node.Get(ctx, commit.Tree)
 	if err != nil {
 		return err
 	}
 
-	return unixfs.Write(ctx, s.client, args.Root, tree)
+	return unixfs.Write(ctx, s.node, args.Root, tree)
 }

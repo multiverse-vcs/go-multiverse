@@ -21,12 +21,12 @@ const BindAddr = "127.0.0.1:2020"
 
 // Server contains http services.
 type Server struct {
-	client *peer.Client
+	node *peer.Node
 }
 
 // ListenAndServe starts an HTTP listener.
-func ListenAndServe(client *peer.Client) error {
-	server := &Server{client}
+func ListenAndServe(node *peer.Node) error {
+	server := &Server{node}
 
 	router := httprouter.New()
 	router.HandlerFunc(http.MethodGet, "/", server.Index)
@@ -41,7 +41,7 @@ func ListenAndServe(client *peer.Client) error {
 
 // Index redirects to the current author page.
 func (s *Server) Index(w http.ResponseWriter, req *http.Request) {
-	peerID := s.client.PeerID().String()
+	peerID := s.node.PeerID().String()
 	url := path.Join("/", peerID)
 	http.Redirect(w, req, url, http.StatusTemporaryRedirect)
 }

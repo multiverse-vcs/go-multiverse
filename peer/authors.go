@@ -10,7 +10,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
-type authors Client
+type authors Node
 
 // Publish advertises the local author.
 func (a *authors) Publish(ctx context.Context) error {

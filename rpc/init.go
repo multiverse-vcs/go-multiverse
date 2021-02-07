@@ -21,7 +21,7 @@ type InitReply struct{}
 // Init creates a new empty repository.
 func (s *Service) Init(args *InitArgs, reply *InitReply) error {
 	ctx := context.Background()
-	cfg := s.client.Config()
+	cfg := s.node.Config()
 
 	if args.Name == "" {
 		return errors.New("name cannot be empty")
@@ -38,7 +38,7 @@ func (s *Service) Init(args *InitArgs, reply *InitReply) error {
 	repo := data.NewRepository()
 	repo.DefaultBranch = args.Branch
 
-	id, err := data.AddRepository(ctx, s.client, repo)
+	id, err := data.AddRepository(ctx, s.node, repo)
 	if err != nil {
 		return err
 	}
@@ -50,5 +50,5 @@ func (s *Service) Init(args *InitArgs, reply *InitReply) error {
 		return err
 	}
 
-	return s.client.Authors().Publish(ctx)
+	return s.node.Authors().Publish(ctx)
 }

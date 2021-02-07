@@ -27,14 +27,14 @@ type BranchReply struct {
 // ListBranches returns the repo branches.
 func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
-	cfg := s.client.Config()
+	cfg := s.node.Config()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, id)
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -46,14 +46,14 @@ func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 // CreateBranch creates a new branch.
 func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
-	cfg := s.client.Config()
+	cfg := s.node.Config()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, id)
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	repo.Branches[args.Branch] = args.Head
 	reply.Branches = repo.Branches
 
-	id, err = data.AddRepository(ctx, s.client, repo)
+	id, err = data.AddRepository(ctx, s.node, repo)
 	if err != nil {
 		return err
 	}
@@ -81,20 +81,20 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 		return err
 	}
 
-	return s.client.Authors().Publish(ctx)
+	return s.node.Authors().Publish(ctx)
 }
 
 // DeleteBranch deletes an existing branch.
 func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
-	cfg := s.client.Config()
+	cfg := s.node.Config()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, id)
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	delete(repo.Branches, args.Branch)
 	reply.Branches = repo.Branches
 
-	id, err = data.AddRepository(ctx, s.client, repo)
+	id, err = data.AddRepository(ctx, s.node, repo)
 	if err != nil {
 		return err
 	}
@@ -122,5 +122,5 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 		return err
 	}
 
-	return s.client.Authors().Publish(ctx)
+	return s.node.Authors().Publish(ctx)
 }

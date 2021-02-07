@@ -59,21 +59,21 @@ func daemonAction(c *cli.Context) error {
 		return err
 	}
 
-	client, err := peer.New(c.Context, dstore, config)
+	node, err := peer.New(c.Context, dstore, config)
 	if err != nil {
 		return err
 	}
 
 	// ensure any changes made offline will be published
-	if err := client.Authors().Publish(c.Context); err != nil {
+	if err := node.Authors().Publish(c.Context); err != nil {
 		return err
 	}
 
-	go web.ListenAndServe(client)
-	go rpc.ListenAndServe(client)
+	go web.ListenAndServe(node)
+	go rpc.ListenAndServe(node)
 
 	fmt.Printf(daemonBanner)
-	fmt.Printf("Peer ID: %s\n", client.PeerID().Pretty())
+	fmt.Printf("Peer ID: %s\n", node.PeerID().Pretty())
 	fmt.Printf("Web URL: %s\n", web.BindAddr)
 
 	quit := make(chan os.Signal, 1)

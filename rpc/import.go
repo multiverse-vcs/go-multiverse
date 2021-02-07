@@ -26,7 +26,7 @@ type ImportReply struct{}
 // Import creates a new repo from an existing git repo.
 func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 	ctx := context.Background()
-	cfg := s.client.Config()
+	cfg := s.node.Config()
 
 	if args.Type != "git" {
 		return errors.New("type not supported")
@@ -45,9 +45,9 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 
 	switch {
 	case args.URL != "":
-		id, err = git.ImportFromURL(ctx, s.client, args.Name, args.URL)
+		id, err = git.ImportFromURL(ctx, s.node, args.Name, args.URL)
 	case args.Dir != "":
-		id, err = git.ImportFromFS(ctx, s.client, args.Name, args.Dir)
+		id, err = git.ImportFromFS(ctx, s.node, args.Name, args.Dir)
 	default:
 		return errors.New("url or dir is required")
 	}
@@ -63,5 +63,5 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 		return err
 	}
 
-	return s.client.Authors().Publish(ctx)
+	return s.node.Authors().Publish(ctx)
 }

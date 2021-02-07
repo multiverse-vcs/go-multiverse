@@ -21,8 +21,8 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
-// Client manages peer services.
-type Client struct {
+// Node manages peer services.
+type Node struct {
 	ipld.DAGService
 	host    host.Host
 	config  *Config
@@ -35,7 +35,7 @@ type Client struct {
 }
 
 // New returns a peer with a p2p host and persistent storage.
-func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Client, error) {
+func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Node, error) {
 	priv, err := p2p.DecodeKey(config.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 		return nil, err
 	}
 
-	return &Client{
+	return &Node{
 		DAGService: dag,
 		host:       host,
 		config:     config,
@@ -86,21 +86,21 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Clien
 }
 
 // Authors returns the authors api.
-func (c *Client) Authors() *authors {
-	return (*authors)(c)
+func (n *Node) Authors() *authors {
+	return (*authors)(n)
 }
 
 // Config returns the peer config.
-func (c *Client) Config() *Config {
-	return c.config
+func (n *Node) Config() *Config {
+	return n.config
 }
 
-// PeerID returns the peer id of the client.
-func (c *Client) PeerID() peer.ID {
-	return c.host.ID()
+// PeerID returns the node peer id.
+func (n *Node) PeerID() peer.ID {
+	return n.host.ID()
 }
 
 // ResolvePath resolves the node from the given path.
-func (c *Client) ResolvePath(ctx context.Context, p path.Path) (ipld.Node, error) {
-	return c.resolv.ResolvePath(ctx, p)
+func (n *Node) ResolvePath(ctx context.Context, p path.Path) (ipld.Node, error) {
+	return n.resolv.ResolvePath(ctx, p)
 }
