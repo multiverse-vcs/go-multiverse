@@ -23,5 +23,5 @@ type Peer interface {
 	// Namesys returns the name system.
 	Namesys() routing.ValueStore
 	// ResolvePath resolves the node from the given path.
-	ResolvePath(ctx context.Context, p path.Path) (ipld.Node, error)
+	ResolvePath(context.Context, path.Path) (ipld.Node, error)
 }

@@ -37,7 +37,7 @@ func NewMock(t *testing.T, ctx context.Context) *Mock {
 		t.Fatal("failed to create peer config")
 	}
 
-	namesys, err := p2p.NewNamesys(ctx, host)
+	namesys, err := p2p.NewNamesys(ctx, host, nil)
 	if err != nil {
 		t.Fatal("failed to create peer namesys")
 	}

@@ -7,6 +7,8 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/routing"
+	discovery "github.com/libp2p/go-libp2p-discovery"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	namesys "github.com/libp2p/go-libp2p-pubsub-router"
 	record "github.com/libp2p/go-libp2p-record"
@@ -36,8 +38,13 @@ func PeerIDForTopic(topic string) (peer.ID, error) {
 }
 
 // NewSystem returns a new pubsub name system.
-func NewNamesys(ctx context.Context, host host.Host) (*namesys.PubsubValueStore, error) {
-	sub, err := pubsub.NewGossipSub(ctx, host)
+func NewNamesys(ctx context.Context, host host.Host, router routing.ContentRouting) (*namesys.PubsubValueStore, error) {
+	var options []pubsub.Option
+	if router != nil {
+		options = append(options, pubsub.WithDiscovery(discovery.NewRoutingDiscovery(router)))
+	}
+
+	sub, err := pubsub.NewGossipSub(ctx, host, options...)
 	if err != nil {
 		return nil, err
 	}

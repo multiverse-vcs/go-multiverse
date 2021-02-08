@@ -16,7 +16,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
-	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
@@ -47,11 +46,6 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Node,
 		return nil, err
 	}
 
-	namesys, err := p2p.NewNamesys(ctx, host)
-	if err != nil {
-		return nil, err
-	}
-
 	bstore := blockstore.NewBlockstore(dstore)
 	net := bsnet.NewFromIpfsHost(host, router)
 	exc := bitswap.New(ctx, net, bstore)
@@ -63,13 +57,20 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Node,
 	if err != nil {
 		return nil, err
 	}
+
+	p2p.Bootstrap(ctx, host)
 	provsys.Run()
 
-	for _, info := range dht.GetDefaultBootstrapPeerAddrInfos() {
-		go host.Connect(ctx, info)
+	namesys, err := p2p.NewNamesys(ctx, host, router)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := p2p.Discovery(ctx, host); err != nil {
+		return nil, err
+	}
+
+	if err := router.Bootstrap(ctx); err != nil {
 		return nil, err
 	}
 
@@ -94,6 +95,16 @@ func (n *Node) Authors() *AuthorsAPI {
 // Config returns the peer config.
 func (n *Node) Config() *Config {
 	return n.config
+}
+
+// Connect connects to the peer with the given ID.
+func (n *Node) Connect(ctx context.Context, id peer.ID) error {
+	info, err := n.router.FindPeer(ctx, id)
+	if err != nil {
+		return nil
+	}
+
+	return n.host.Connect(ctx, info)
 }
 
 // Dag returns the merkledag api.
