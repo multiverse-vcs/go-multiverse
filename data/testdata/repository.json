@@ -1,0 +1,10 @@
+{
+	"default_branch": "default",
+	"branches": {
+		"default": {"/": "bafyreieo2mhnqyqntenwyndzxoovw5nhbpit727kjrl3mjbyb5nv6zs2pu"}
+	},
+	"tags": {
+		"v0.0.1": {"/": "bafyreieo2mhnqyqntenwyndzxoovw5nhbpit727kjrl3mjbyb5nv6zs3pu"}
+	},
+	"metadata": {"foo": "bar"}
+}
