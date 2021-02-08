@@ -27,6 +27,7 @@ type ImportReply struct{}
 func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	if args.Type != "git" {
 		return errors.New("type not supported")
@@ -45,9 +46,9 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 
 	switch {
 	case args.URL != "":
-		id, err = git.ImportFromURL(ctx, s.node, args.Name, args.URL)
+		id, err = git.ImportFromURL(ctx, dag, args.Name, args.URL)
 	case args.Dir != "":
-		id, err = git.ImportFromFS(ctx, s.node, args.Name, args.Dir)
+		id, err = git.ImportFromFS(ctx, dag, args.Name, args.Dir)
 	default:
 		return errors.New("url or dir is required")
 	}
@@ -58,7 +59,7 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 
 	cfg.Sequence++
 	cfg.Author.Repositories[args.Name] = id
-	
+
 	if err := cfg.Save(); err != nil {
 		return err
 	}

@@ -22,6 +22,7 @@ type InitReply struct{}
 func (s *Service) Init(args *InitArgs, reply *InitReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	if args.Name == "" {
 		return errors.New("name cannot be empty")
@@ -38,7 +39,7 @@ func (s *Service) Init(args *InitArgs, reply *InitReply) error {
 	repo := data.NewRepository()
 	repo.DefaultBranch = args.Branch
 
-	id, err := data.AddRepository(ctx, s.node, repo)
+	id, err := data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}

@@ -32,8 +32,9 @@ type StatusReply struct {
 // Status returns the changes between the working directory and repo head.
 func (s *Service) Status(args *StatusArgs, reply *StatusReply) error {
 	ctx := context.Background()
+	dag := s.node.Dag()
 
-	changes, err := core.Status(ctx, s.node, args.Root, args.Ignore, args.Head)
+	changes, err := core.Status(ctx, dag, args.Root, args.Ignore, args.Head)
 	if err != nil {
 		return err
 	}

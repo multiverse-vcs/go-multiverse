@@ -29,13 +29,14 @@ type LogReply struct {
 func (s *Service) Log(args *LogArgs, reply *LogReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -55,13 +56,13 @@ func (s *Service) Log(args *LogArgs, reply *LogReply) error {
 		return true
 	}
 
-	if err := core.Walk(ctx, s.node, head, visit); err != nil {
+	if err := core.Walk(ctx, dag, head, visit); err != nil {
 		return err
 	}
 
 	var commits []*data.Commit
 	for _, id := range ids {
-		commit, err := data.GetCommit(ctx, s.node, id)
+		commit, err := data.GetCommit(ctx, dag, id)
 		if err != nil {
 			return err
 		}

@@ -6,15 +6,12 @@ import (
 	"testing"
 
 	"github.com/multiverse-vcs/go-multiverse/data"
+	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
 func TestLog(t *testing.T) {
 	ctx := context.Background()
-
-	node, err := makeNode(ctx)
-	if err != nil {
-		t.Fatal("failed to create peer node")
-	}
+	node := peer.NewMock(t, ctx)
 
 	json, err := ioutil.ReadFile("testdata/repository.json")
 	if err != nil {
@@ -26,7 +23,7 @@ func TestLog(t *testing.T) {
 		t.Fatal("failed to parse repository json")
 	}
 
-	id, err := data.AddRepository(ctx, node, repo)
+	id, err := data.AddRepository(ctx, node.Dag(), repo)
 	if err != nil {
 		t.Fatal("failed to add repository")
 	}
@@ -42,12 +39,12 @@ func TestLog(t *testing.T) {
 		t.Fatal("failed to parse commit json")
 	}
 
-	head, err := data.AddCommit(ctx, node, commit)
+	head, err := data.AddCommit(ctx, node.Dag(), commit)
 	if err != nil {
 		t.Fatal("failed to add commit")
 	}
 
-	client, err := makeClient(node)
+	client, err := connect(node)
 	if err != nil {
 		t.Fatal("failed to connect to rpc server")
 	}

@@ -35,6 +35,7 @@ type CommitReply struct {
 func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	if args.Branch == "" {
 		return errors.New("branch cannot be empty")
@@ -45,7 +46,7 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -55,7 +56,7 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		return errors.New("branch is ahead of parent")
 	}
 
-	tree, err := unixfs.Add(ctx, s.node, args.Root, args.Ignore)
+	tree, err := unixfs.Add(ctx, dag, args.Root, args.Ignore)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 		commit.Parents = append(commit.Parents, args.Parent)
 	}
 
-	head, err = data.AddCommit(ctx, s.node, commit)
+	head, err = data.AddCommit(ctx, dag, commit)
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func (s *Service) Commit(args *CommitArgs, reply *CommitReply) error {
 	repo.Branches[args.Branch] = head
 	reply.Index = head
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err = data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}

@@ -10,11 +10,16 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
-type authors Node
+// AuthorsAPI implements methods to manage authors.
+type AuthorsAPI struct {
+	Peer
+}
 
 // Publish advertises the local author.
-func (a *authors) Publish(ctx context.Context) error {
-	key, err := p2p.DecodeKey(a.config.PrivateKey)
+func (a *AuthorsAPI) Publish(ctx context.Context) error {
+	config := a.Config()
+
+	key, err := p2p.DecodeKey(config.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -24,7 +29,7 @@ func (a *authors) Publish(ctx context.Context) error {
 		return err
 	}
 
-	payload, err := cbornode.DumpObject(a.config.Author)
+	payload, err := cbornode.DumpObject(config.Author)
 	if err != nil {
 		return err
 	}
@@ -34,19 +39,19 @@ func (a *authors) Publish(ctx context.Context) error {
 		return err
 	}
 
-	rec := data.NewRecord(payload, a.config.Sequence, signature)
+	rec := data.NewRecord(payload, config.Sequence, signature)
 
 	val, err := cbornode.DumpObject(rec)
 	if err != nil {
 		return err
 	}
 
-	return a.namesys.PutValue(ctx, p2p.TopicForPeerID(id), val)
+	return a.Namesys().PutValue(ctx, p2p.TopicForPeerID(id), val)
 }
 
 // Search returns the author published under the given peer id.
-func (a *authors) Search(ctx context.Context, id peer.ID) (*data.Author, error) {
-	out, err := a.namesys.SearchValue(ctx, p2p.TopicForPeerID(id))
+func (a *AuthorsAPI) Search(ctx context.Context, id peer.ID) (*data.Author, error) {
+	out, err := a.Namesys().SearchValue(ctx, p2p.TopicForPeerID(id))
 	if err != nil {
 		return nil, err
 	}

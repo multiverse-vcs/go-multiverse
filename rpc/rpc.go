@@ -19,7 +19,7 @@ See 'multi help daemon' for more info.`)
 
 // Service implements an RPC service.
 type Service struct {
-	node *peer.Node
+	node peer.Peer
 }
 
 // SockAddr returns the unix sock file path.
@@ -48,7 +48,7 @@ func NewClient() (*rpc.Client, error) {
 }
 
 // ListenAndServer starts an RPC listener.
-func ListenAndServe(node *peer.Node) error {
+func ListenAndServe(node peer.Peer) error {
 	sock, err := SockAddr()
 	if err != nil {
 		return err

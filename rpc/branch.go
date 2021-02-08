@@ -28,13 +28,14 @@ type BranchReply struct {
 func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -47,13 +48,14 @@ func (s *Service) ListBranches(args *BranchArgs, reply *BranchReply) error {
 func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 	repo.Branches[args.Branch] = args.Head
 	reply.Branches = repo.Branches
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err = data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}
@@ -88,13 +90,14 @@ func (s *Service) CreateBranch(args *BranchArgs, reply *BranchReply) error {
 func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -110,7 +113,7 @@ func (s *Service) DeleteBranch(args *BranchArgs, reply *BranchReply) error {
 	delete(repo.Branches, args.Branch)
 	reply.Branches = repo.Branches
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err = data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}

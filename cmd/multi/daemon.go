@@ -73,7 +73,7 @@ func daemonAction(c *cli.Context) error {
 	go rpc.ListenAndServe(node)
 
 	fmt.Printf(daemonBanner)
-	fmt.Printf("Peer ID: %s\n", node.PeerID().Pretty())
+	fmt.Printf("Peer ID: %s\n", node.ID().Pretty())
 	fmt.Printf("Web URL: %s\n", web.BindAddr)
 
 	quit := make(chan os.Signal, 1)

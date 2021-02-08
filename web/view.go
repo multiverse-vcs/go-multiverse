@@ -51,6 +51,7 @@ func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // Author renders the repository list.
 func (s *Server) Author(w http.ResponseWriter, req *http.Request) (*ViewModel, error) {
 	ctx := req.Context()
+	dag := s.node.Dag()
 
 	params := httprouter.ParamsFromContext(ctx)
 	peerID := params.ByName("peer_id")
@@ -69,7 +70,7 @@ func (s *Server) Author(w http.ResponseWriter, req *http.Request) (*ViewModel, e
 	var list []*data.Repository
 
 	for name, id := range author.Repositories {
-		repo, err := data.GetRepository(ctx, s.node, id)
+		repo, err := data.GetRepository(ctx, dag, id)
 		if err != nil {
 			return nil, err
 		}
@@ -91,6 +92,7 @@ func (s *Server) Author(w http.ResponseWriter, req *http.Request) (*ViewModel, e
 // Tree renders the blob and tree file viewer.
 func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, error) {
 	ctx := req.Context()
+	dag := s.node.Dag()
 
 	params := httprouter.ParamsFromContext(ctx)
 	peerID := params.ByName("peer_id")
@@ -114,7 +116,7 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 		return nil, errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, repoID)
+	repo, err := data.GetRepository(ctx, dag, repoID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +131,7 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 		return nil, err
 	}
 
-	dir, err := unixfs.IsDir(ctx, s.node, fnode.Cid())
+	dir, err := unixfs.IsDir(ctx, dag, fnode.Cid())
 	if err != nil {
 		return nil, err
 	}
@@ -142,23 +144,23 @@ func (s *Server) Tree(w http.ResponseWriter, req *http.Request) (*ViewModel, err
 
 	switch {
 	case dir:
-		tree, err = unixfs.Ls(ctx, s.node, fnode.Cid())
+		tree, err = unixfs.Ls(ctx, dag, fnode.Cid())
 		if err != nil {
 			return nil, err
 		}
 
-		entry, err := unixfs.Find(ctx, s.node, fnode.Cid(), readmePattern)
+		entry, err := unixfs.Find(ctx, dag, fnode.Cid(), readmePattern)
 		if err != nil || entry == nil {
 			break
 		}
 
 		readmeName = entry.Name
-		readmeBlob, err = unixfs.Cat(ctx, s.node, entry.Cid)
+		readmeBlob, err = unixfs.Cat(ctx, dag, entry.Cid)
 		if err != nil {
 			return nil, err
 		}
 	default:
-		blob, err = unixfs.Cat(ctx, s.node, fnode.Cid())
+		blob, err = unixfs.Cat(ctx, dag, fnode.Cid())
 		if err != nil {
 			return nil, err
 		}

@@ -37,12 +37,13 @@ type CloneReply struct {
 // Clone copies a commit tree to the working directory.
 func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	ctx := context.Background()
+	dag := s.node.Dag()
 
 	if args.Dir == "" {
 		return errors.New("dir cannot be empty")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, args.ID)
+	repo, err := data.GetRepository(ctx, dag, args.ID)
 	if err != nil {
 		return err
 	}
@@ -52,16 +53,16 @@ func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 		return errors.New("branch does not exist")
 	}
 
-	if err := merkledag.FetchGraphWithDepthLimit(ctx, id, args.Limit, s.node); err != nil {
+	if err := merkledag.FetchGraphWithDepthLimit(ctx, id, args.Limit, dag); err != nil {
 		return err
 	}
 
-	commit, err := data.GetCommit(ctx, s.node, id)
+	commit, err := data.GetCommit(ctx, dag, id)
 	if err != nil {
 		return err
 	}
 
-	tree, err := s.node.Get(ctx, commit.Tree)
+	tree, err := dag.Get(ctx, commit.Tree)
 	if err != nil {
 		return err
 	}
@@ -74,5 +75,5 @@ func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	reply.ID = id
 	reply.Root = path
 
-	return unixfs.Write(ctx, s.node, path, tree)
+	return unixfs.Write(ctx, dag, path, tree)
 }

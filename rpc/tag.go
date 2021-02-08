@@ -28,13 +28,14 @@ type TagReply struct {
 func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -47,13 +48,14 @@ func (s *Service) ListTags(args *TagArgs, reply *TagReply) error {
 func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 	repo.Tags[args.Tag] = args.Head
 	reply.Tags = repo.Tags
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err = data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}
@@ -88,13 +90,14 @@ func (s *Service) CreateTag(args *TagArgs, reply *TagReply) error {
 func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
 	id, ok := cfg.Author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -110,7 +113,7 @@ func (s *Service) DeleteTag(args *TagArgs, reply *TagReply) error {
 	delete(repo.Tags, args.Tag)
 	reply.Tags = repo.Tags
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err = data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}

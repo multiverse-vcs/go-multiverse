@@ -36,8 +36,9 @@ type MergeReply struct {
 func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	ctx := context.Background()
 	cfg := s.node.Config()
+	dag := s.node.Dag()
 
-	equal, err := core.Equal(ctx, s.node, args.Root, args.Ignore, args.Index)
+	equal, err := core.Equal(ctx, dag, args.Root, args.Ignore, args.Index)
 	if err != nil {
 		return err
 	}
@@ -51,7 +52,7 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.node, id)
+	repo, err := data.GetRepository(ctx, dag, id)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("index is behind branch head")
 	}
 
-	base, err := core.MergeBase(ctx, s.node, head, args.ID)
+	base, err := core.MergeBase(ctx, dag, head, args.ID)
 	if err != nil {
 		return err
 	}
@@ -74,13 +75,13 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("local is ahead of remote")
 	}
 
-	merge, err := core.Merge(ctx, s.node, head, base, args.ID)
+	merge, err := core.Merge(ctx, dag, head, base, args.ID)
 	if err != nil {
 		return err
 	}
 
 	commit := data.NewCommit(merge.Cid(), "merge", head, args.ID)
-	index, err := data.AddCommit(ctx, s.node, commit)
+	index, err := data.AddCommit(ctx, dag, commit)
 	if err != nil {
 		return err
 	}
@@ -88,7 +89,7 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	repo.Branches[args.Branch] = index
 	reply.Index = index
 
-	id, err = data.AddRepository(ctx, s.node, repo)
+	id, err = data.AddRepository(ctx, dag, repo)
 	if err != nil {
 		return err
 	}
@@ -104,5 +105,5 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return err
 	}
 
-	return unixfs.Write(ctx, s.node, args.Root, merge)
+	return unixfs.Write(ctx, dag, args.Root, merge)
 }
