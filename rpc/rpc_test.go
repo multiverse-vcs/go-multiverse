@@ -6,12 +6,15 @@ import (
 	"net/rpc"
 
 	datastore "github.com/ipfs/go-datastore"
+	syncds "github.com/ipfs/go-datastore/sync"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
 // makeNode returns a new peer node.
 func makeNode(ctx context.Context) (*peer.Node, error) {
-	dstore := datastore.NewMapDatastore()
+	var dstore datastore.Batching
+	dstore = datastore.NewMapDatastore()
+	dstore = syncds.MutexWrap(dstore)
 
 	config, err := peer.NewConfig("")
 	if err != nil {
