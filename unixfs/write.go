@@ -63,6 +63,10 @@ func writeDir(ctx context.Context, dag ipld.DAGService, path string, node ipld.N
 	}
 
 	links, err := dir.Links(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, link := range links {
 		subnode, err := link.GetNode(ctx, dag)
 		if err != nil {
