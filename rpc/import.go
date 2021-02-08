@@ -26,16 +26,17 @@ type ImportReply struct{}
 // Import creates a new repo from an existing git repo.
 func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 	ctx := context.Background()
+	cfg := s.node.Config()
 
 	if args.Type != "git" {
-		return errors.New("unsupported repo format")
+		return errors.New("type not supported")
 	}
 
 	if args.Name == "" {
 		return errors.New("name cannot be empty")
 	}
 
-	if _, err := s.store.GetCid(args.Name); err == nil {
+	if _, ok := cfg.Author.Repositories[args.Name]; ok {
 		return errors.New("repo with name already exists")
 	}
 
@@ -44,9 +45,9 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 
 	switch {
 	case args.URL != "":
-		id, err = git.ImportFromURL(ctx, s.client, args.Name, args.URL)
+		id, err = git.ImportFromURL(ctx, s.node, args.Name, args.URL)
 	case args.Dir != "":
-		id, err = git.ImportFromFS(ctx, s.client, args.Name, args.Dir)
+		id, err = git.ImportFromFS(ctx, s.node, args.Name, args.Dir)
 	default:
 		return errors.New("url or dir is required")
 	}
@@ -55,5 +56,12 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 		return err
 	}
 
-	return s.store.PutCid(args.Name, id)
+	cfg.Sequence++
+	cfg.Author.Repositories[args.Name] = id
+	
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	return s.node.Authors().Publish(ctx)
 }

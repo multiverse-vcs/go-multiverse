@@ -5,21 +5,15 @@ import (
 	"encoding/json"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipfs-pinner"
-	"github.com/ipfs/go-ipld-cbor"
+	cbornode "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multihash"
 )
 
 // Repository contains all versions of a project.
 type Repository struct {
-	// Author is the peer id of the author.
-	Author peer.ID `json:"author"`
-	// Name is the human friendly name of the repo.
-	Name string `json:"name"`
-	// Description describes the project.
-	Description string `json:"description"`
+	// DefaultBranch is the base branch of the repo.
+	DefaultBranch string `json:"default_branch"`
 	// Branches is a map of names to commit CIDs.
 	Branches map[string]cid.Cid `json:"branches"`
 	// Tags is a map of names to commit CIDs.
@@ -52,20 +46,6 @@ func AddRepository(ctx context.Context, dag ipld.DAGService, repo *Repository) (
 	return node.Cid(), nil
 }
 
-// PinRepository pins a repo using the given pinner.
-func PinRepository(ctx context.Context, pinner pin.Pinner, repo *Repository) (cid.Cid, error) {
-	node, err := cbornode.WrapObject(repo, multihash.SHA2_256, -1)
-	if err != nil {
-		return cid.Cid{}, err
-	}
-
-	if err := pinner.Pin(ctx, node, true); err != nil {
-		return cid.Cid{}, err
-	}
-
-	return node.Cid(), nil
-}
-
 // RepositoryFromJSON decodes a repo from json.
 func RepositoryFromJSON(data []byte) (*Repository, error) {
 	var repo Repository
@@ -87,32 +67,10 @@ func RepositoryFromCBOR(data []byte) (*Repository, error) {
 }
 
 // NewRepository returns a new repo.
-func NewRepository(name string) *Repository {
+func NewRepository() *Repository {
 	return &Repository{
-		Name:     name,
 		Branches: make(map[string]cid.Cid),
 		Tags:     make(map[string]cid.Cid),
 		Metadata: make(map[string]string),
 	}
-}
-
-// DefaultBranch returns the default branch of the repo.
-func (r *Repository) DefaultBranch() string {
-	for branch := range r.Branches {
-		return branch
-	}
-	return ""
-}
-
-// Ref returns the cid of the given ref.
-func (r *Repository) Ref(ref string) (cid.Cid, error) {
-	if id, ok := r.Branches[ref]; ok {
-		return id, nil
-	}
-
-	if id, ok := r.Tags[ref]; ok {
-		return id, nil
-	}
-
-	return cid.Parse(ref)
 }

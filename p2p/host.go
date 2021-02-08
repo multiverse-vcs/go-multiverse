@@ -1,4 +1,3 @@
-// Package p2p contains methods for working with peer-to-peer networks.
 package p2p
 
 import (

@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/ipfs/go-ds-badger2"
-	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/multiverse-vcs/go-multiverse/key"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 	"github.com/multiverse-vcs/go-multiverse/rpc"
 	"github.com/multiverse-vcs/go-multiverse/web"
@@ -49,38 +47,33 @@ func daemonAction(c *cli.Context) error {
 	}
 
 	dpath := filepath.Join(root, "datastore")
-	dstore, err := badger.NewDatastore(dpath, &badger.DefaultOptions)
+	dopts := badger.DefaultOptions
+
+	dstore, err := badger.NewDatastore(dpath, &dopts)
 	if err != nil {
 		return err
 	}
 
-	kpath := filepath.Join(root, "keystore")
-	kstore, err := key.NewKeystore(kpath)
+	config, err := peer.OpenConfig(root)
 	if err != nil {
 		return err
 	}
 
-	key, err := kstore.DefaultKey()
+	node, err := peer.New(c.Context, dstore, config)
 	if err != nil {
 		return err
 	}
 
-	client, err := peer.New(c.Context, dstore, key)
-	if err != nil {
+	// ensure any changes made offline will be published
+	if err := node.Authors().Publish(c.Context); err != nil {
 		return err
 	}
 
-	peerId, err := client.PeerID()
-	if err != nil {
-		return err
-	}
-
-	store := data.NewStore(dstore)
-	go web.ListenAndServe(client, store)
-	go rpc.ListenAndServe(client, store)
+	go web.ListenAndServe(node)
+	go rpc.ListenAndServe(node)
 
 	fmt.Printf(daemonBanner)
-	fmt.Printf("Peer ID: %s\n", peerId.Pretty())
+	fmt.Printf("Peer ID: %s\n", node.PeerID().Pretty())
 	fmt.Printf("Web URL: %s\n", web.BindAddr)
 
 	quit := make(chan os.Signal, 1)

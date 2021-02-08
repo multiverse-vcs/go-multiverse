@@ -1,18 +1,30 @@
 package rpc
 
 import (
+	"context"
 	"net"
 	"net/rpc"
 
-	"github.com/multiverse-vcs/go-multiverse/data"
+	datastore "github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
-// connect starts an rpc server and returns a connected client.
-func connect(client *peer.Client, store *data.Store) (*rpc.Client, error) {
+// makeNode returns a new peer node.
+func makeNode(ctx context.Context) (*peer.Node, error) {
+	dstore := datastore.NewMapDatastore()
+
+	config, err := peer.NewConfig("")
+	if err != nil {
+		return nil, err
+	}
+
+	return peer.New(ctx, dstore, config)
+}
+
+// makeClient starts an rpc server and returns a connected client.
+func makeClient(node *peer.Node) (*rpc.Client, error) {
 	service := Service{
-		client: client,
-		store:  store,
+		node: node,
 	}
 
 	server := rpc.NewServer()
@@ -24,8 +36,6 @@ func connect(client *peer.Client, store *data.Store) (*rpc.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//defer listener.Close()
 	go server.Accept(listener)
 
 	return rpc.Dial("tcp", listener.Addr().String())

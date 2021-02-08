@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/multiverse-vcs/go-multiverse/data"
 	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
@@ -20,8 +19,7 @@ See 'multi help daemon' for more info.`)
 
 // Service implements an RPC service.
 type Service struct {
-	client *peer.Client
-	store  *data.Store
+	node *peer.Node
 }
 
 // SockAddr returns the unix sock file path.
@@ -50,7 +48,7 @@ func NewClient() (*rpc.Client, error) {
 }
 
 // ListenAndServer starts an RPC listener.
-func ListenAndServe(client *peer.Client, store *data.Store) error {
+func ListenAndServe(node *peer.Node) error {
 	sock, err := SockAddr()
 	if err != nil {
 		return err
@@ -60,7 +58,7 @@ func ListenAndServe(client *peer.Client, store *data.Store) error {
 		return err
 	}
 
-	rpc.Register(&Service{client, store})
+	rpc.Register(&Service{node})
 	rpc.HandleHTTP()
 
 	listener, err := net.Listen("unix", sock)

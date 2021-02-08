@@ -35,8 +35,9 @@ type MergeReply struct {
 // Merge merges changes into the repo head.
 func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 	ctx := context.Background()
+	cfg := s.node.Config()
 
-	equal, err := core.Equal(ctx, s.client, args.Root, args.Ignore, args.Index)
+	equal, err := core.Equal(ctx, s.node, args.Root, args.Ignore, args.Index)
 	if err != nil {
 		return err
 	}
@@ -45,12 +46,12 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("uncommitted changes")
 	}
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, id)
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("index is behind branch head")
 	}
 
-	base, err := core.MergeBase(ctx, s.client, head, args.ID)
+	base, err := core.MergeBase(ctx, s.node, head, args.ID)
 	if err != nil {
 		return err
 	}
@@ -73,28 +74,35 @@ func (s *Service) Merge(args *MergeArgs, reply *MergeReply) error {
 		return errors.New("local is ahead of remote")
 	}
 
-	merge, err := core.Merge(ctx, s.client, head, base, args.ID)
+	merge, err := core.Merge(ctx, s.node, head, base, args.ID)
 	if err != nil {
 		return err
 	}
 
 	commit := data.NewCommit(merge.Cid(), "merge", head, args.ID)
-	index, err := data.AddCommit(ctx, s.client, commit)
+	index, err := data.AddCommit(ctx, s.node, commit)
 	if err != nil {
 		return err
 	}
 
 	repo.Branches[args.Branch] = index
+	reply.Index = index
 
-	id, err = data.AddRepository(ctx, s.client, repo)
+	id, err = data.AddRepository(ctx, s.node, repo)
 	if err != nil {
 		return err
 	}
 
-	if err := s.store.PutCid(repo.Name, id); err != nil {
+	cfg.Sequence++
+	cfg.Author.Repositories[args.Name] = id
+
+	if err := cfg.Save(); err != nil {
 		return err
 	}
 
-	reply.Index = index
-	return unixfs.Write(ctx, s.client, args.Root, merge)
+	if err := s.node.Authors().Publish(ctx); err != nil {
+		return err
+	}
+
+	return unixfs.Write(ctx, s.node, args.Root, merge)
 }

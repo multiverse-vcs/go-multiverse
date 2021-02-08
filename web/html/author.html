@@ -1,0 +1,12 @@
+<section class="container">
+  {{ range $i, $v := .List }}
+	  <section class="section">
+	    <h1 class="title">
+	    	{{ $name := (index $.Keys $i) }}
+	    	<a href={{ join $.PeerID "repositories" $name "branches" $v.DefaultBranch "tree" }}>
+	    		{{ $name }}
+	    	</a>
+	    </h1>
+	  </section>
+  {{ end }}
+</section>

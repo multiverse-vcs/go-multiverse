@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-ipld-cbor"
+	cbornode "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/multiformats/go-multihash"
 )
@@ -49,7 +49,7 @@ func AddCommit(ctx context.Context, dag ipld.DAGService, commit *Commit) (cid.Ci
 	return node.Cid(), nil
 }
 
-// CommitFromJON decodes a commit from json.
+// CommitFromJSON decodes a commit from json.
 func CommitFromJSON(data []byte) (*Commit, error) {
 	var commit Commit
 	if err := json.Unmarshal(data, &commit); err != nil {

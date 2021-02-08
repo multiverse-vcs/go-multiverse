@@ -28,13 +28,14 @@ type LogReply struct {
 // Log returns the changes between the working directory and repo head.
 func (s *Service) Log(args *LogArgs, reply *LogReply) error {
 	ctx := context.Background()
+	cfg := s.node.Config()
 
-	id, err := s.store.GetCid(args.Name)
-	if err != nil {
-		return err
+	id, ok := cfg.Author.Repositories[args.Name]
+	if !ok {
+		return errors.New("repository does not exist")
 	}
 
-	repo, err := data.GetRepository(ctx, s.client, id)
+	repo, err := data.GetRepository(ctx, s.node, id)
 	if err != nil {
 		return err
 	}
@@ -54,13 +55,13 @@ func (s *Service) Log(args *LogArgs, reply *LogReply) error {
 		return true
 	}
 
-	if err := core.Walk(ctx, s.client, head, visit); err != nil {
+	if err := core.Walk(ctx, s.node, head, visit); err != nil {
 		return err
 	}
 
 	var commits []*data.Commit
 	for _, id := range ids {
-		commit, err := data.GetCommit(ctx, s.client, id)
+		commit, err := data.GetCommit(ctx, s.node, id)
 		if err != nil {
 			return err
 		}

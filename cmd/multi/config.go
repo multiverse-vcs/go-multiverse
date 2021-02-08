@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	// DefaultBranch is the name of the default branch.
+	DefaultBranch = "main"
 	// ConfigFile is the name of the config file.
 	ConfigFile = "multi.json"
 	// IgnoreFile is the name of the ignore file.
@@ -38,7 +40,7 @@ type Config struct {
 // NewConfig returns a config with default settings.
 func NewConfig(root string) *Config {
 	return &Config{
-		Branch: "default",
+		Branch: DefaultBranch,
 		Path:   filepath.Join(root, ConfigFile),
 		Root:   root,
 	}

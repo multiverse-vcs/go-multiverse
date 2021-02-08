@@ -78,6 +78,11 @@ func NewImporter(ctx context.Context, dag ipld.DAGService, repo *git.Repository,
 
 // AddRepository adds all branches and tags to the dag.
 func (i *importer) AddRepository() (cid.Cid, error) {
+	head, err := i.repo.Head()
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
 	tags, err := i.repo.Tags()
 	if err != nil {
 		return cid.Cid{}, err
@@ -96,9 +101,13 @@ func (i *importer) AddRepository() (cid.Cid, error) {
 		return cid.Cid{}, err
 	}
 
-	mrepo := data.NewRepository(i.name)
+	defaultBranch := string(head.Name())
+	defaultBranch = path.Base(defaultBranch)
+
+	mrepo := data.NewRepository()
 	mrepo.Branches = i.branches
 	mrepo.Tags = i.tags
+	mrepo.DefaultBranch = defaultBranch
 
 	return data.AddRepository(i.ctx, i.dag, mrepo)
 }
@@ -158,13 +167,12 @@ func (i *importer) AddCommit(hash plumbing.Hash) (cid.Cid, error) {
 	}
 
 	mcommit := data.NewCommit(tree.Cid(), commit.Message, parents...)
+	mcommit.Date = commit.Committer.When
 	mcommit.Metadata["git_hash"] = hash.String()
 	mcommit.Metadata["git_author_name"] = commit.Author.Name
 	mcommit.Metadata["git_author_email"] = commit.Author.Email
-	mcommit.Metadata["git_author_date"] = commit.Author.When.Format(DateFormat)
 	mcommit.Metadata["git_committer_name"] = commit.Committer.Name
 	mcommit.Metadata["git_committer_email"] = commit.Committer.Email
-	mcommit.Metadata["git_committer_date"] = commit.Committer.When.Format(DateFormat)
 
 	id, err := data.AddCommit(i.ctx, i.dag, mcommit)
 	if err != nil {

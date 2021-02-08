@@ -21,12 +21,8 @@ func TestImportFromURL(t *testing.T) {
 	}
 
 	repo, err := data.GetRepository(ctx, dag, id)
-	if err != nil {
+	if err != nil || repo == nil {
 		t.Fatal("failed to get repo")
-	}
-
-	if repo.Name != "test" {
-		t.Error("unexpected repo name")
 	}
 }
 
@@ -55,11 +51,7 @@ func TestImportFromFS(t *testing.T) {
 	}
 
 	repo, err := data.GetRepository(ctx, dag, id)
-	if err != nil {
+	if err != nil || repo == nil {
 		t.Fatal("failed to get repo")
-	}
-
-	if repo.Name != "test" {
-		t.Error("unexpected repo name")
 	}
 }

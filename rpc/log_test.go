@@ -5,20 +5,15 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/multiverse-vcs/go-multiverse/data"
-	"github.com/multiverse-vcs/go-multiverse/peer"
 )
 
 func TestLog(t *testing.T) {
 	ctx := context.Background()
 
-	dstore := datastore.NewMapDatastore()
-	store := data.NewStore(dstore)
-
-	mock, err := peer.Mock(ctx, dstore)
+	node, err := makeNode(ctx)
 	if err != nil {
-		t.Fatal("failed to create peer")
+		t.Fatal("failed to create peer node")
 	}
 
 	json, err := ioutil.ReadFile("testdata/repository.json")
@@ -31,14 +26,11 @@ func TestLog(t *testing.T) {
 		t.Fatal("failed to parse repository json")
 	}
 
-	id, err := data.AddRepository(ctx, mock, repo)
+	id, err := data.AddRepository(ctx, node, repo)
 	if err != nil {
 		t.Fatal("failed to add repository")
 	}
-
-	if err := store.PutCid(repo.Name, id); err != nil {
-		t.Fatal("failed to put cid in store")
-	}
+	node.Config().Author.Repositories["test"] = id
 
 	json, err = ioutil.ReadFile("testdata/commit.json")
 	if err != nil {
@@ -50,18 +42,18 @@ func TestLog(t *testing.T) {
 		t.Fatal("failed to parse commit json")
 	}
 
-	head, err := data.AddCommit(ctx, mock, commit)
+	head, err := data.AddCommit(ctx, node, commit)
 	if err != nil {
 		t.Fatal("failed to add commit")
 	}
 
-	client, err := connect(mock, store)
+	client, err := makeClient(node)
 	if err != nil {
 		t.Fatal("failed to connect to rpc server")
 	}
 
 	args := LogArgs{
-		Name:   repo.Name,
+		Name:   "test",
 		Branch: "default",
 		Limit:  1,
 	}
