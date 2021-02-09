@@ -32,6 +32,8 @@ type CloneReply struct {
 	ID cid.Cid
 	// Root is the repo root path.
 	Root string
+	// Branch is the checked out branch.
+	Branch string
 }
 
 // Clone copies a commit tree to the working directory.
@@ -46,6 +48,10 @@ func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 	repo, err := data.GetRepository(ctx, dag, args.ID)
 	if err != nil {
 		return err
+	}
+
+	if args.Branch == "" {
+		args.Branch = repo.DefaultBranch
 	}
 
 	id, ok := repo.Branches[args.Branch]
@@ -74,6 +80,7 @@ func (s *Service) Clone(args *CloneArgs, reply *CloneReply) error {
 
 	reply.ID = id
 	reply.Root = path
+	reply.Branch = args.Branch
 
 	return unixfs.Write(ctx, dag, path, tree)
 }

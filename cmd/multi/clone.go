@@ -23,7 +23,6 @@ var cloneCommand = &cli.Command{
 			Name:    "branch",
 			Aliases: []string{"b"},
 			Usage:   "Branch name",
-			Value:   "main",
 		},
 		&cli.IntFlag{
 			Name:    "limit",
@@ -56,10 +55,10 @@ func cloneAction(c *cli.Context) error {
 
 	args := rpc.CloneArgs{
 		Cwd:    cwd,
+		Branch: c.String("branch"),
 		Dir:    c.String("dir"),
 		ID:     id,
 		Limit:  c.Int("limit"),
-		Branch: c.String("branch"),
 	}
 
 	var reply rpc.CloneReply
@@ -68,7 +67,7 @@ func cloneAction(c *cli.Context) error {
 	}
 
 	config := NewConfig(reply.Root)
-	config.Branch = c.String("branch")
+	config.Branch = reply.Branch
 	config.Index = reply.ID
 	return config.Save()
 }
