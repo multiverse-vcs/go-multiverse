@@ -1,8 +1,69 @@
-<div class="min-h-screen flex flex-col">
-  <div class="flex-grow flex-col w-full max-w-7xl mx-auto xl:px-8 py-6 lg:flex space-y-6">
-    <div class="bg-gray-200 shadow overflow-hidden shadow rounded-lg">
+<div class="flex-grow w-full max-w-7xl mx-auto xl:px-8 py-6 lg:flex">
+  <div class="lg:min-w-0 lg:flex-1 space-y-6">
+    <!-- Action buttons -->
+    <div class="flex px-3 xl:px-0">
+      <!-- Action buttons left -->
+      <div class="flex flex-1">
+        <!-- Refs dropdown -->
+        <div class="relative inline-block text-left">
+          <div>
+            <button type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="refs-menu-button" aria-haspopup="true" aria-expanded="true">
+              <svg class="stroke-current -ml-1 mr-2 h-5 w-5" fill="none">
+                {{ if eq .Refs "branches" }}
+                <use xlink:href="/static/feather-sprite.svg#git-branch"/>
+                {{ else if eq .Refs "tags" }}
+                <use xlink:href="/static/feather-sprite.svg#tag"/>
+                {{ end }}
+              </svg>
+              {{ .Head }}
+              <svg class="stroke-current -mr-1 ml-2 h-5 w-5" fill="none">
+                <use xlink:href="/static/feather-sprite.svg#chevron-down"/>
+              </svg>
+            </button>
+          </div>
+          <div class="hidden origin-top-right right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100" role="menu" aria-orientation="vertical" aria-labelledby="refs-menu-button" id="refs-menu">
+            <div class="py-1">
+              {{ range $k, $v := .Repo.Branches }}
+              {{ $href := (join "/" $.PeerID "repositories" $.Name "branches" $k "tree" $.File) }}
+              <a href={{ $href }} class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                <svg class="stroke-current mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none">
+                  <use xlink:href="/static/feather-sprite.svg#git-branch"/>
+                </svg>
+                {{ $k }}
+              </a>
+              {{ end }}
+            </div>
+            {{ if .Repo.Tags }}
+            <div class="py-1">
+              {{ range $k, $v := .Repo.Tags }}
+              {{ $href := (join "/" $.PeerID "repositories" $.Name "tags" $k "tree" $.File) }}
+              <a href={{ $href }} class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                <svg class="stroke-current mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none">
+                  <use xlink:href="/static/feather-sprite.svg#tag"/>
+                </svg>
+                {{ $k }}
+              </a>
+              {{ end }}
+            </div>
+            {{ end }}
+          </div>
+        </div>
+      </div>
+      <!-- Action buttons right -->
+      <div class="flex flex-1 flex-row-reverse">
+        <!-- Fork -->
+        <a href="#" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <svg class="stroke-current stroke-2 h-4 w-4 -ml-0.5 mr-2" fill="none">
+            <use xlink:href="/static/feather-sprite.svg#copy"/>
+          </svg>
+          Fork
+        </a>
+      </div>
+    </div>
+    <!-- Code panel -->
+    <div class="bg-gray-100 shadow overflow-hidden shadow rounded-lg">
       <!-- Breadcrumbs -->
-      <div class="px-4 py-3 sm:px-6">
+      <div class="px-4 py-2 sm:px-6">
         <nav class="flex" aria-label="Breadcrumb">
           <ol class="flex items-center space-x-2">
             {{ $base := (join "/" .PeerID "repositories" .Name .Refs .Head "tree") }}
@@ -55,13 +116,13 @@
       {{ end }}
     </div>
     {{ if .ReadmeBlob }}
-    <div class="bg-gray-200 overflow-hidden shadow rounded-lg">
-      <div class="px-4 py-3 sm:px-6">
-        <h1 class="text-lg">
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+      <div class="px-4 py-2 sm:px-6">
+        <h1 class="text-md font-semibold">
           {{ .ReadmeName }}
         </h1>
       </div>
-      <div class="bg-white px-4 py-5 sm:p-6">
+      <div class="px-4 py-5 sm:p-6">
         <article class="prose">
           {{ markdown .ReadmeBlob }}
         </article>
@@ -70,3 +131,4 @@
     {{ end }}
   </div>
 </div>
+<script type="text/javascript" src="/static/repository.js"></script>

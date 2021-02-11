@@ -6,8 +6,7 @@ import (
 	"net/http"
 )
 
-// TODO uncomment
-//var layout = template.Must(template.New("index.html").Funcs(funcs).ParseFS(views, "views/*"))
+var layout = template.Must(template.New("index.html").Funcs(funcs).ParseFS(views, "views/*"))
 
 // View is an http handler that renders a view.
 type View func(http.ResponseWriter, *http.Request) (*ViewModel, error)
@@ -20,9 +19,6 @@ type ViewModel struct {
 
 // ServeHTTP handles http requests to a route.
 func (v View) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// TODO remove
-	layout := template.Must(template.New("index.html").Funcs(funcs).ParseGlob("web/views/*"))
-
 	model, err := v(w, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
