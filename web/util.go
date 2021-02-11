@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"path"
 	"strings"
@@ -39,6 +40,9 @@ var funcs = template.FuncMap{
 	},
 	"shortcid": func(c string) string {
 		return c[len(c)-10:]
+	},
+	"shortpeer": func(c string) string {
+		return fmt.Sprintf("%s..%s", c[:2], c[len(c)-6:])
 	},
 	"breadcrumbs": breadcrumbs,
 	"highlight":   highlight,

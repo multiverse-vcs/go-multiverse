@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-cid"
 	cbornode "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multihash"
 )
 
@@ -16,6 +17,8 @@ type Author struct {
 	Repositories map[string]cid.Cid `json:"repositories"`
 	// Metadata contains additional data.
 	Metadata map[string]string `json:"metadata"`
+	// Following contains a list of followed peers.
+	Following []peer.ID `json:"following"`
 }
 
 // GetAuthor returns the author with the given CID.

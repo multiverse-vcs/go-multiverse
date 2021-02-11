@@ -15,6 +15,21 @@ type AuthorsAPI struct {
 	Peer
 }
 
+// Get returns the author with the given peer id.
+func (a *AuthorsAPI) Get(ctx context.Context, id peer.ID) (*data.Author, error) {
+	val, err := a.Namesys().GetValue(ctx, p2p.TopicForPeerID(id))
+	if err != nil {
+		return nil, err
+	}
+
+	rec, err := data.RecordFromCBOR(val)
+	if err != nil {
+		return nil, err
+	}
+
+	return data.AuthorFromCBOR(rec.Payload)
+}
+
 // Publish advertises the local author.
 func (a *AuthorsAPI) Publish(ctx context.Context) error {
 	config := a.Config()
@@ -67,4 +82,14 @@ func (a *AuthorsAPI) Search(ctx context.Context, id peer.ID) (*data.Author, erro
 	}
 
 	return data.AuthorFromCBOR(rec.Payload)
+}
+
+// Subscribe joins the pubsub topic of the peer with the given id.
+func (a *AuthorsAPI) Subscribe(id peer.ID) error {
+	return a.Namesys().Subscribe(p2p.TopicForPeerID(id))
+}
+
+// Unsubscribe cancels a subscription and returns true if successful.
+func (a *AuthorsAPI) Unsubscribe(id peer.ID) (bool, error) {
+	return a.Namesys().Cancel(p2p.TopicForPeerID(id))
 }

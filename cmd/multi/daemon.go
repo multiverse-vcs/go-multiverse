@@ -68,6 +68,10 @@ func daemonAction(c *cli.Context) error {
 	if err := node.Authors().Publish(c.Context); err != nil {
 		return err
 	}
+	// ensure any follows made offline will be subscribed
+	for _, peer := range config.Author.Following {
+		node.Authors().Subscribe(peer)
+	}
 
 	go web.ListenAndServe(node)
 	go rpc.ListenAndServe(node)

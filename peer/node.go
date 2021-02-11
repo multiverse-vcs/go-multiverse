@@ -16,6 +16,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
+	namesys "github.com/libp2p/go-libp2p-pubsub-router"
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
 
@@ -28,7 +29,7 @@ type Node struct {
 	config  *Config
 	bstore  blockstore.Blockstore
 	dstore  datastore.Batching
-	namesys routing.ValueStore
+	namesys *namesys.PubsubValueStore
 	provsys provider.System
 	resolv  *resolver.Resolver
 	router  routing.Routing
@@ -118,7 +119,7 @@ func (n *Node) ID() peer.ID {
 }
 
 // Namesys returns the name system.
-func (n *Node) Namesys() routing.ValueStore {
+func (n *Node) Namesys() *namesys.PubsubValueStore {
 	return n.namesys
 }
 

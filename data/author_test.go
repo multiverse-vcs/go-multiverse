@@ -49,4 +49,12 @@ func TestAuthorRoundtrip(t *testing.T) {
 	if !ok || repo.String() != "bafyreib2rnmsqouz67uvb4jcjsqdvsmakdn3zrpswt4ud7aegbfohyrkbe" {
 		t.Error("unexpected repository value")
 	}
+
+	if len(author.Following) != 1 {
+		t.Fatal("unexpected following entries")
+	}
+
+	if author.Following[0].String() != "12D3KooWLz56H2GnnUHU9CouAdLtDvnLiLYT2DUQYSvd4oJBBPcB" {
+		t.Error("unexpected following entry")
+	}
 }

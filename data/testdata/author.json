@@ -2,5 +2,8 @@
 	"repositories": {
 		"test": {"/": "bafyreib2rnmsqouz67uvb4jcjsqdvsmakdn3zrpswt4ud7aegbfohyrkbe"}
 	},
+	"following": [
+		"12D3KooWLz56H2GnnUHU9CouAdLtDvnLiLYT2DUQYSvd4oJBBPcB"
+	],
 	"metadata": {"foo": "bar"}
 }

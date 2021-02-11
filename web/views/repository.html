@@ -1,0 +1,72 @@
+<div class="min-h-screen flex flex-col">
+  <div class="flex-grow flex-col w-full max-w-7xl mx-auto xl:px-8 py-6 lg:flex space-y-6">
+    <div class="bg-gray-200 shadow overflow-hidden shadow rounded-lg">
+      <!-- Breadcrumbs -->
+      <div class="px-4 py-3 sm:px-6">
+        <nav class="flex" aria-label="Breadcrumb">
+          <ol class="flex items-center space-x-2">
+            {{ $base := (join "/" .PeerID "repositories" .Name .Refs .Head "tree") }}
+            <li>
+              <div class="flex items-center">
+                <a href={{ $base }} class="ml-4 text-lg font-medium">tree</a>
+              </div>
+            </li>
+            {{ $breadcrumbs := (join "/" .File) | breadcrumbs }}
+            {{ range $i, $v := $breadcrumbs }}
+            <li>
+              <div class="flex items-center">
+                <svg class="flex-shrink-0 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+                </svg>
+                <a href={{ join $base $v }} class="ml-2 text-lg font-medium">{{ base $v }}</a>
+              </div>
+            </li>
+            {{ end }}
+          </ol>
+        </nav>
+      </div>
+      <!-- Tree -->
+      {{ if .Tree }}
+      <ul class="bg-white divide-y divide-gray-200">
+        {{ range .Tree }}
+        {{ $href := (join "/" $.PeerID "repositories" $.Name $.Refs $.Head "tree" $.File .Name) }}
+          <li class="hover:bg-gray-100">
+            <a href={{ $href }} class="flex p-2">
+              {{ if .IsDir }}
+              <svg class="fill-current text-blue-500 flex-shrink-0 mr-3 h-5 w-5">
+                <use xlink:href="/static/feather-sprite.svg#folder"/>
+              </svg>
+              {{ else }}
+              <svg class="stroke-current text-gray-500 flex-shrink-0 mr-3 h-5 w-5" fill="none">
+                <use xlink:href="/static/feather-sprite.svg#file"/>
+              </svg>
+              {{ end }}
+              {{ .Name }}
+            </a>
+          </li>
+        {{ end }}
+      </ul>
+      {{ end }}
+      <!-- Blob -->
+      {{ if .Blob }}
+      <div class="bg-white">
+        {{ highlight .File .Blob }}
+      </div>
+      {{ end }}
+    </div>
+    {{ if .ReadmeBlob }}
+    <div class="bg-gray-200 overflow-hidden shadow rounded-lg">
+      <div class="px-4 py-3 sm:px-6">
+        <h1 class="text-lg">
+          {{ .ReadmeName }}
+        </h1>
+      </div>
+      <div class="bg-white px-4 py-5 sm:p-6">
+        <article class="prose">
+          {{ markdown .ReadmeBlob }}
+        </article>
+      </div>
+    </div>
+    {{ end }}
+  </div>
+</div>

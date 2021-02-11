@@ -7,7 +7,7 @@ import (
 	ipld "github.com/ipfs/go-ipld-format"
 	path "github.com/ipfs/go-path"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
+	namesys "github.com/libp2p/go-libp2p-pubsub-router"
 )
 
 // Peer is used to access p2p network resources.
@@ -21,7 +21,7 @@ type Peer interface {
 	// ID returns the peer ID of the node.
 	ID() peer.ID
 	// Namesys returns the name system.
-	Namesys() routing.ValueStore
+	Namesys() *namesys.PubsubValueStore
 	// ResolvePath resolves the node from the given path.
 	ResolvePath(context.Context, path.Path) (ipld.Node, error)
 }

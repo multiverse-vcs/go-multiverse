@@ -4,7 +4,6 @@ package web
 import (
 	"embed"
 	"net/http"
-	"path"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/multiverse-vcs/go-multiverse/peer"
@@ -13,8 +12,8 @@ import (
 //go:embed static/*
 var static embed.FS
 
-//go:embed html/*
-var templates embed.FS
+//go:embed views/*
+var views embed.FS
 
 // BindAddr is the address the http server binds to.
 const BindAddr = "127.0.0.1:2020"
@@ -26,22 +25,19 @@ type Server struct {
 
 // ListenAndServe starts an HTTP listener.
 func ListenAndServe(node peer.Peer) error {
-	server := &Server{node}
+	server := Server{node}
+	author := Author(server)
+	repository := Repository(server)
 
 	router := httprouter.New()
-	router.HandlerFunc(http.MethodGet, "/", server.Index)
-	router.Handler(http.MethodGet, "/:peer_id", View(server.Author))
-	router.Handler(http.MethodGet, "/:peer_id/repositories/:name/:refs/:head/tree", View(server.Tree))
-	router.Handler(http.MethodGet, "/:peer_id/repositories/:name/:refs/:head/tree/*file", View(server.Tree))
+	router.Handler(http.MethodGet, "/", View(author.Index))
+	router.Handler(http.MethodGet, "/:peer_id", View(author.Index))
+	router.Handler(http.MethodPost, "/:peer_id/follow", View(author.Follow))
+	router.Handler(http.MethodPost, "/:peer_id/unfollow", View(author.Unfollow))
+	router.Handler(http.MethodGet, "/:peer_id/repositories/:name/:refs/:head/tree", View(repository.Index))
+	router.Handler(http.MethodGet, "/:peer_id/repositories/:name/:refs/:head/tree/*file", View(repository.Index))
 
 	http.Handle("/", router)
 	http.Handle("/static/", http.FileServer(http.FS(static)))
 	return http.ListenAndServe(BindAddr, nil)
-}
-
-// Index redirects to the current author page.
-func (s *Server) Index(w http.ResponseWriter, req *http.Request) {
-	peerID := s.node.ID().String()
-	url := path.Join("/", peerID)
-	http.Redirect(w, req, url, http.StatusTemporaryRedirect)
 }

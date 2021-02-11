@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multiverse</title>
+  <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="stylesheet" href="/static/tailwind.css">
+  <script type="text/javascript" src="/static/index.js" defer></script>
+</head>
+<body>
+  <div class="fixed top-0 left-0 w-1/2 h-full bg-white" aria-hidden="true"></div>
+  <div class="fixed top-0 right-0 w-1/2 h-full bg-gray-50" aria-hidden="true"></div>
+  <div class="relative min-h-screen flex flex-col">
+    {{ template "_navbar.html" }}
+    {{ . }}
+  </div>
+</body>
+</html>

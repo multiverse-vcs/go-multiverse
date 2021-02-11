@@ -18,6 +18,7 @@ var app = &cli.App{
 	},
 	Commands: []*cli.Command{
 		branchCommand,
+		checkoutCommand,
 		cloneCommand,
 		commitCommand,
 		daemonCommand,

@@ -11,7 +11,7 @@ import (
 	bhost "github.com/libp2p/go-libp2p-blankhost"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
+	namesys "github.com/libp2p/go-libp2p-pubsub-router"
 	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
 	"github.com/multiverse-vcs/go-multiverse/p2p"
 )
@@ -22,7 +22,7 @@ type Mock struct {
 	host    host.Host
 	config  *Config
 	resolv  *resolver.Resolver
-	namesys routing.ValueStore
+	namesys *namesys.PubsubValueStore
 }
 
 // NewMock returns a new mock node.
@@ -72,7 +72,7 @@ func (n *Mock) ID() peer.ID {
 }
 
 // Namesys returns the name system.
-func (n *Mock) Namesys() routing.ValueStore {
+func (n *Mock) Namesys() *namesys.PubsubValueStore {
 	return n.namesys
 }
 
