@@ -17,3 +17,4 @@ bin
 multi.json
 multi.ignore
 coverage.txt
+.multiverse

@@ -12,7 +12,7 @@
 
 - ***Peer-to-peer*** - self host your repositories
 - ***Works offline*** - integrated local code viewer
-- ***Secure*** - all communications are encrypted
+- ***Private & Secure*** - all communications are encrypted
 
 ### Getting Started
 
@@ -21,13 +21,6 @@
 ### Building
 
 Go 1.16 or higher is required.
-
-```bash
-$ go get golang.org/dl/go1.16beta1
-$ go1.16beta1 download
-```
-
-Build and install from sources.
 
 ```bash
 $ git clone https://github.com/multiverse-vcs/go-multiverse.git
