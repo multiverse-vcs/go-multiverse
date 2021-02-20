@@ -2,9 +2,10 @@ package rpc
 
 import (
 	"errors"
+	"log"
 	"net"
-	"net/http"
 	"net/rpc"
+	"net/rpc/jsonrpc"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
@@ -27,19 +28,28 @@ type Service struct {
 
 // NewClient returns a new RPC client.
 func NewClient() (*rpc.Client, error) {
-	return rpc.DialHTTP("tcp", SocketAddr)
+	return jsonrpc.Dial("tcp", SocketAddr)
 }
 
 // ListenAndServe starts the RPC listener.
 func ListenAndServe(server *remote.Server) error {
 	rpc.RegisterName("Remote", &Service{server})
 	rpc.RegisterName("Repo", &repo.Service{server})
-	rpc.HandleHTTP()
 
 	listen, err := net.Listen("tcp", SocketAddr)
 	if err != nil {
 		return err
 	}
+	defer listen.Close()
 
-	return http.Serve(listen, nil)
+	for {
+		conn, err := listen.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go jsonrpc.ServeConn(conn)
+	}
+	
+	return nil
 }
