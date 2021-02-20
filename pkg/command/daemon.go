@@ -6,6 +6,7 @@ import (
 	"os/signal"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
+	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/nasdf/ulimit"
 	"github.com/urfave/cli/v2"
 )
@@ -39,7 +40,7 @@ func NewDaemonCommand() *cli.Command {
 				return err
 			}
 
-			go remote.ListenAndServe(home, server)
+			go rpc.ListenAndServe(server)
 
 			fmt.Printf(Banner)
 			fmt.Printf("Peer ID: %s\n", server.Peer.Host.ID().Pretty())

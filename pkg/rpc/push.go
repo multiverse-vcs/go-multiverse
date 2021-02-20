@@ -1,4 +1,4 @@
-package remote
+package rpc
 
 import (
 	"context"
@@ -6,12 +6,13 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
+	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 )
 
 // PushArgs contains the args.
 type PushArgs struct {
 	// Remote is the repository path.
-	Remote Path
+	Remote remote.Path
 	// Branch is the name of the branch to update.
 	Branch string
 	// Pack contains nodes to add to the branch.
@@ -22,7 +23,7 @@ type PushArgs struct {
 type PushReply struct{}
 
 // Push updates repository branches and publishes the updated author.
-func (s *Server) Push(args *PushArgs, reply *PushReply) error {
+func (s *Service) Push(args *PushArgs, reply *PushReply) error {
 	ctx := context.Background()
 
 	key, err := p2p.DecodeKey(s.Config.PrivateKey)
@@ -56,7 +57,7 @@ func (s *Server) Push(args *PushArgs, reply *PushReply) error {
 	}
 
 	old := repo.Branches[args.Branch]
-	new, err := LoadPack(ctx, s.Peer.DAG, s.Peer.Blocks, args.Pack, old)
+	new, err := remote.LoadPack(ctx, s.Peer.DAG, s.Peer.Blocks, args.Pack, old)
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,11 @@ func NewPath(id peer.ID, name string) Path {
 	return Path(strings.Join([]string{id.Pretty(), name}, "/"))
 }
 
+// String returns the path as a string.
+func (p Path) String() string {
+	return string(p)
+}
+
 // PeerID returns the peer ID part of the path.
 func (p Path) PeerID() (peer.ID, error) {
 	parts, err := p.Split()

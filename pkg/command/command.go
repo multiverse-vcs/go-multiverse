@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/multiverse-vcs/go-multiverse/pkg/command/repo"
 	"github.com/urfave/cli/v2"
 )
 
@@ -24,7 +25,7 @@ func NewApp() *cli.App {
 			NewRemoteCommand(),
 			NewPushCommand(),
 			NewDaemonCommand(),
-			NewRepoCommand(),
+			repo.NewCommand(),
 		},
 	}
 }

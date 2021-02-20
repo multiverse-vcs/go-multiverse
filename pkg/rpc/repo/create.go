@@ -1,4 +1,4 @@
-package remote
+package repo
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
+	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 )
 
 // CreateArgs contains the args.
@@ -17,12 +18,16 @@ type CreateArgs struct {
 // CreateReply contains the reply
 type CreateReply struct {
 	// Remote is the repository path.
-	Remote Path
+	Remote remote.Path
 }
 
 // Create creates a new repository.
-func (s *Server) Create(args *CreateArgs, reply *CreateReply) error {
+func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
 	ctx := context.Background()
+
+	if args.Name == "" {
+		return errors.New("name cannot be empty")
+	}
 
 	key, err := p2p.DecodeKey(s.Config.PrivateKey)
 	if err != nil {
@@ -52,6 +57,6 @@ func (s *Server) Create(args *CreateArgs, reply *CreateReply) error {
 		return err
 	}
 
-	reply.Remote = NewPath(peerID, args.Name)
+	reply.Remote = remote.NewPath(peerID, args.Name)
 	return s.Namesys.Publish(ctx, key, authorID)
 }

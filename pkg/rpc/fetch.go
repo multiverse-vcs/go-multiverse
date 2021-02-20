@@ -1,16 +1,17 @@
-package remote
+package rpc
 
 import (
 	"context"
 	"errors"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
+	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 )
 
 // FetchArgs contains the args.
 type FetchArgs struct {
 	// Path is the repository path.
-	Remote Path
+	Remote remote.Path
 }
 
 // FetchReply contains the reply
@@ -19,7 +20,7 @@ type FetchReply struct {
 }
 
 // Fetch returns the branches of the repository.
-func (s *Server) Fetch(args *FetchArgs, reply *FetchReply) error {
+func (s *Service) Fetch(args *FetchArgs, reply *FetchReply) error {
 	ctx := context.Background()
 
 	peerID, err := args.Remote.PeerID()

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
+	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/urfave/cli/v2"
 )
 
@@ -23,21 +24,16 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			home, err := os.UserHomeDir()
+			client, err := rpc.NewClient()
 			if err != nil {
-				return err
+				return rpc.ErrDialRPC
 			}
 
-			client, err := remote.NewClient(home)
-			if err != nil {
-				return ErrDialRPC
-			}
-
-			fetchArgs := remote.FetchArgs{
+			fetchArgs := rpc.FetchArgs{
 				Remote: repo.Config.Remote,
 			}
 
-			var fetchReply remote.FetchReply
+			var fetchReply rpc.FetchReply
 			if err := client.Call("Remote.Fetch", &fetchArgs, &fetchReply); err != nil {
 				return err
 			}
@@ -52,13 +48,13 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			pushArgs := remote.PushArgs{
-				Remote: repo.Config.Remote,
+			pushArgs := rpc.PushArgs{
 				Branch: branch,
 				Pack:   pack,
+				Remote: repo.Config.Remote,
 			}
 
-			var pushReply remote.PushReply
+			var pushReply rpc.PushReply
 			return client.Call("Remote.Push", &pushArgs, &pushReply)
 		},
 	}
