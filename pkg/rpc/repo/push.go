@@ -1,4 +1,4 @@
-package rpc
+package repo
 
 import (
 	"context"
@@ -12,11 +12,11 @@ import (
 // PushArgs contains the args.
 type PushArgs struct {
 	// Remote is the repository path.
-	Remote remote.Path
+	Remote remote.Path `json:"remote"`
 	// Branch is the name of the branch to update.
-	Branch string
+	Branch string `json:"branch"`
 	// Pack contains nodes to add to the branch.
-	Pack []byte
+	Pack []byte `json:"pack"`
 }
 
 // PushReply contains the reply

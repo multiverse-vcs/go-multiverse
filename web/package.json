@@ -1,0 +1,37 @@
+{
+  "main": "src/main.js",
+  "version": "0.0.1",
+  "private": true,
+  "config": {
+    "forge": "forge.config.js"
+  },
+  "scripts": {
+    "snowpack:build": "snowpack build",
+    "snowpack:start": "snowpack dev",
+    "electron:make": "electron-forge make",
+    "electron:package": "electron-forge package",
+    "electron:start": "electron-forge start",
+    "start": "concurrently \"yarn snowpack:start\" \"yarn electron:start\""
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+    "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "@snowpack/plugin-postcss": "^1.1.0",
+    "@snowpack/plugin-svelte": "^3.5.2",
+    "@tailwindcss/forms": "^0.2.1",
+    "autoprefixer": "^10.2.4",
+    "concurrently": "^6.0.0",
+    "electron": "^11.3.0",
+    "postcss": "^8.2.6",
+    "postcss-cli": "^8.3.1",
+    "snowpack": "^3.0.1",
+    "tailwindcss": "^2.0.3"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "svelte": "^3.32.3"
+  }
+}

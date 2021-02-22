@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
+	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,7 +20,7 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			repo, err := NewContext(cwd)
+			ctx, err := NewContext(cwd)
 			if err != nil {
 				return err
 			}
@@ -29,33 +30,33 @@ func NewPushCommand() *cli.Command {
 				return rpc.ErrDialRPC
 			}
 
-			fetchArgs := rpc.FetchArgs{
-				Remote: repo.Config.Remote,
+			fetchArgs := repo.FetchArgs{
+				Remote: ctx.Config.Remote,
 			}
 
-			var fetchReply rpc.FetchReply
-			if err := client.Call("Remote.Fetch", &fetchArgs, &fetchReply); err != nil {
+			var fetchReply repo.FetchReply
+			if err := client.Call("Repo.Fetch", &fetchArgs, &fetchReply); err != nil {
 				return err
 			}
 
-			branch := repo.Config.Branch
+			branch := ctx.Config.Branch
 			heads := fetchReply.Repository.Heads()
 			old := fetchReply.Repository.Branches[branch]
-			new := repo.Config.Branches[branch]
+			new := ctx.Config.Branches[branch]
 
-			pack, err := remote.BuildPack(c.Context, repo.DAG, heads, old, new)
+			pack, err := remote.BuildPack(c.Context, ctx.DAG, heads, old, new)
 			if err != nil {
 				return err
 			}
 
-			pushArgs := rpc.PushArgs{
+			pushArgs := repo.PushArgs{
 				Branch: branch,
 				Pack:   pack,
-				Remote: repo.Config.Remote,
+				Remote: ctx.Config.Remote,
 			}
 
-			var pushReply rpc.PushReply
-			return client.Call("Remote.Push", &pushArgs, &pushReply)
+			var pushReply repo.PushReply
+			return client.Call("Repo.Push", &pushArgs, &pushReply)
 		},
 	}
 }

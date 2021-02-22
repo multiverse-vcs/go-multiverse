@@ -1,4 +1,4 @@
-package rpc
+package repo
 
 import (
 	"context"
@@ -11,12 +11,12 @@ import (
 // FetchArgs contains the args.
 type FetchArgs struct {
 	// Path is the repository path.
-	Remote remote.Path
+	Remote remote.Path `json:"remote"`
 }
 
 // FetchReply contains the reply
 type FetchReply struct {
-	Repository *object.Repository
+	Repository *object.Repository `json:"repository"`
 }
 
 // Fetch returns the branches of the repository.

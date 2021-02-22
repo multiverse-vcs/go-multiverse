@@ -17,4 +17,6 @@ bin
 multi.json
 multi.ignore
 coverage.txt
+.multi
 .multiverse
+.DS_Store

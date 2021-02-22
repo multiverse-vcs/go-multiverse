@@ -13,7 +13,7 @@ type ListArgs struct{}
 // ListReply contains the reply
 type ListReply struct {
 	// Repositories is a map of repositories.
-	Repositories map[remote.Path]*object.Repository
+	Repositories map[remote.Path]*object.Repository `json:"repositories"`
 }
 
 // List returns a list of repositories.

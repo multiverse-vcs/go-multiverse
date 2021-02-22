@@ -16,13 +16,13 @@ import (
 
 const (
 	// DotDir is the name of the dot directory.
-	DotDir = ".multiverse"
+	DotDir = ".multi"
 	// IgnoreFile is the name of the ignore file.
 	IgnoreFile = "multi.ignore"
 )
 
 // IgnoreRules contains default ignore rules.
-var IgnoreRules = []string{".git", DotDir}
+var IgnoreRules = []string{".git", "node_modules", DotDir}
 
 // Context contains command context.
 type Context struct {

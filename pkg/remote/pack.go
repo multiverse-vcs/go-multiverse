@@ -27,17 +27,18 @@ func BuildPack(ctx context.Context, dag ipld.DAGService, heads *cid.Set, old, ne
 		return node.Links(), nil
 	}
 
-	var pack bytes.Buffer
-	if err := car.WriteCarWithWalker(ctx, dag, root, &pack, walk); err != nil {
+	var b bytes.Buffer
+	if err := car.WriteCarWithWalker(ctx, dag, root, &b, walk); err != nil {
 		return nil, err
 	}
 
-	return pack.Bytes(), nil
+	return b.Bytes(), nil
 }
 
 // LoadPack adds the pack data to the dag and verifies the root is valid.
 func LoadPack(ctx context.Context, dag ipld.DAGService, bs blockstore.Blockstore, data []byte, old cid.Cid) (cid.Cid, error) {
-	head, err := car.LoadCar(bs, bytes.NewReader(data))
+	b := bytes.NewReader(data)
+	head, err := car.LoadCar(bs, b)
 	if err != nil {
 		return cid.Cid{}, err
 	}

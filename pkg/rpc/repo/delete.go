@@ -11,7 +11,7 @@ import (
 // DeleteArgs contains the args.
 type DeleteArgs struct {
 	// Name is the repository name.
-	Name string
+	Name string `json:"name"`
 }
 
 // DeleteReply contains the reply

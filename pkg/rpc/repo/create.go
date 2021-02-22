@@ -12,13 +12,13 @@ import (
 // CreateArgs contains the args.
 type CreateArgs struct {
 	// Name is the repository name.
-	Name string
+	Name string `json:"name"`
 }
 
 // CreateReply contains the reply
 type CreateReply struct {
 	// Remote is the repository path.
-	Remote remote.Path
+	Remote remote.Path `json:"remote"`
 }
 
 // Create creates a new repository.
