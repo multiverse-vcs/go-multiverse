@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 
-	blocks "github.com/ipfs/go-block-format"
 	car "github.com/ipld/go-car"
 	"github.com/julienschmidt/httprouter"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -56,11 +55,17 @@ func (s *Service) Push(w http.ResponseWriter, req *http.Request) error {
 		return errors.New("unexpected header roots")
 	}
 
-	for block := blocks.Block(nil); err != io.EOF; block, err = r.Next() {
+	// load blocks slowly or badger will return an error
+	for {
+		block, err := r.Next()
+		if err == io.EOF {
+			break
+		}
+		
 		if err != nil {
 			return err
 		}
-
+		
 		if err := s.Peer.Blocks.Put(block); err != nil {
 			return err
 		}

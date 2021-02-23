@@ -11,17 +11,16 @@
 </script>
 
 <div class="flex-shrink-0 w-64 border-r border-gray-200 bg-white">
-  <div class="h-6 w-full" style="-webkit-app-region: drag">
+  <div class="h-14 w-full" style="-webkit-app-region: drag">
     <!-- draggable area -->
   </div>
-  <div class="pl-4 pr-6 mt-6" >
+  <div class="pl-4 pr-6" >
     <div class="flex items-center justify-between">
-      <div class="flex-1 space-y-8">
-        <div class="space-y-8 block space-y-8">
+      <div class="flex-1 space-y-4">
+        <div class="space-y-4 block">
           {#if $self}
             <Profile peerID={$self.peerID} />
           {/if}
-          <!-- Action buttons -->
           <div class="flex flex-col">
             <button type="button" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
               <span class="ml-1">New Repository</span>

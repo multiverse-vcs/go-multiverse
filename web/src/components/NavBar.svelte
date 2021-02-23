@@ -27,8 +27,20 @@
 	}
 </script>
 
+<style>
+	.nav-bar {
+		-webkit-user-select: none;
+		-webkit-app-region: drag;
+	}
 
-<div class="flex flex-1 items-center px-4 h-8">
+	.nav-bar a,
+	.nav-bar button {
+		cursor: pointer;
+		-webkit-app-region: no-drag;	
+	}
+</style>
+
+<div class="flex flex-shrink-0 items-center px-6 h-14 nav-bar">
 	{#if $remote}
 	<div class="flex flex-1 items-center space-x-1">
 	 	<a href="#" on:click={() => $path = ''} class="text-lg font-semibold">
