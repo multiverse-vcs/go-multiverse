@@ -8,6 +8,8 @@
 	{#if Array.isArray($file)} 
 	<Tree entries={$file} />
 	{:else if typeof $file === 'string'}
-	{@html $file}
+  <article class="text-sm">
+	 {@html $file}
+  </article>
 	{/if}
 </div>

@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/chroma v0.8.2
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/ipfs/go-bitswap v0.3.2
+	github.com/ipfs/go-block-format v0.0.2
 	github.com/ipfs/go-blockservice v0.1.4
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5

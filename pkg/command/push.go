@@ -51,6 +51,8 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
+			// TODO use merge base to check if branch is valid
+
 			refs := repo.Heads()
 			walk := func(node ipld.Node) ([]*ipld.Link, error) {
 				if refs.Has(node.Cid()) {

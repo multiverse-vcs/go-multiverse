@@ -2,8 +2,10 @@ package http
 
 import (
 	"errors"
+	"io"
 	"net/http"
 
+	blocks "github.com/ipfs/go-block-format"
 	car "github.com/ipld/go-car"
 	"github.com/julienschmidt/httprouter"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -45,18 +47,28 @@ func (s *Service) Push(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	header, err := car.LoadCar(s.Peer.Blocks, req.Body)
+	r, err := car.NewCarReader(req.Body)
 	if err != nil {
 		return err
 	}
 
-	if len(header.Roots) != 1 {
+	if len(r.Header.Roots) != 1 {
 		return errors.New("unexpected header roots")
+	}
+
+	for block := blocks.Block(nil); err != io.EOF; block, err = r.Next() {
+		if err != nil {
+			return err
+		}
+
+		if err := s.Peer.Blocks.Put(block); err != nil {
+			return err
+		}
 	}
 
 	// TODO use merge base to check if new root is valid
 
-	repo.Branches[bname] = header.Roots[0]
+	repo.Branches[bname] = r.Header.Roots[0]
 	if repo.DefaultBranch == "" {
 		repo.DefaultBranch = bname
 	}

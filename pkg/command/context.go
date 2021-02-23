@@ -22,7 +22,7 @@ const (
 )
 
 // IgnoreRules contains default ignore rules.
-var IgnoreRules = []string{".git", "node_modules", DotDir}
+var IgnoreRules = []string{".git", DotDir}
 
 // Context contains command context.
 type Context struct {

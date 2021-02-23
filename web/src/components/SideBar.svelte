@@ -14,7 +14,7 @@
   <div class="h-6 w-full" style="-webkit-app-region: drag">
     <!-- draggable area -->
   </div>
-  <div class="pl-4 pr-6" >
+  <div class="pl-4 pr-6 mt-6" >
     <div class="flex items-center justify-between">
       <div class="flex-1 space-y-8">
         <div class="space-y-8 block space-y-8">

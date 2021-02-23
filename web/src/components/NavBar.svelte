@@ -21,7 +21,9 @@
 	}
 
 	function clickBreadcrumb(index) {
-		path.set(`/${breadcrumbs.slice(0, index+1).join('/')}`)
+		const offset = breadcrumbs.length > 3 ? breadcrumbs.length - 2 : 1
+		const subpath = breadcrumbs.slice(0, offset+index).join('/')
+		path.set(`/${subpath}`)
 	}
 </script>
 
@@ -32,7 +34,11 @@
 	 	<a href="#" on:click={() => $path = ''} class="text-lg font-semibold">
  		{$remote.split('/').pop()}
  		</a>
- 		{#each breadcrumbs as c, i}
+ 		{#if breadcrumbs.length > 3}
+ 		<span class="text-gray-400 text-lg">/</span>
+ 		<span class="text-gray-400 text-lg">..</span>
+ 		{/if}
+ 		{#each breadcrumbs.slice(-3) as c, i}
  		<span class="text-gray-400 text-lg">/</span>
  		<a href="#" on:click={() => clickBreadcrumb(i) } class="text-lg font-semibold">
  			{c}
@@ -55,7 +61,7 @@
 		</div>
 		{#if branchMenu}
 		<div class="absolute origin-top-right right-0 mt-2 rounded-md shadow-lg bg-white divide-y divide-gray-100" role="menu" aria-orientation="vertical">
-			<div class="py-1">
+			<div class="py-2">
 				{#each branches as b}
 				<a href="#" class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">{b}</a>
 				{/each}
