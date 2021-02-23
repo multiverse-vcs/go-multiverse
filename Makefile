@@ -15,7 +15,7 @@ install:
 
 install-systemd: install
 	mkdir -p $(HOME)/.config/systemd/user/
-	cp multiverse.service $(HOME)/.config/systemd/user
+	cp misc/multiverse-user.service $(HOME)/.config/systemd/user
 
 test:
 	$(GOCC) test ./... -cover
