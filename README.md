@@ -23,8 +23,8 @@
 Go 1.16 or higher is required.
 
 ```bash
-$ go get golang.org/dl/go1.16beta1
-$ go1.16beta1 download
+$ go get golang.org/dl/go1.16
+$ go1.16 download
 ```
 
 Build and install from sources.
@@ -40,7 +40,7 @@ $ make install
 ```
 USAGE:
    multi [global options] command [command options] [arguments...]
-   
+
 COMMANDS:
    branch   List, create, or delete branches
    commit   Record changes
@@ -63,3 +63,4 @@ Multiverse follows the [Contributor Covenant](https://contributor-covenant.org/v
 ### License
 
 GNU Affero General Public License v3.0
+
