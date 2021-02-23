@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	cid "github.com/ipfs/go-cid"
-	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 )
 
 const (
@@ -24,8 +23,8 @@ type Config struct {
 	Branches map[string]cid.Cid `json:"branches"`
 	// Index is the CID of the current commit.
 	Index cid.Cid `json:"index"`
-	// Remote is the path to the repository.
-	Remote remote.Path `json:"remote"`
+	// Remote is the repository remote server.
+	Remote string `json:"remote"`
 	// Tags is a map of names to commit CIDs.
 	Tags map[string]cid.Cid `json:"tags"`
 

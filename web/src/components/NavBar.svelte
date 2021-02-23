@@ -1,34 +1,67 @@
 <script>
-  import Icon from './Icon.svelte'
+	import { remote } from "../services/store"
+	import { repo, branch, path } from "../services/store"
+	import Icon from './Icon.svelte'
 
-  let dropdown = false
-  
-  function toggleDropdown() { 
-    dropdown = !dropdown 
-  }
+	let branches = []
+	repo.subscribe((value) => {
+		if (!value) return;
+		branch.set(value.default_branch);
+		branches = Object.keys(value.branches).sort();
+	})
+
+	let breadcrumbs = []
+	path.subscribe((value) => {
+		breadcrumbs = value.split('/').slice(1)
+	})
+
+	let branchMenu = false
+	function toggleBranchMenu() {
+		branchMenu = !branchMenu
+	}
+
+	function clickBreadcrumb(index) {
+		path.set(`/${breadcrumbs.slice(0, index+1).join('/')}`)
+	}
 </script>
 
-<div class="relative z-10 flex-shrink-0 flex h-12" style="-webkit-app-region: drag">
-  <div class="flex-1 px-4 flex justify-between">
-    <div class="flex-1 flex">
- 
-    </div>
-    <div class="ml-4 flex items-center md:ml-6">
-      <!-- Profile dropdown -->
-      <div class="ml-3 relative">
-        <div>
-          <button on:click={toggleDropdown} class="max-w-xs bg-white flex items-center text-sm text-gray-400 rounded-full focus:outline-none" id="user-menu" aria-haspopup="true">
-            <span class="sr-only">Open user menu</span>
-            <Icon name="settings" width="18" height="18" />
-          </button>
-        </div>
-        {#if dropdown}
-          <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5" role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
-            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Profile</a>
-            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
-          </div>
-        {/if}
-      </div>
-    </div>
-  </div>
+
+<div class="flex flex-1 items-center px-4 h-8">
+	{#if $remote}
+	<div class="flex flex-1 items-center space-x-1">
+	 	<a href="#" on:click={() => $path = ''} class="text-lg font-semibold">
+ 		{$remote.split('/').pop()}
+ 		</a>
+ 		{#each breadcrumbs as c, i}
+ 		<span class="text-gray-400 text-lg">/</span>
+ 		<a href="#" on:click={() => clickBreadcrumb(i) } class="text-lg font-semibold">
+ 			{c}
+ 		</a>
+ 		{/each}
+	</div>
+	{/if}
+
+	<div class="flex flex-1">
+		<!-- empty space -->
+	</div>
+
+	{#if branches.length}
+	<div class="relative inline-block text-left">
+		<div>
+			<button on:click={toggleBranchMenu} type="button" class="inline-flex space-x-1 items-center w-full rounded-full p-2 text-sm font-medium hover:bg-gray-50 focus:outline-none">
+				<Icon name="git-branch" width="16" height="16" />
+				<Icon name="chevron-down" width="16" height="16" />
+			</button>
+		</div>
+		{#if branchMenu}
+		<div class="absolute origin-top-right right-0 mt-2 rounded-md shadow-lg bg-white divide-y divide-gray-100" role="menu" aria-orientation="vertical">
+			<div class="py-1">
+				{#each branches as b}
+				<a href="#" class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">{b}</a>
+				{/each}
+			</div>
+		</div>
+		{/if}
+	</div>
+	{/if}
 </div>

@@ -6,7 +6,6 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
-	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 )
 
 // CreateArgs contains the args.
@@ -16,10 +15,7 @@ type CreateArgs struct {
 }
 
 // CreateReply contains the reply
-type CreateReply struct {
-	// Remote is the repository path.
-	Remote remote.Path `json:"remote"`
-}
+type CreateReply struct{}
 
 // Create creates a new repository.
 func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
@@ -34,9 +30,7 @@ func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
 		return err
 	}
 
-	peerID := s.Peer.Host.ID()
 	author := s.Config.Author
-
 	if _, ok := author.Repositories[args.Name]; ok {
 		return errors.New("repository already exists")
 	}
@@ -57,6 +51,5 @@ func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
 		return err
 	}
 
-	reply.Remote = remote.NewPath(peerID, args.Name)
 	return s.Namesys.Publish(ctx, key, authorID)
 }

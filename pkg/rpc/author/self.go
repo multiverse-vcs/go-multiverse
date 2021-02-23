@@ -1,16 +1,23 @@
 package author
 
+import (
+	"github.com/multiverse-vcs/go-multiverse/pkg/object"
+)
+
 // SelfArgs contains the args.
-type SelfArgs struct {}
+type SelfArgs struct{}
 
 // SelfReply contains the reply
 type SelfReply struct {
+	// Author is the author object.
+	Author *object.Author `json:"author"`
 	// PeerID is the peer ID of the server.
 	PeerID string `json:"peerID"`
 }
 
 // Self returns the server peer's author profile.
 func (s *Service) Self(args *SelfArgs, reply *SelfReply) error {
+	reply.Author = s.Config.Author
 	reply.PeerID = s.Peer.Host.ID().Pretty()
 	return nil
 }

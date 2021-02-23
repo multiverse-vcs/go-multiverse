@@ -1,8 +1,6 @@
 package repo
 
 import (
-	"fmt"
-
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
 	"github.com/urfave/cli/v2"
@@ -32,7 +30,6 @@ func NewCreateCommand() *cli.Command {
 				return err
 			}
 
-			fmt.Println(reply.Remote)
 			return nil
 		},
 	}

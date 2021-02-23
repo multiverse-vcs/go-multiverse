@@ -1,11 +1,14 @@
 package command
 
 import (
+	"bytes"
+	"errors"
 	"os"
 
-	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
-	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
-	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
+	cid "github.com/ipfs/go-cid"
+	ipld "github.com/ipfs/go-ipld-format"
+	car "github.com/ipld/go-car"
+	"github.com/multiverse-vcs/go-multiverse/pkg/http"
 	"github.com/urfave/cli/v2"
 )
 
@@ -14,6 +17,13 @@ func NewPushCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "push",
 		Usage: "Update a remote repository",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "branch",
+				Aliases: []string{"b"},
+				Usage:   "Branch to push",
+			},
+		},
 		Action: func(c *cli.Context) error {
 			cwd, err := os.Getwd()
 			if err != nil {
@@ -25,38 +35,37 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			client, err := rpc.NewClient()
-			if err != nil {
-				return rpc.ErrDialRPC
+			branch := c.String("branch")
+			if branch == "" {
+				branch = ctx.Config.Branch
 			}
 
-			fetchArgs := repo.FetchArgs{
-				Remote: ctx.Config.Remote,
+			head := ctx.Config.Branches[branch]
+			if !head.Defined() {
+				return errors.New("nothing to push")
 			}
 
-			var fetchReply repo.FetchReply
-			if err := client.Call("Repo.Fetch", &fetchArgs, &fetchReply); err != nil {
-				return err
-			}
-
-			branch := ctx.Config.Branch
-			heads := fetchReply.Repository.Heads()
-			old := fetchReply.Repository.Branches[branch]
-			new := ctx.Config.Branches[branch]
-
-			pack, err := remote.BuildPack(c.Context, ctx.DAG, heads, old, new)
+			client := http.NewClient()
+			repo, err := client.Fetch(ctx.Config.Remote)
 			if err != nil {
 				return err
 			}
 
-			pushArgs := repo.PushArgs{
-				Branch: branch,
-				Pack:   pack,
-				Remote: ctx.Config.Remote,
+			refs := repo.Heads()
+			walk := func(node ipld.Node) ([]*ipld.Link, error) {
+				if refs.Has(node.Cid()) {
+					return nil, nil
+				}
+
+				return node.Links(), nil
 			}
 
-			var pushReply repo.PushReply
-			return client.Call("Repo.Push", &pushArgs, &pushReply)
+			var data bytes.Buffer
+			if err := car.WriteCarWithWalker(c.Context, ctx.DAG, []cid.Cid{head}, &data, walk); err != nil {
+				return err
+			}
+
+			return client.Push(ctx.Config.Remote, branch, data.Bytes())
 		},
 	}
 }

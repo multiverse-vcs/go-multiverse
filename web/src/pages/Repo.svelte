@@ -1,19 +1,13 @@
 <script>
-  import { onDestroy } from 'svelte'
-  import { repoName, repo } from '../services/store'
-
-  let branches = []
-
-  const unsubscribe = repo.subscribe(value => {
-    if (!value) return
-
-    branches = Object.keys(value.branches).sort()
-  })
-
-  onDestroy(unsubscribe)
+	import Icon from "../components/Icon.svelte"
+	import Tree from "../components/Tree.svelte"
+	import { file } from "../services/store"
 </script>
 
-<h1>{$repoName}</h1>
-{#each branches as branch}
-  <h2>{branch}</h2>
-{/each}
+<div class="flex-grow w-full h-full overflow-auto mt-3">
+	{#if Array.isArray($file)} 
+	<Tree entries={$file} />
+	{:else if typeof $file === 'string'}
+	{@html $file}
+	{/if}
+</div>

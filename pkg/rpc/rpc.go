@@ -14,8 +14,12 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
 )
 
-// SocketAddr is RPC socket address.
-const SocketAddr = "localhost:9001"
+const (
+	// SocketAddr is RPC socket address.
+	SocketAddr = "localhost:9001"
+	// DefaultRPCPath is the http path of the json RPC.
+	DefaultRPCPath = "/_jsonRPC_"
+)
 
 // ErrDialRPC is an error message for failed RPC connections.
 var ErrDialRPC = errors.New(`
@@ -26,23 +30,23 @@ See 'multi help daemon' for more info.
 
 // HttpConn wraps an HTTP request.
 type HttpConn struct {
-    r io.Reader
-    w io.Writer
+	r io.Reader
+	w io.Writer
 }
 
 // Read reads bytes from the reader.
-func (c *HttpConn) Read(p []byte) (n int, err error)  { 
-	return c.r.Read(p) 
+func (c *HttpConn) Read(p []byte) (n int, err error) {
+	return c.r.Read(p)
 }
 
 // Write writes bytes to the writer.
-func (c *HttpConn) Write(d []byte) (n int, err error) { 
-	return c.w.Write(d) 
+func (c *HttpConn) Write(d []byte) (n int, err error) {
+	return c.w.Write(d)
 }
 
 // Close does nothing.
-func (c *HttpConn) Close() error                      { 
-	return nil 
+func (c *HttpConn) Close() error {
+	return nil
 }
 
 // NewClient returns a new RPC client.
@@ -57,12 +61,12 @@ func ListenAndServe(server *remote.Server) error {
 	rpc.HandleHTTP()
 
 	listener, err := net.Listen("tcp", SocketAddr)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer listener.Close()
-	
-	http.HandleFunc("/", ServeHTTP)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer listener.Close()
+
+	http.HandleFunc(DefaultRPCPath, ServeHTTP)
 	return http.Serve(listener, nil)
 }
 
@@ -71,9 +75,9 @@ func ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 
-	if req.Method != http.MethodOptions {
+	if req.Method == http.MethodPost {
 		jsonrpc.ServeConn(&HttpConn{req.Body, w})
 	}
 }

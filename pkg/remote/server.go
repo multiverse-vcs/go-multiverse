@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	badger "github.com/ipfs/go-ds-badger2"
+	"github.com/ipfs/go-path/resolver"
 	"github.com/multiverse-vcs/go-multiverse/pkg/name"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
@@ -22,6 +23,8 @@ type Server struct {
 	Peer *p2p.Peer
 	// Namesys resolves named resources.
 	Namesys *name.System
+	// Resolover is an ipfs path resolver.
+	Resolver *resolver.Resolver
 }
 
 // NewServer returns a new remote server.
@@ -74,9 +77,10 @@ func NewServer(ctx context.Context, home string) (*Server, error) {
 	}
 
 	return &Server{
-		Config:  config,
-		Peer:    peer,
-		Namesys: namesys,
+		Config:   config,
+		Peer:     peer,
+		Namesys:  namesys,
+		Resolver: resolver.NewBasicResolver(peer.DAG),
 	}, nil
 }
 

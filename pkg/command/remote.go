@@ -3,7 +3,6 @@ package command
 import (
 	"os"
 
-	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 	"github.com/urfave/cli/v2"
 )
 
@@ -23,12 +22,7 @@ func NewRemoteCommand() *cli.Command {
 				return err
 			}
 
-			path := remote.Path(c.Args().Get(0))
-			if err = path.Verify(); err != nil {
-				return err
-			}
-
-			repo.Config.Remote = path
+			repo.Config.Remote = c.Args().Get(0)
 			return repo.Config.Write()
 		},
 	}

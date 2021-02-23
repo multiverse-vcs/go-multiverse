@@ -5,7 +5,13 @@ function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
+    frame: false,
     titleBarStyle: 'hiddenInset',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
   })
 
   mainWindow.loadURL('http://localhost:8080')
