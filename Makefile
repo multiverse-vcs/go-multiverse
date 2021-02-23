@@ -1,4 +1,4 @@
-GOCC = go1.16beta1
+GOCC = go1.16
 
 .PHONY: multi install test multi-cross
 .PHONY: multi-darwin multi-darwin-386 multi-darwin-amd64
