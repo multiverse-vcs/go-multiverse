@@ -1,0 +1,51 @@
+# Maintainer Keenan Nemetz <keenan.nemetz@gmail.com>
+# Maintainer teknomunk <https://github.com/teknomunk>
+pkgname=multiverse-git
+pkgver=678f40f
+pkgrel=1
+pkgdesc="A decentralized version control system for peer-to-peer software development."
+arch=(aarch64 x86_64)
+url=http://www.multiverse-vcs.com/
+licence=("AGPL3")
+provides=(multiverse)
+depends=("go>=1.16")
+makedepends=("git" "go>=1.16")
+source=(${pkgname}::git+https://github.com/multiverse-vcs/go-multiverse)
+sha256sums=("SKIP")
+check(){
+	export GOPATH=${srcdir}/go
+	export PATH=${GOPATH}/bin:${PATH}
+
+	cd ${srcdir}/${pkgname}
+	make test
+}
+pkgver(){
+	cd ${srcdir}/${pkgname}
+	git log --format=%h -1
+}
+prepare(){
+	export GOPATH=${srcdir}/go
+	export PATH=${GOPATH}/bin:${PATH}
+
+	cd ${srcdir}/${pkgname}
+	go get golang.org/dl/go1.16
+	go1.16 download
+}
+build(){
+	export GOPATH=${srcdir}/go
+	export PATH=${GOPATH}/bin:${PATH}
+
+	cd ${srcdir}/${pkgname}
+	make
+}
+package(){
+	export GOPATH=${srcdir}/go
+	export PATH=${GOPATH}/bin:${PATH}
+
+	cd ${srcdir}/${pkgname}
+	make install GOBIN=${pkgdir}/usr/bin PATH=${GOPATH}/bin:${PATH}
+	mkdir -p ${pkgdir}/var/lib/multi/
+	chown 5000:5000 ${pkgdir}/var/lib/multi
+	install -Dm644 ${srcdir}/${pkgname}/misc/multiverse.service ${pkgdir}/usr/lib/systemd/system/multiverse.service
+	install -Dm644 ${srcdir}/${pkgname}/misc/multi-user.conf ${pkgdir}/usr/lib/sysusers.d/multi.conf
+}

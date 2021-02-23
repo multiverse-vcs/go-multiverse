@@ -1,12 +1,13 @@
 [Unit]
 Description=Multiverse daemon
 After=network.target
-Requires=ipfs.service
 
 [Service]
-ExecStart=/bin/bash -c "exec $HOME/go/bin/multi daemon"
+User=multi
+Group=multi
+ExecStart=/usr/bin/multi daemon
 Restart=always
 RestartSec=5s
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
