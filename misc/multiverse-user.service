@@ -1,0 +1,11 @@
+[Unit]
+Description=Multiverse daemon
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c "exec $HOME/go/bin/multi daemon"
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
