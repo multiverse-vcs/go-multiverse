@@ -8,6 +8,7 @@ import (
 	cid "github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 	car "github.com/ipld/go-car"
+	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/http"
 	"github.com/urfave/cli/v2"
 )
@@ -30,7 +31,7 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := NewContext(cwd)
+			ctx, err := context.New(cwd)
 			if err != nil {
 				return err
 			}

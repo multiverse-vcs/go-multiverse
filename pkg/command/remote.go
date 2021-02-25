@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/urfave/cli/v2"
 )
 
@@ -18,7 +19,7 @@ func NewRemoteCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := NewContext(cwd)
+			ctx, err := context.New(cwd)
 			if err != nil {
 				return err
 			}

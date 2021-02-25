@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 
+	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
+	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/urfave/cli/v2"
@@ -27,7 +29,7 @@ func NewCommitCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := NewContext(cwd)
+			ctx, err := context.New(cwd)
 			if err != nil {
 				return err
 			}
@@ -45,6 +47,15 @@ func NewCommitCommand() *cli.Command {
 			tree, err := fs.Add(c.Context, ctx.DAG, ctx.Root, ignore)
 			if err != nil {
 				return err
+			}
+
+			equal, err := dag.Equal(c.Context, ctx.DAG, ctx.Config.Index, tree)
+			if err != nil {
+				return err
+			}
+
+			if equal {
+				return errors.New("no changes to commit")
 			}
 
 			commit := object.NewCommit()

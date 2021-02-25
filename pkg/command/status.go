@@ -5,9 +5,9 @@ import (
 	"os"
 	"sort"
 
-	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
+	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
-	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/urfave/cli/v2"
 )
 
@@ -22,7 +22,7 @@ func NewStatusCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := NewContext(cwd)
+			ctx, err := context.New(cwd)
 			if err != nil {
 				return err
 			}
@@ -37,28 +37,9 @@ func NewStatusCommand() *cli.Command {
 				return err
 			}
 
-			commit, err := object.GetCommit(c.Context, ctx.DAG, ctx.Config.Index)
+			diffs, err := dag.Status(c.Context, ctx.DAG, ctx.Config.Index, tree)
 			if err != nil {
 				return err
-			}
-
-			index, err := ctx.DAG.Get(c.Context, commit.Tree)
-			if err != nil {
-				return err
-			}
-
-			changes, err := dagutils.Diff(c.Context, ctx.DAG, index, tree)
-			if err != nil {
-				return err
-			}
-
-			diffs := make(map[string]dagutils.ChangeType)
-			for _, change := range changes {
-				if _, ok := diffs[change.Path]; ok {
-					diffs[change.Path] = dagutils.Mod
-				} else if change.Path != "" {
-					diffs[change.Path] = change.Type
-				}
 			}
 
 			paths := make([]string, 0)
@@ -69,19 +50,19 @@ func NewStatusCommand() *cli.Command {
 
 			fmt.Printf("Tracking changes on branch %s:\n", ctx.Config.Branch)
 			fmt.Printf("  (all files are automatically considered for commit)\n")
-			fmt.Printf("  (to stop tracking files add rules to '%s')\n", IgnoreFile)
+			fmt.Printf("  (to stop tracking files add rules to '%s')\n", context.IgnoreFile)
 
 			for _, p := range paths {
 				switch diffs[p] {
-				case dagutils.Add:
+				case dag.Add:
 					fmt.Printf("\tnew file: %s\n", p)
-				case dagutils.Remove:
+				case dag.Remove:
 					fmt.Printf("\tdeleted:  %s\n", p)
-				case dagutils.Mod:
+				case dag.Mod:
 					fmt.Printf("\tmodified: %s\n", p)
 				}
 			}
-			
+
 			return nil
 		},
 	}

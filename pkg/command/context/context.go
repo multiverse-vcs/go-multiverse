@@ -1,4 +1,4 @@
-package command
+package context
 
 import (
 	"errors"
@@ -34,8 +34,8 @@ type Context struct {
 	Root string
 }
 
-// NewContext returns a new context.
-func NewContext(cwd string) (*Context, error) {
+// New returns a new context.
+func New(cwd string) (*Context, error) {
 	root, err := Root(cwd)
 	if err != nil {
 		return nil, err
