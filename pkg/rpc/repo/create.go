@@ -16,7 +16,7 @@ type CreateArgs struct {
 }
 
 // CreateReply contains the reply
-type CreateReply struct{
+type CreateReply struct {
 	// Remote is the repository path
 	Remote string `json:"remote"`
 }

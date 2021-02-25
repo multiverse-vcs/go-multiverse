@@ -67,6 +67,16 @@ func (s *System) PutValue(ctx context.Context, id peer.ID, rec *Record) error {
 	return s.values.PutValue(ctx, TopicForPeerID(id), val)
 }
 
+// Subscribe creates a subscription to the topic of the given peer ID.
+func (s *System) Subscribe(id peer.ID) error {
+	return s.values.Subscribe(TopicForPeerID(id))
+}
+
+// Unsubscribe cancels a subscription to the topic of the given peer ID.
+func (s *System) Unsubscribe(id peer.ID) (bool, error) {
+	return s.values.Cancel(TopicForPeerID(id))
+}
+
 // Publish advertises the given id to the topic of the peer ID from the private key.
 func (s *System) Publish(ctx context.Context, key crypto.PrivKey, id cid.Cid) error {
 	peerID, err := peer.IDFromPrivateKey(key)

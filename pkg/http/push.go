@@ -61,11 +61,11 @@ func (s *Service) Push(w http.ResponseWriter, req *http.Request) error {
 		if err == io.EOF {
 			break
 		}
-		
+
 		if err != nil {
 			return err
 		}
-		
+
 		if err := s.Peer.Blocks.Put(block); err != nil {
 			return err
 		}
