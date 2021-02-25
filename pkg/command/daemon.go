@@ -41,8 +41,8 @@ func NewDaemonCommand() *cli.Command {
 				return err
 			}
 
-			go http.ListenAndServe(server)
-			go rpc.ListenAndServe(server)
+			go http.ListenAndServe(server, remote.HttpAddr)
+			go rpc.ListenAndServe(server, remote.RpcAddr)
 
 			fmt.Printf(Banner)
 			fmt.Printf("Peer ID: %s\n", server.Peer.Host.ID().Pretty())

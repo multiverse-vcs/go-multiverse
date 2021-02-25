@@ -14,12 +14,8 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
 )
 
-const (
-	// SocketAddr is RPC socket address.
-	SocketAddr = "localhost:8421"
-	// DefaultRPCPath is the http path of the json RPC.
-	DefaultRPCPath = "/_jsonRPC_"
-)
+// DefaultRPCPath is the http path of the json RPC.
+const DefaultRPCPath = "/_jsonRPC_"
 
 // ErrDialRPC is an error message for failed RPC connections.
 var ErrDialRPC = errors.New(`
@@ -51,16 +47,16 @@ func (c *HttpConn) Close() error {
 
 // NewClient returns a new RPC client.
 func NewClient() (*rpc.Client, error) {
-	return rpc.DialHTTP("tcp", SocketAddr)
+	return rpc.DialHTTP("tcp", remote.RpcAddr)
 }
 
 // ListenAndServe starts the RPC listener.
-func ListenAndServe(server *remote.Server) error {
+func ListenAndServe(server *remote.Server, bindAddr string) error {
 	rpc.RegisterName("Author", &author.Service{server})
 	rpc.RegisterName("Repo", &repo.Service{server})
 	rpc.HandleHTTP()
 
-	listener, err := net.Listen("tcp", SocketAddr)
+	listener, err := net.Listen("tcp", bindAddr)
 	if err != nil {
 		log.Fatal(err)
 	}

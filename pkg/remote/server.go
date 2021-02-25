@@ -12,8 +12,14 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
 
-// DotDir is the dot directory for the remote.
-const DotDir = ".multiverse"
+const (
+	// DotDir is the dot directory for the remote.
+	DotDir = ".multiverse"
+	// HttpAddr is the http server address.
+	HttpAddr = "localhost:8422"
+	// RpcAddr is the rpc server address.
+	RpcAddr = "localhost:8421"
+)
 
 // Server implements the remote server.
 type Server struct {

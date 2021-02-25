@@ -2,14 +2,18 @@ package command
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"os"
 
 	cid "github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 	car "github.com/ipld/go-car"
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
-	"github.com/multiverse-vcs/go-multiverse/pkg/http"
+	"github.com/multiverse-vcs/go-multiverse/pkg/object"
+	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,9 +50,19 @@ func NewPushCommand() *cli.Command {
 				return errors.New("nothing to push")
 			}
 
-			client := http.NewClient()
-			repo, err := client.Fetch(ctx.Config.Remote)
+			fetchURL := fmt.Sprintf("http://%s/%s", remote.HttpAddr, ctx.Config.Remote)
+			fetchRes, err := http.Get(fetchURL)
 			if err != nil {
+				return err
+			}
+			defer fetchRes.Body.Close()
+
+			if fetchRes.StatusCode != http.StatusOK {
+				return errors.New("fetch request failed")
+			}
+
+			var repo object.Repository
+			if err := json.NewDecoder(fetchRes.Body).Decode(&repo); err != nil {
 				return err
 			}
 
@@ -68,7 +82,18 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			return client.Push(ctx.Config.Remote, branch, data.Bytes())
+			pushURL := fmt.Sprintf("http://%s/%s/%s", remote.HttpAddr, ctx.Config.Remote, branch)
+			pushRes, err := http.Post(pushURL, "application/octet-stream", &data)
+			if err != nil {
+				return err
+			}
+			defer pushRes.Body.Close()
+
+			if pushRes.StatusCode != http.StatusCreated {
+				return errors.New("push request failed")
+			}
+
+			return nil
 		},
 	}
 }
