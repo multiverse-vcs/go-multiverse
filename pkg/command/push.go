@@ -40,7 +40,7 @@ func NewPushCommand() *cli.Command {
 				branch = ctx.Config.Branch
 			}
 
-			head := ctx.Config.Branches[branch]
+			head := ctx.Config.Repository.Branches[branch]
 			if !head.Defined() {
 				return errors.New("nothing to push")
 			}

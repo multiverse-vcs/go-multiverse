@@ -27,22 +27,22 @@ func NewCommitCommand() *cli.Command {
 				return err
 			}
 
-			repo, err := NewContext(cwd)
+			ctx, err := NewContext(cwd)
 			if err != nil {
 				return err
 			}
 
-			head, ok := repo.Config.Branches[repo.Config.Branch]
-			if ok && head != repo.Config.Index {
+			head, ok := ctx.Config.Repository.Branches[ctx.Config.Branch]
+			if ok && head != ctx.Config.Index {
 				return errors.New("index is behind head")
 			}
 
-			ignore, err := repo.Ignore()
+			ignore, err := ctx.Ignore()
 			if err != nil {
 				return err
 			}
 
-			tree, err := fs.Add(c.Context, repo.DAG, repo.Root, ignore)
+			tree, err := fs.Add(c.Context, ctx.DAG, ctx.Root, ignore)
 			if err != nil {
 				return err
 			}
@@ -51,14 +51,14 @@ func NewCommitCommand() *cli.Command {
 			commit.Tree = tree.Cid()
 			commit.Message = c.String("message")
 
-			commitID, err := object.AddCommit(c.Context, repo.DAG, commit)
+			commitID, err := object.AddCommit(c.Context, ctx.DAG, commit)
 			if err != nil {
 				return err
 			}
 
-			repo.Config.Index = commitID
-			repo.Config.Branches[repo.Config.Branch] = commitID
-			return repo.Config.Write()
+			ctx.Config.Index = commitID
+			ctx.Config.Repository.Branches[ctx.Config.Branch] = commitID
+			return ctx.Config.Write()
 		},
 	}
 }

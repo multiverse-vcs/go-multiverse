@@ -24,6 +24,7 @@ func NewApp() *cli.App {
 			NewCommitCommand(),
 			NewRemoteCommand(),
 			NewPushCommand(),
+			NewStatusCommand(),
 			NewDaemonCommand(),
 			repo.NewCommand(),
 		},

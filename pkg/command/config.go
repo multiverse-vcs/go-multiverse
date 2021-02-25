@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
 const (
@@ -19,14 +20,12 @@ const (
 type Config struct {
 	// Branch is the name of the current branch.
 	Branch string `json:"branch"`
-	// Branches is a map of names to commit CIDs.
-	Branches map[string]cid.Cid `json:"branches"`
 	// Index is the CID of the current commit.
 	Index cid.Cid `json:"index"`
 	// Remote is the repository remote server.
 	Remote string `json:"remote"`
-	// Tags is a map of names to commit CIDs.
-	Tags map[string]cid.Cid `json:"tags"`
+	// Repository contains references to branch heads.
+	Repository *object.Repository `json:"repository"`
 
 	path string
 }
@@ -34,10 +33,9 @@ type Config struct {
 // New returns a config with default settings.
 func NewConfig(root string) *Config {
 	return &Config{
-		Branch:   DefaultBranch,
-		Branches: make(map[string]cid.Cid),
-		Tags:     make(map[string]cid.Cid),
-		path:     filepath.Join(root, ConfigFile),
+		Branch:     DefaultBranch,
+		Repository: object.NewRepository(),
+		path:       filepath.Join(root, ConfigFile),
 	}
 }
 
