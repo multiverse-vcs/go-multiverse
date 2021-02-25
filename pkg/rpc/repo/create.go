@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"path"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
@@ -15,7 +16,10 @@ type CreateArgs struct {
 }
 
 // CreateReply contains the reply
-type CreateReply struct{}
+type CreateReply struct{
+	// Remote is the repository path
+	Remote string `json:"remote"`
+}
 
 // Create creates a new repository.
 func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
@@ -51,5 +55,6 @@ func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
 		return err
 	}
 
+	reply.Remote = path.Join(s.Peer.Host.ID().Pretty(), args.Name)
 	return s.Namesys.Publish(ctx, key, authorID)
 }

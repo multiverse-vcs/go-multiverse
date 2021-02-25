@@ -13,13 +13,13 @@ import (
 // DirEntry contains info about a file.
 type DirEntry struct {
 	// Cid is the id of the entry.
-	Cid cid.Cid
+	Cid cid.Cid `json:"cid"`
 	// Name is the name of the file.
-	Name string
+	Name string `json:"name"`
 	// IsDir indicates if the file is a directory.
-	IsDir bool
+	IsDir bool `json:"is_dir"`
 	// Size is the size in bytes of the file.
-	Size uint64
+	Size uint64 `json:"size"`
 }
 
 // ByTypeAndName is used to sort dir entries.
