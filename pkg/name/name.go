@@ -32,6 +32,8 @@ func TopicForPeerID(id peer.ID) string {
 func NewSystem(ctx context.Context, host host.Host, router routing.Routing, dstore datastore.Datastore) (*System, error) {
 	dis := discovery.NewRoutingDiscovery(router)
 
+	// TODO use datastore to persist values
+
 	sub, err := pubsub.NewGossipSub(ctx, host, pubsub.WithDiscovery(dis))
 	if err != nil {
 		return nil, err

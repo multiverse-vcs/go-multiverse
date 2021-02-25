@@ -13,7 +13,7 @@ import (
 )
 
 // DotDir is the dot directory for the remote.
-const DotDir = ".multiversed"
+const DotDir = ".multiverse"
 
 // Server implements the remote server.
 type Server struct {
