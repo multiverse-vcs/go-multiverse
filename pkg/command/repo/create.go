@@ -12,7 +12,7 @@ func NewCreateCommand() *cli.Command {
 		Name:  "create",
 		Usage: "Create a new repository",
 		Action: func(c *cli.Context) error {
-			if c.NArg() < 1 {
+			if c.NArg() != 1 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 

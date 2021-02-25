@@ -67,6 +67,21 @@ func (s *System) PutValue(ctx context.Context, id peer.ID, rec *Record) error {
 	return s.values.PutValue(ctx, TopicForPeerID(id), val)
 }
 
+// Search searches for the the latest value from the topic with the given peer ID.
+func (s *System) SearchValue(ctx context.Context, id peer.ID) (*Record, error) {
+	out, err := s.values.SearchValue(ctx, TopicForPeerID(id))
+	if err != nil {
+		return nil, err
+	}
+
+	val, ok := <-out
+	if !ok {
+		return nil, routing.ErrNotFound
+	}
+
+	return RecordFromCBOR(val)
+}
+
 // Subscribe creates a subscription to the topic of the given peer ID.
 func (s *System) Subscribe(id peer.ID) error {
 	return s.values.Subscribe(TopicForPeerID(id))
@@ -104,6 +119,16 @@ func (s *System) Publish(ctx context.Context, key crypto.PrivKey, id cid.Cid) er
 // Resolve returns the latest value from the topic with the given peer ID.
 func (s *System) Resolve(ctx context.Context, id peer.ID) (cid.Cid, error) {
 	rec, err := s.GetValue(ctx, id)
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
+	return cid.Cast(rec.Value)
+}
+
+// Search searches for the the latest value from the topic with the given peer ID.
+func (s *System) Search(ctx context.Context, id peer.ID) (cid.Cid, error) {
+	rec, err := s.SearchValue(ctx, id)
 	if err != nil {
 		return cid.Cid{}, err
 	}

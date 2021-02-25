@@ -16,7 +16,7 @@ import (
 
 const (
 	// SocketAddr is RPC socket address.
-	SocketAddr = "localhost:9001"
+	SocketAddr = "localhost:8421"
 	// DefaultRPCPath is the http path of the json RPC.
 	DefaultRPCPath = "/_jsonRPC_"
 )

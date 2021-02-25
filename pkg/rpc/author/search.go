@@ -10,7 +10,7 @@ import (
 // SearchArgs contains the args.
 type SearchArgs struct {
 	// PeerID is the peer ID of the author.
-	PeerID string `json:"peerID"`
+	PeerID peer.ID `json:"peerID"`
 }
 
 // SearchReply contains the reply
@@ -21,14 +21,14 @@ type SearchReply struct {
 
 // Search returns the author for the given peer ID.
 func (s *Service) Search(args *SearchArgs, reply *SearchReply) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	peerID, err := peer.Decode(args.PeerID)
-	if err != nil {
+	if err := args.PeerID.Validate(); err != nil {
 		return err
 	}
 
-	authorID, err := s.Namesys.Resolve(ctx, peerID)
+	authorID, err := s.Namesys.Search(ctx, args.PeerID)
 	if err != nil {
 		return err
 	}

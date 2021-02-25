@@ -1,4 +1,4 @@
-package repo
+package author
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// NewListCommand returns a new command.
-func NewListCommand() *cli.Command {
+// NewSelfCommand returns a new command.
+func NewSelfCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "list",
-		Usage: "List all repositories",
+		Name:  "self",
+		Usage: "View your profile",
 		Action: func(c *cli.Context) error {
 			client, err := rpc.NewClient()
 			if err != nil {
@@ -26,14 +26,7 @@ func NewListCommand() *cli.Command {
 				return err
 			}
 
-			fmt.Println("")
-			fmt.Printf("Name%28sCID\n", "")
-			fmt.Printf("----%28s---\n", "")
-
-			for name, id := range reply.Author.Repositories {
-				fmt.Printf("%-32s%s\n", name, id.String())
-			}
-
+			fmt.Println(reply.PeerID.Pretty())
 			return nil
 		},
 	}

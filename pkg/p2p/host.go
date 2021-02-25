@@ -16,7 +16,7 @@ import (
 
 // ListenAddresses is a list of addresses to listen on.
 var ListenAddresses = []string{
-	"/ip4/0.0.0.0/tcp/9000",
+	"/ip4/0.0.0.0/tcp/8420",
 }
 
 const (

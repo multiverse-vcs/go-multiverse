@@ -76,6 +76,12 @@ func NewServer(ctx context.Context, home string) (*Server, error) {
 		return nil, err
 	}
 
+	for _, peerID := range config.Author.Following {
+		if err := namesys.Subscribe(peerID); err != nil {
+			return nil, err
+		}
+	}
+
 	return &Server{
 		Config:   config,
 		Peer:     peer,

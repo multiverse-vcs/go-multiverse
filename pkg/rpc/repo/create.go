@@ -23,7 +23,8 @@ type CreateReply struct {
 
 // Create creates a new repository.
 func (s *Service) Create(args *CreateArgs, reply *CreateReply) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	if args.Name == "" {
 		return errors.New("name cannot be empty")

@@ -7,7 +7,7 @@ import (
 // FollowArgs contains the args.
 type FollowArgs struct {
 	// PeerID is the peer ID of the author.
-	PeerID string `json:"peerID"`
+	PeerID peer.ID `json:"peerID"`
 }
 
 // FollowReply contains the reply
@@ -15,12 +15,11 @@ type FollowReply struct{}
 
 // Follow returns the author for the given peer ID.
 func (s *Service) Follow(args *FollowArgs, reply *FollowReply) error {
-	peerID, err := peer.Decode(args.PeerID)
-	if err != nil {
+	if err := args.PeerID.Validate(); err != nil {
 		return err
 	}
 
-	if err := s.Namesys.Subscribe(peerID); err != nil {
+	if err := s.Namesys.Subscribe(args.PeerID); err != nil {
 		return err
 	}
 
@@ -28,7 +27,7 @@ func (s *Service) Follow(args *FollowArgs, reply *FollowReply) error {
 	for _, id := range s.Config.Author.Following {
 		set[id] = true
 	}
-	set[peerID] = true
+	set[args.PeerID] = true
 
 	var list []peer.ID
 	for id := range set {

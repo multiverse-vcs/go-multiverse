@@ -12,7 +12,7 @@ func NewDeleteCommand() *cli.Command {
 		Name:  "delete",
 		Usage: "Delete an existing repository",
 		Action: func(c *cli.Context) error {
-			if c.NArg() < 1 {
+			if c.NArg() != 1 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 

@@ -1,4 +1,4 @@
-package repo
+package author
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 func NewListCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "list",
-		Usage: "List all repositories",
+		Usage: "List all followed authors",
 		Action: func(c *cli.Context) error {
 			client, err := rpc.NewClient()
 			if err != nil {
@@ -26,12 +26,8 @@ func NewListCommand() *cli.Command {
 				return err
 			}
 
-			fmt.Println("")
-			fmt.Printf("Name%28sCID\n", "")
-			fmt.Printf("----%28s---\n", "")
-
-			for name, id := range reply.Author.Repositories {
-				fmt.Printf("%-32s%s\n", name, id.String())
+			for _, peerID := range reply.Author.Following {
+				fmt.Println(peerID.Pretty())
 			}
 
 			return nil

@@ -8,7 +8,7 @@ import (
 )
 
 // BindAddr is the address the http server binds to.
-const BindAddr = "localhost:2020"
+const BindAddr = "localhost:8422"
 
 // Service is an HTTP gateway.
 type Service struct {

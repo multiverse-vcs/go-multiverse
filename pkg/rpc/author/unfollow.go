@@ -7,7 +7,7 @@ import (
 // UnfollowArgs contains the args.
 type UnfollowArgs struct {
 	// PeerID is the peer ID of the author.
-	PeerID string `json:"peerID"`
+	PeerID peer.ID `json:"peerID"`
 }
 
 // UnfollowReply contains the reply
@@ -15,12 +15,11 @@ type UnfollowReply struct{}
 
 // Unfollow returns the author for the given peer ID.
 func (s *Service) Unfollow(args *UnfollowArgs, reply *UnfollowReply) error {
-	peerID, err := peer.Decode(args.PeerID)
-	if err != nil {
+	if err := args.PeerID.Validate(); err != nil {
 		return err
 	}
 
-	if _, err := s.Namesys.Unsubscribe(peerID); err != nil {
+	if _, err := s.Namesys.Unsubscribe(args.PeerID); err != nil {
 		return err
 	}
 
@@ -28,7 +27,7 @@ func (s *Service) Unfollow(args *UnfollowArgs, reply *UnfollowReply) error {
 	for _, id := range s.Config.Author.Following {
 		set[id] = true
 	}
-	delete(set, peerID)
+	delete(set, args.PeerID)
 
 	var list []peer.ID
 	for id := range set {

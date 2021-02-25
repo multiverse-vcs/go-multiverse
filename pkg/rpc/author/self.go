@@ -1,6 +1,7 @@
 package author
 
 import (
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
@@ -12,12 +13,12 @@ type SelfReply struct {
 	// Author is the author object.
 	Author *object.Author `json:"author"`
 	// PeerID is the peer ID of the server.
-	PeerID string `json:"peerID"`
+	PeerID peer.ID `json:"peerID"`
 }
 
 // Self returns the server peer's author profile.
 func (s *Service) Self(args *SelfArgs, reply *SelfReply) error {
 	reply.Author = s.Config.Author
-	reply.PeerID = s.Peer.Host.ID().Pretty()
+	reply.PeerID = s.Peer.Host.ID()
 	return nil
 }

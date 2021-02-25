@@ -1,27 +1,35 @@
-package repo
+package author
 
 import (
 	"fmt"
 
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/author"
 	"github.com/urfave/cli/v2"
 )
 
-// NewListCommand returns a new command.
-func NewListCommand() *cli.Command {
+// NewViewCommand returns a new command.
+func NewViewCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "list",
-		Usage: "List all repositories",
+		Name:  "view",
+		Usage: "View profile details",
 		Action: func(c *cli.Context) error {
 			client, err := rpc.NewClient()
 			if err != nil {
 				return rpc.ErrDialRPC
 			}
 
-			args := author.SelfArgs{}
+			peerID, err := peer.Decode(c.Args().Get(0))
+			if err != nil {
+				return err
+			}
 
-			var reply author.SelfReply
+			args := author.SearchArgs{
+				PeerID: peerID,
+			}
+
+			var reply author.SearchReply
 			if err := client.Call("Author.Self", &args, &reply); err != nil {
 				return err
 			}

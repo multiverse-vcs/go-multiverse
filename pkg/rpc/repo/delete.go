@@ -19,7 +19,8 @@ type DeleteReply struct{}
 
 // Delete delete an existing repository.
 func (s *Service) Delete(args *DeleteArgs, reply *DeleteReply) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	key, err := p2p.DecodeKey(s.Config.PrivateKey)
 	if err != nil {
