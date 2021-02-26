@@ -41,7 +41,7 @@ func New(ctx context.Context, dstore datastore.Batching, config *Config) (*Node,
 		return nil, err
 	}
 
-	host, router, err := p2p.NewHost(ctx, priv)
+	host, router, err := p2p.NewHost(ctx, priv, config.ListenAddresses)
 	if err != nil {
 		return nil, err
 	}

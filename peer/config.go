@@ -21,6 +21,9 @@ type Config struct {
 	// PrivateKey is the base64 encoded private key.
 	PrivateKey string `json:"private_key"`
 
+	// Listen addresses for LibP2P
+	ListenAddresses []string `json:"listen_addresses"`
+
 	path string
 }
 
@@ -40,6 +43,9 @@ func NewConfig(root string) (*Config, error) {
 		Author:     data.NewAuthor(),
 		PrivateKey: encoded,
 		path:       filepath.Join(root, ConfigFile),
+		ListenAddresses: []string{
+			"/ip4/0.0.0.0/tcp/9000",
+		},
 	}
 
 	return &config, nil

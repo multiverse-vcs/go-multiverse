@@ -17,11 +17,6 @@ import (
 	"github.com/libp2p/go-libp2p-tls"
 )
 
-// ListenAddresses is a list of addresses to listen on.
-var ListenAddresses = []string{
-	"/ip4/0.0.0.0/tcp/9000",
-}
-
 const (
 	// LowWater is the minimum amount of connections to keep.
 	LowWater = 100
@@ -32,13 +27,13 @@ const (
 )
 
 // NewHost returns a new libp2p host and router.
-func NewHost(ctx context.Context, priv crypto.PrivKey) (host.Host, routing.Routing, error) {
+func NewHost(ctx context.Context, priv crypto.PrivKey, listen_addresses []string) (host.Host, routing.Routing, error) {
 	var router routing.Routing
 	var err error
 
 	host, err := libp2p.New(ctx,
 		libp2p.Identity(priv),
-		libp2p.ListenAddrStrings(ListenAddresses...),
+		libp2p.ListenAddrStrings(listen_addresses...),
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		libp2p.Security(noise.ID, noise.New),
 		libp2p.DefaultTransports,
