@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/multiverse-vcs/go-multiverse/pkg/http"
 	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/nasdf/ulimit"
@@ -41,7 +40,6 @@ func NewDaemonCommand() *cli.Command {
 				return err
 			}
 
-			go http.ListenAndServe(server)
 			go rpc.ListenAndServe(server)
 
 			fmt.Printf(Banner)

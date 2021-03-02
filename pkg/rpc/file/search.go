@@ -1,35 +1,56 @@
-package http
+package file
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
-	"net/http"
+	"strings"
 
 	path "github.com/ipfs/go-path"
 	unixfs "github.com/ipfs/go-unixfs"
-	"github.com/julienschmidt/httprouter"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
-// File returns file contents from the repository tree.
-func (s *Server) File(w http.ResponseWriter, req *http.Request) error {
-	ctx := req.Context()
+// SearchArgs contains the args.
+type SearchArgs struct {
+	// Remote is the remote path.
+	Remote string
+	// Branch is the branch name.
+	Branch string
+	// Path is the file path.
+	Path string
+}
 
-	highlight := req.URL.Query().Get("highlight")
-	params := httprouter.ParamsFromContext(ctx)
-	pname := params.ByName("peer")
-	rname := params.ByName("repo")
-	bname := params.ByName("branch")
-	fname := params.ByName("file")
+// SearchReply contains the reply.
+type SearchReply struct {
+	// Content contains file content.
+	Content string
+	// Entries contains directory entries.
+	Entries []*fs.DirEntry
+	// IsDir specifies if the file is a directory.
+	IsDir   bool
+}
+
+// Search returns the contents of a file at the given remote path.
+func (s *Service) Search(args *SearchArgs, reply *SearchReply) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	parts := strings.Split(args.Remote, "/")
+	if len(parts) != 2 {
+		return errors.New("invalid remote path")
+	}
+
+	pname := parts[0]
+	rname := parts[1]
 
 	peerID, err := peer.Decode(pname)
 	if err != nil {
 		return err
 	}
 
-	authorID, err := s.Namesys.Resolve(ctx, peerID)
+	authorID, err := s.Namesys.Search(ctx, peerID)
 	if err != nil {
 		return err
 	}
@@ -49,12 +70,12 @@ func (s *Server) File(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	head, ok := repo.Branches[bname]
+	head, ok := repo.Branches[args.Branch]
 	if !ok {
 		return errors.New("branch does not exist")
 	}
 
-	fpath, err := path.FromSegments("/ipfs/", head.String(), "tree", fname)
+	fpath, err := path.FromSegments("/ipfs/", head.String(), "tree", args.Path)
 	if err != nil {
 		return err
 	}
@@ -76,25 +97,16 @@ func (s *Server) File(w http.ResponseWriter, req *http.Request) error {
 			return err
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(tree)
-	case highlight != "":
-		blob, err := fs.Cat(ctx, s.Peer.DAG, fnode.Cid())
-		if err != nil {
-			return err
-		}
-
-		w.Header().Set("Content-Type", "text/html")
-		Highlight(fname, blob, highlight, w)
+		reply.Entries = tree
 	default:
 		blob, err := fs.Cat(ctx, s.Peer.DAG, fnode.Cid())
 		if err != nil {
 			return err
 		}
 
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte(blob))
+		reply.Content = blob
 	}
 
+	reply.IsDir = fsnode.IsDir()
 	return nil
 }
