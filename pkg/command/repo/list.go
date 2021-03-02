@@ -26,12 +26,8 @@ func NewListCommand() *cli.Command {
 				return err
 			}
 
-			fmt.Println("")
-			fmt.Printf("Name%28sCID\n", "")
-			fmt.Printf("----%28s---\n", "")
-
-			for name, id := range reply.Author.Repositories {
-				fmt.Printf("%-32s%s\n", name, id.String())
+			for name := range reply.Author.Repositories {
+				fmt.Printf("%s/%s\n", reply.PeerID.Pretty(), name)
 			}
 
 			return nil
