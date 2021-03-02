@@ -5,9 +5,9 @@ import (
 	"os"
 	"sort"
 
+	"github.com/ipfs/go-merkledag/dagutils"
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
-	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/urfave/cli/v2"
 )
 
@@ -22,22 +22,19 @@ func NewStatusCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := context.New(cwd)
+			cc, err := context.New(cwd)
 			if err != nil {
 				return err
 			}
 
-			ignore, err := ctx.Ignore()
+			tree, err := cc.Tree(c.Context)
 			if err != nil {
 				return err
 			}
 
-			tree, err := fs.Add(c.Context, ctx.DAG, ctx.Root, ignore)
-			if err != nil {
-				return err
-			}
+			branch := cc.Config.Branches[cc.Config.Branch]
 
-			diffs, err := dag.Status(c.Context, ctx.DAG, ctx.Config.Index, tree)
+			diffs, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
 			if err != nil {
 				return err
 			}
@@ -48,17 +45,17 @@ func NewStatusCommand() *cli.Command {
 			}
 			sort.Strings(paths)
 
-			fmt.Printf("Tracking changes on branch %s:\n", ctx.Config.Branch)
+			fmt.Printf("Tracking changes on branch %s:\n", cc.Config.Branch)
 			fmt.Printf("  (all files are automatically considered for commit)\n")
 			fmt.Printf("  (to stop tracking files add rules to '%s')\n", context.IgnoreFile)
 
 			for _, p := range paths {
 				switch diffs[p] {
-				case dag.Add:
+				case dagutils.Add:
 					fmt.Printf("\tnew file: %s\n", p)
-				case dag.Remove:
+				case dagutils.Remove:
 					fmt.Printf("\tdeleted:  %s\n", p)
-				case dag.Mod:
+				case dagutils.Mod:
 					fmt.Printf("\tmodified: %s\n", p)
 				}
 			}

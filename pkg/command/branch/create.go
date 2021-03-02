@@ -23,18 +23,25 @@ func NewCreateCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := context.New(cwd)
+			cc, err := context.New(cwd)
 			if err != nil {
 				return err
 			}
 
 			name := c.Args().Get(0)
-			if _, ok := ctx.Config.Repository.Branches[name]; ok {
+			if _, ok := cc.Config.Branches[name]; ok {
 				return errors.New("branch already exists")
 			}
 
-			ctx.Config.Repository.Branches[name] = ctx.Config.Index
-			return ctx.Config.Write()
+			branch := cc.Config.Branches[cc.Config.Branch]
+
+			cc.Config.Branches[name] = &context.Branch{
+				Head:   branch.Head,
+				Stash:  branch.Stash,
+				Remote: branch.Remote,
+			}
+
+			return cc.Config.Write()
 		},
 	}
 }

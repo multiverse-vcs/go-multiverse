@@ -22,8 +22,8 @@ type Author struct {
 }
 
 // GetAuthor returns the author with the given CID.
-func GetAuthor(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Author, error) {
-	node, err := dag.Get(ctx, id)
+func GetAuthor(ctx context.Context, ds ipld.NodeGetter, id cid.Cid) (*Author, error) {
+	node, err := ds.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -32,13 +32,13 @@ func GetAuthor(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Author, e
 }
 
 // AddAuthor adds a author to the given dag.
-func AddAuthor(ctx context.Context, dag ipld.DAGService, author *Author) (cid.Cid, error) {
+func AddAuthor(ctx context.Context, ds ipld.NodeAdder, author *Author) (cid.Cid, error) {
 	node, err := cbornode.WrapObject(author, multihash.SHA2_256, -1)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	if err := dag.Add(ctx, node); err != nil {
+	if err := ds.Add(ctx, node); err != nil {
 		return cid.Cid{}, err
 	}
 

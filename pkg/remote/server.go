@@ -12,14 +12,8 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
 
-const (
-	// DotDir is the dot directory for the remote.
-	DotDir = ".multiverse"
-	// HttpAddr is the http server address.
-	HttpAddr = "localhost:8422"
-	// RpcAddr is the rpc server address.
-	RpcAddr = "localhost:8421"
-)
+// DotDir is the dot directory for the remote.
+const DotDir = ".multiverse"
 
 // Server implements the remote server.
 type Server struct {
@@ -31,6 +25,8 @@ type Server struct {
 	Namesys *name.System
 	// Resolover is an ipfs path resolver.
 	Resolver *resolver.Resolver
+	// Root is the server root path.
+	Root string
 }
 
 // NewServer returns a new remote server.
@@ -50,7 +46,7 @@ func NewServer(ctx context.Context, home string) (*Server, error) {
 		return nil, err
 	}
 
-	host, router, err := p2p.NewHost(ctx, key)
+	host, router, err := p2p.NewHost(ctx, key, config.ListenAddresses)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +89,7 @@ func NewServer(ctx context.Context, home string) (*Server, error) {
 		Peer:     peer,
 		Namesys:  namesys,
 		Resolver: resolver.NewBasicResolver(peer.DAG),
+		Root:     root,
 	}, nil
 }
 

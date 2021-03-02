@@ -14,9 +14,13 @@ const ConfigFile = "config.json"
 // Config contains repository info.
 type Config struct {
 	// Author contains published repositories.
-	Author *object.Author
+	Author *object.Author `json:"author"`
+	// HttpAddress is the http listener address.
+	HttpAddress string `json:"http_address"`
+	// ListenAddresses contains libp2p listener addresses.
+	ListenAddresses []string `json:"listen_addresses"`
 	// PrivateKey is the private key of the remote.
-	PrivateKey string
+	PrivateKey string `json:"private_key"`
 
 	path string
 }
@@ -24,8 +28,10 @@ type Config struct {
 // New returns a config with default settings.
 func NewConfig(root string) *Config {
 	return &Config{
-		Author: object.NewAuthor(),
-		path:   filepath.Join(root, ConfigFile),
+		Author:          object.NewAuthor(),
+		HttpAddress:     "localhost:8421",
+		ListenAddresses: []string{"/ip4/0.0.0.0/tcp/8420"},
+		path:            filepath.Join(root, ConfigFile),
 	}
 }
 

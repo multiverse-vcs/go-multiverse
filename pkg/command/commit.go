@@ -6,7 +6,6 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
-	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/urfave/cli/v2"
 )
@@ -29,32 +28,24 @@ func NewCommitCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := context.New(cwd)
+			cc, err := context.New(cwd)
 			if err != nil {
 				return err
 			}
 
-			head, ok := ctx.Config.Repository.Branches[ctx.Config.Branch]
-			if ok && head != ctx.Config.Index {
-				return errors.New("index is behind head")
-			}
+			branch := cc.Config.Branches[cc.Config.Branch]
 
-			ignore, err := ctx.Ignore()
+			tree, err := cc.Tree(c.Context)
 			if err != nil {
 				return err
 			}
 
-			tree, err := fs.Add(c.Context, ctx.DAG, ctx.Root, ignore)
+			diffs, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
 			if err != nil {
 				return err
 			}
 
-			equal, err := dag.Equal(c.Context, ctx.DAG, ctx.Config.Index, tree)
-			if err != nil {
-				return err
-			}
-
-			if equal {
+			if len(diffs) == 0 {
 				return errors.New("no changes to commit")
 			}
 
@@ -62,14 +53,18 @@ func NewCommitCommand() *cli.Command {
 			commit.Tree = tree.Cid()
 			commit.Message = c.String("message")
 
-			commitID, err := object.AddCommit(c.Context, ctx.DAG, commit)
+			if branch.Head.Defined() {
+				commit.Parents = append(commit.Parents, branch.Head)
+			}
+
+			commitID, err := object.AddCommit(c.Context, cc.DAG, commit)
 			if err != nil {
 				return err
 			}
 
-			ctx.Config.Index = commitID
-			ctx.Config.Repository.Branches[ctx.Config.Branch] = commitID
-			return ctx.Config.Write()
+			branch.Head = commitID
+			branch.Stash = tree.Cid()
+			return cc.Config.Write()
 		},
 	}
 }

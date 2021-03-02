@@ -17,7 +17,7 @@ func NewViewCommand() *cli.Command {
 		Action: func(c *cli.Context) error {
 			client, err := rpc.NewClient()
 			if err != nil {
-				return rpc.ErrDialRPC
+				return cli.Exit(rpc.DialErrMsg, -1)
 			}
 
 			peerID, err := peer.Decode(c.Args().Get(0))

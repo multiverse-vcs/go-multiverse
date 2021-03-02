@@ -2,18 +2,13 @@ package command
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"net/http"
 	"os"
 
-	cid "github.com/ipfs/go-cid"
-	ipld "github.com/ipfs/go-ipld-format"
-	car "github.com/ipld/go-car"
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
-	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/multiverse-vcs/go-multiverse/pkg/remote"
+	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
+	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
+	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
 	"github.com/urfave/cli/v2"
 )
 
@@ -21,12 +16,17 @@ import (
 func NewPushCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "push",
-		Usage: "Update a remote repository",
+		Usage: "Update a remote branch with local changes",
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "remote",
+				Aliases: []string{"r"},
+				Usage:   "Remote repository path",
+			},
 			&cli.StringFlag{
 				Name:    "branch",
 				Aliases: []string{"b"},
-				Usage:   "Branch to push",
+				Usage:   "Remote branch name",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -35,65 +35,69 @@ func NewPushCommand() *cli.Command {
 				return err
 			}
 
-			ctx, err := context.New(cwd)
+			cc, err := context.New(cwd)
 			if err != nil {
 				return err
 			}
 
-			branch := c.String("branch")
-			if branch == "" {
-				branch = ctx.Config.Branch
+			client, err := rpc.NewClient()
+			if err != nil {
+				return cli.Exit(rpc.DialErrMsg, -1)
 			}
 
-			head := ctx.Config.Repository.Branches[branch]
-			if !head.Defined() {
+			branch := cc.Config.Branches[cc.Config.Branch]
+			remote := branch.Remote
+			target := cc.Config.Branch
+
+			if !branch.Head.Defined() {
 				return errors.New("nothing to push")
 			}
 
-			fetchURL := fmt.Sprintf("http://%s/%s", remote.HttpAddr, ctx.Config.Remote)
-			fetchRes, err := http.Get(fetchURL)
+			if c.IsSet("remote") {
+				remote = c.String("remote")
+			}
+
+			if c.IsSet("branch") {
+				target = c.String("branch")
+			}
+
+			if alias, ok := cc.Config.Remotes[remote]; ok {
+				remote = alias
+			}
+
+			args := repo.SearchArgs{
+				Remote: remote,
+			}
+
+			var reply repo.SearchReply
+			if err := client.Call("Repo.Search", &args, &reply); err != nil {
+				return err
+			}
+
+			refs := reply.Repository.Heads()
+			head := reply.Repository.Branches[target]
+
+			base, err := dag.Base(c.Context, cc.DAG, head, branch.Head)
 			if err != nil {
 				return err
 			}
-			defer fetchRes.Body.Close()
 
-			if fetchRes.StatusCode != http.StatusOK {
-				return errors.New("fetch request failed")
-			}
-
-			var repo object.Repository
-			if err := json.NewDecoder(fetchRes.Body).Decode(&repo); err != nil {
-				return err
-			}
-
-			// TODO use merge base to check if branch is valid
-
-			refs := repo.Heads()
-			walk := func(node ipld.Node) ([]*ipld.Link, error) {
-				if refs.Has(node.Cid()) {
-					return nil, nil
-				}
-
-				return node.Links(), nil
+			if base != head {
+				return errors.New("branches are non-divergent")
 			}
 
 			var data bytes.Buffer
-			if err := car.WriteCarWithWalker(c.Context, ctx.DAG, []cid.Cid{head}, &data, walk); err != nil {
+			if err := dag.WriteCar(c.Context, cc.DAG, branch.Head, refs, &data); err != nil {
 				return err
 			}
 
-			pushURL := fmt.Sprintf("http://%s/%s/%s", remote.HttpAddr, ctx.Config.Remote, branch)
-			pushRes, err := http.Post(pushURL, "application/octet-stream", &data)
-			if err != nil {
-				return err
-			}
-			defer pushRes.Body.Close()
-
-			if pushRes.StatusCode != http.StatusCreated {
-				return errors.New("push request failed")
+			pushArgs := repo.PushArgs{
+				Remote: remote,
+				Branch: target,
+				Data:   data.Bytes(),
 			}
 
-			return nil
+			return client.Call("Repo.Push", &pushArgs, nil)
 		},
 	}
 }

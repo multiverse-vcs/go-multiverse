@@ -1,0 +1,6 @@
+celery
+salmon
+tomatoes
+garlic
+onions
+wine

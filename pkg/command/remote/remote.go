@@ -1,4 +1,4 @@
-package branch
+package remote
 
 import (
 	"github.com/urfave/cli/v2"
@@ -7,14 +7,12 @@ import (
 // NewCommand returns a new command.
 func NewCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "branch",
-		Usage: "List, create, or delete branches",
+		Name:  "remote",
+		Usage: "List, create, or delete remotes",
 		Subcommands: []*cli.Command{
 			NewListCommand(),
 			NewCreateCommand(),
 			NewDeleteCommand(),
-			NewSetCommand(),
-			NewGetCommand(),
 		},
 	}
 }

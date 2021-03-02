@@ -26,8 +26,8 @@ type Commit struct {
 }
 
 // GetCommit returns the commit with the given CID.
-func GetCommit(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Commit, error) {
-	node, err := dag.Get(ctx, id)
+func GetCommit(ctx context.Context, ds ipld.NodeGetter, id cid.Cid) (*Commit, error) {
+	node, err := ds.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +35,24 @@ func GetCommit(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Commit, e
 	return CommitFromCBOR(node.RawData())
 }
 
+// GetCommitTree returns the tree of the commit with the given CID.
+func GetCommitTree(ctx context.Context, ds ipld.NodeGetter, id cid.Cid) (ipld.Node, error) {
+	commit, err := GetCommit(ctx, ds, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return ds.Get(ctx, commit.Tree)
+}
+
 // AddCommit adds a commit to the given dag.
-func AddCommit(ctx context.Context, dag ipld.DAGService, commit *Commit) (cid.Cid, error) {
+func AddCommit(ctx context.Context, ds ipld.NodeAdder, commit *Commit) (cid.Cid, error) {
 	node, err := cbornode.WrapObject(commit, multihash.SHA2_256, -1)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	if err := dag.Add(ctx, node); err != nil {
+	if err := ds.Add(ctx, node); err != nil {
 		return cid.Cid{}, err
 	}
 

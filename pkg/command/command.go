@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/author"
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/branch"
+	"github.com/multiverse-vcs/go-multiverse/pkg/command/remote"
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/repo"
 	"github.com/urfave/cli/v2"
 )
@@ -23,11 +24,13 @@ func NewApp() *cli.App {
 		},
 		Commands: []*cli.Command{
 			NewInitCommand(),
-			NewCommitCommand(),
-			NewRemoteCommand(),
-			NewPushCommand(),
 			NewStatusCommand(),
+			NewCommitCommand(),
+			NewPushCommand(),
+			NewPullCommand(),
+			NewSwitchCommand(),
 			branch.NewCommand(),
+			remote.NewCommand(),
 			repo.NewCommand(),
 			author.NewCommand(),
 			NewDaemonCommand(),

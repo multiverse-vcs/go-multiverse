@@ -18,7 +18,7 @@ func NewDeleteCommand() *cli.Command {
 
 			client, err := rpc.NewClient()
 			if err != nil {
-				return rpc.ErrDialRPC
+				return cli.Exit(rpc.DialErrMsg, -1)
 			}
 
 			args := repo.DeleteArgs{

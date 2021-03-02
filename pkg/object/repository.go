@@ -23,8 +23,8 @@ type Repository struct {
 }
 
 // GetRepository returns the repo with the given CID.
-func GetRepository(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Repository, error) {
-	node, err := dag.Get(ctx, id)
+func GetRepository(ctx context.Context, ds ipld.NodeGetter, id cid.Cid) (*Repository, error) {
+	node, err := ds.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -33,13 +33,13 @@ func GetRepository(ctx context.Context, dag ipld.DAGService, id cid.Cid) (*Repos
 }
 
 // AddRepository adds a repo to the given dag.
-func AddRepository(ctx context.Context, dag ipld.DAGService, repo *Repository) (cid.Cid, error) {
+func AddRepository(ctx context.Context, ds ipld.NodeAdder, repo *Repository) (cid.Cid, error) {
 	node, err := cbornode.WrapObject(repo, multihash.SHA2_256, -1)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	if err := dag.Add(ctx, node); err != nil {
+	if err := ds.Add(ctx, node); err != nil {
 		return cid.Cid{}, err
 	}
 

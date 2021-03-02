@@ -1,4 +1,4 @@
-package branch
+package remote
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 func NewListCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "list",
-		Usage: "List all branches",
+		Usage: "List all remotes",
 		Action: func(c *cli.Context) error {
 			cwd, err := os.Getwd()
 			if err != nil {
@@ -24,12 +24,8 @@ func NewListCommand() *cli.Command {
 				return err
 			}
 
-			for name := range cc.Config.Branches {
-				if name == cc.Config.Branch {
-					fmt.Print("* ")
-				}
-
-				fmt.Println(name)
+			for name, path := range cc.Config.Remotes {
+				fmt.Printf("%-32s%s\n", name, path)
 			}
 
 			return nil

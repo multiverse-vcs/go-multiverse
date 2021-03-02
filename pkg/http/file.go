@@ -14,7 +14,7 @@ import (
 )
 
 // File returns file contents from the repository tree.
-func (s *Service) File(w http.ResponseWriter, req *http.Request) error {
+func (s *Server) File(w http.ResponseWriter, req *http.Request) error {
 	ctx := req.Context()
 
 	highlight := req.URL.Query().Get("highlight")
@@ -77,7 +77,6 @@ func (s *Service) File(w http.ResponseWriter, req *http.Request) error {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(tree)
 	case highlight != "":
 		blob, err := fs.Cat(ctx, s.Peer.DAG, fnode.Cid())
@@ -86,7 +85,6 @@ func (s *Service) File(w http.ResponseWriter, req *http.Request) error {
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusOK)
 		Highlight(fname, blob, highlight, w)
 	default:
 		blob, err := fs.Cat(ctx, s.Peer.DAG, fnode.Cid())
@@ -95,7 +93,6 @@ func (s *Service) File(w http.ResponseWriter, req *http.Request) error {
 		}
 
 		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(blob))
 	}
 

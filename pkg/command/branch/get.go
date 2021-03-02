@@ -2,20 +2,21 @@ package branch
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/urfave/cli/v2"
 )
 
-// NewDeleteCommand returns a new command.
-func NewDeleteCommand() *cli.Command {
+// NewGetCommand returns a new command.
+func NewGetCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "delete",
-		Usage: "Delete an existing branch",
+		Name:  "get",
+		Usage: "Get branch settings",
 		Action: func(c *cli.Context) error {
 			if c.NArg() != 1 {
-				cli.ShowAppHelpAndExit(c, -1)
+				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
 			cwd, err := os.Getwd()
@@ -28,13 +29,15 @@ func NewDeleteCommand() *cli.Command {
 				return err
 			}
 
-			name := c.Args().Get(0)
-			if _, ok := cc.Config.Branches[name]; !ok {
-				return errors.New("branch does not exists")
+			branch := cc.Config.Branches[cc.Config.Branch]
+			switch c.Args().Get(0) {
+			case "remote":
+				fmt.Println(branch.Remote)
+			default:
+				return errors.New("invalid setting")
 			}
 
-			delete(cc.Config.Branches, name)
-			return cc.Config.Write()
+			return nil
 		},
 	}
 }

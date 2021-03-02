@@ -1,4 +1,4 @@
-package branch
+package remote
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 func NewDeleteCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "delete",
-		Usage: "Delete an existing branch",
+		Usage: "Create an existing remote",
 		Action: func(c *cli.Context) error {
 			if c.NArg() != 1 {
 				cli.ShowAppHelpAndExit(c, -1)
@@ -29,11 +29,11 @@ func NewDeleteCommand() *cli.Command {
 			}
 
 			name := c.Args().Get(0)
-			if _, ok := cc.Config.Branches[name]; !ok {
-				return errors.New("branch does not exists")
+			if _, ok := cc.Config.Remotes[name]; !ok {
+				return errors.New("remote does not exists")
 			}
 
-			delete(cc.Config.Branches, name)
+			delete(cc.Config.Remotes, name)
 			return cc.Config.Write()
 		},
 	}

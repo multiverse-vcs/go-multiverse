@@ -1,4 +1,4 @@
-package branch
+package remote
 
 import (
 	"errors"
@@ -8,13 +8,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// NewDeleteCommand returns a new command.
-func NewDeleteCommand() *cli.Command {
+// NewCreateCommand returns a new command.
+func NewCreateCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "delete",
-		Usage: "Delete an existing branch",
+		Name:  "create",
+		Usage: "Create a new remote",
 		Action: func(c *cli.Context) error {
-			if c.NArg() != 1 {
+			if c.NArg() != 2 {
 				cli.ShowAppHelpAndExit(c, -1)
 			}
 
@@ -29,11 +29,11 @@ func NewDeleteCommand() *cli.Command {
 			}
 
 			name := c.Args().Get(0)
-			if _, ok := cc.Config.Branches[name]; !ok {
-				return errors.New("branch does not exists")
+			if _, ok := cc.Config.Remotes[name]; ok {
+				return errors.New("remote already exists")
 			}
 
-			delete(cc.Config.Branches, name)
+			cc.Config.Remotes[name] = c.Args().Get(1)
 			return cc.Config.Write()
 		},
 	}

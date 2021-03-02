@@ -19,7 +19,7 @@ func NewUnfollowCommand() *cli.Command {
 
 			client, err := rpc.NewClient()
 			if err != nil {
-				return rpc.ErrDialRPC
+				return cli.Exit(rpc.DialErrMsg, -1)
 			}
 
 			peerID, err := peer.Decode(c.Args().Get(0))

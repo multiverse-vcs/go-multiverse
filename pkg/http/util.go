@@ -13,7 +13,6 @@ import (
 var formatter = html.New(
 	html.WithLineNumbers(true),
 	html.LineNumbersInTable(true),
-	//html.LinkableLineNumbers(true, ""),
 )
 
 // Highlight returns a syntax highlighted version of the given code.

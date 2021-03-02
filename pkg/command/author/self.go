@@ -16,7 +16,7 @@ func NewSelfCommand() *cli.Command {
 		Action: func(c *cli.Context) error {
 			client, err := rpc.NewClient()
 			if err != nil {
-				return rpc.ErrDialRPC
+				return cli.Exit(rpc.DialErrMsg, -1)
 			}
 
 			args := author.SelfArgs{}
