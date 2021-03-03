@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
 
 // DeleteArgs contains the args.

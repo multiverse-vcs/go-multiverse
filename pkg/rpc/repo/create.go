@@ -5,8 +5,8 @@ import (
 	"errors"
 	"path"
 
+	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
 
 // CreateArgs contains the args.

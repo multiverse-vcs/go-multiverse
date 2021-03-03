@@ -8,6 +8,7 @@ import (
 
 	cid "github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/peer"
+	
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )

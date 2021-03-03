@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	"github.com/libp2p/go-libp2p-core/peer"
+
+	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/merge"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
 
 // PushArgs contains the args.

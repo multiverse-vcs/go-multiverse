@@ -7,9 +7,10 @@ import (
 
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-path/resolver"
+
+	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/name"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
 
 // DotDir is the dot directory for the remote.
