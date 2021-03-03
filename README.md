@@ -1,7 +1,6 @@
 # Multiverse
 
 [![Gitter](https://badges.gitter.im/multiverse-vcs/community.svg)](https://gitter.im/multiverse-vcs/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/multiverse-vcs/go-multiverse)](https://goreportcard.com/report/github.com/multiverse-vcs/go-multiverse)
 [![codecov](https://codecov.io/gh/multiverse-vcs/go-multiverse/branch/master/graph/badge.svg?token=Y6UBYBD56P)](https://codecov.io/gh/multiverse-vcs/go-multiverse)
 
 > A decentralized version control system for peer-to-peer software development.
@@ -10,48 +9,22 @@
 
 ### Features
 
-- ***Peer-to-peer*** - self host your repositories
-- ***Works offline*** - integrated local code viewer
-- ***Secure*** - all communications are encrypted
+- Self host your repositories. No server setup required.
+- Internet connection optional. Works on your local area network.
+- Private by default. Remain anonymous or use a custom handle.
 
 ### Getting Started
 
-[Read the manual](https://www.multiverse-vcs.com/docs/).
+[Read the manual](docs/getting-started.md).
 
 ### Building
 
 Go 1.16 or higher is required.
 
 ```bash
-$ go get golang.org/dl/go1.16
-$ go1.16 download
-```
-
-Build and install from sources.
-
-```bash
 $ git clone https://github.com/multiverse-vcs/go-multiverse.git
 $ cd go-multiverse
 $ make install
-```
-
-### Usage
-
-```
-USAGE:
-   multi [global options] command [command options] [arguments...]
-
-COMMANDS:
-   branch   List, create, or delete branches
-   commit   Record changes
-   daemon   Starts a client
-   import   Import a repo
-   init     Create a repo
-   log      Print repo history
-   merge    Merge commits
-   status   Print changes
-   tag      List, create, or delete tags
-   help, h  Shows a list of commands or help for one command
 ```
 
 ### Contributing

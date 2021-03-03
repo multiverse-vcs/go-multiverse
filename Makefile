@@ -1,4 +1,4 @@
-GOCC = go1.16
+GOCC = go
 
 .PHONY: multi install test multi-cross
 .PHONY: multi-darwin multi-darwin-386 multi-darwin-amd64
@@ -15,7 +15,7 @@ install:
 
 install-systemd: install
 	mkdir -p $(HOME)/.config/systemd/user/
-	cp misc/multiverse-user.service $(HOME)/.config/systemd/user
+	cp ./init/multiverse-user.service $(HOME)/.config/systemd/user
 
 test:
 	$(GOCC) test ./... -cover

@@ -41,6 +41,6 @@ package(){
 	make install GOBIN=${pkgdir}/usr/bin
 	mkdir -p ${pkgdir}/var/lib/multi/
 	chown 5000:5000 ${pkgdir}/var/lib/multi
-	install -Dm644 ${srcdir}/${pkgname}/misc/multiverse.service ${pkgdir}/usr/lib/systemd/system/multiverse.service
-	install -Dm644 ${srcdir}/${pkgname}/misc/multi-user.conf ${pkgdir}/usr/lib/sysusers.d/multi.conf
+	install -Dm644 ${srcdir}/${pkgname}/init/multiverse.service ${pkgdir}/usr/lib/systemd/system/multiverse.service
+	install -Dm644 ${srcdir}/${pkgname}/init/multi-user.conf ${pkgdir}/usr/lib/sysusers.d/multi.conf
 }
