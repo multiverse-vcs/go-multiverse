@@ -6,12 +6,14 @@ import (
 	"os"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/urfave/cli/v2"
+	
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
+	"github.com/multiverse-vcs/go-multiverse/pkg/merge"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
-	"github.com/urfave/cli/v2"
 )
 
 // NewPullCommand returns a new cli command.
@@ -51,12 +53,12 @@ func NewPullCommand() *cli.Command {
 			remote := branch.Remote
 			source := cc.Config.Branch
 
-			tree, err := cc.Tree(c.Context)
+			stash, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)
 			if err != nil {
 				return err
 			}
 
-			status, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
+			status, err := dag.Status(c.Context, cc.DAG, stash, branch.Head)
 			if err != nil {
 				return err
 			}
@@ -102,22 +104,22 @@ func NewPullCommand() *cli.Command {
 				return err
 			}
 
-			base, err := dag.Base(c.Context, cc.DAG, branch.Head, root)
+			base, err := merge.Base(c.Context, cc.DAG, branch.Head, root)
 			if err != nil {
 				return err
 			}
 
-			merge, err := dag.Merge(c.Context, cc.DAG, base, branch.Head, root)
+			tree, err := merge.Tree(c.Context, cc.DAG, base, branch.Head, root)
 			if err != nil {
 				return err
 			}
 
-			if err := fs.Write(c.Context, cc.DAG, cc.Root, merge); err != nil {
+			if err := fs.Write(c.Context, cc.DAG, cc.Root, tree); err != nil {
 				return err
 			}
 
 			branch.Head = root
-			branch.Stash = merge.Cid()
+			branch.Stash = tree.Cid()
 			return cc.Config.Write()
 		},
 	}

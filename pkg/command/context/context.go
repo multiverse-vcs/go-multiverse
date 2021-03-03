@@ -1,7 +1,6 @@
 package context
 
 import (
-	"context"
 	"errors"
 	"os"
 	"path/filepath"
@@ -12,19 +11,15 @@ import (
 	offline "github.com/ipfs/go-ipfs-exchange-offline"
 	ipld "github.com/ipfs/go-ipld-format"
 	merkledag "github.com/ipfs/go-merkledag"
-	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
-	ignore "github.com/sabhiram/go-gitignore"
+
+	"github.com/multiverse-vcs/go-multiverse/internal/ignore"
 )
 
-const (
-	// DotDir is the name of the dot directory.
-	DotDir = ".multi"
-	// IgnoreFile is the name of the ignore file.
-	IgnoreFile = "multi.ignore"
-)
+// DotDir is the name of the dot directory.
+const DotDir = ".multi"
 
-// IgnoreRules contains default ignore rules.
-var IgnoreRules = []string{".git", DotDir}
+// DefaultIgnore contans the default ignore rules.
+var DefaultIgnore = ignore.New("", ".git", ".svn", ".hg", ".multi")
 
 // Context contains command context.
 type Context struct {
@@ -104,30 +99,4 @@ func Root(root string) (string, error) {
 	}
 
 	return Root(parent)
-}
-
-// Ignore returns ignore rules for the current context.
-func (c *Context) Ignore() (*ignore.GitIgnore, error) {
-	path := filepath.Join(c.Root, IgnoreFile)
-
-	_, err := os.Lstat(path)
-	if err == nil {
-		return ignore.CompileIgnoreFileAndLines(path, IgnoreRules...)
-	}
-
-	if os.IsNotExist(err) {
-		return ignore.CompileIgnoreLines(IgnoreRules...), nil
-	}
-
-	return nil, err
-}
-
-// Tree adds and returns the working tree node.
-func (c *Context) Tree(ctx context.Context) (ipld.Node, error) {
-	ignore, err := c.Ignore()
-	if err != nil {
-		return nil, err
-	}
-
-	return fs.Add(ctx, c.DAG, c.Root, ignore)
 }

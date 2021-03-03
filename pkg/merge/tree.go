@@ -1,4 +1,4 @@
-package dag
+package merge
 
 import (
 	"context"
@@ -8,12 +8,11 @@ import (
 	ipld "github.com/ipfs/go-ipld-format"
 	merkledag "github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-merkledag/dagutils"
-	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
-// Merge combines the changes to trees a and b onto the base o.
-func Merge(ctx context.Context, ds ipld.DAGService, o, a, b cid.Cid) (ipld.Node, error) {
+// Tree combines the changes to trees a and b onto the base o.
+func Tree(ctx context.Context, ds ipld.DAGService, o, a, b cid.Cid) (ipld.Node, error) {
 	// fast forward b
 	if o == a {
 		return object.GetCommitTree(ctx, ds, b)
@@ -77,7 +76,7 @@ func resolve(ctx context.Context, ds ipld.DAGService, c dagutils.Conflict) (*dag
 		return c.A, nil
 	}
 
-	merge, err := fs.Merge(ctx, ds, c.A.Before, c.A.After, c.B.After)
+	merge, err := File(ctx, ds, c.A.Before, c.A.After, c.B.After)
 	if err != nil {
 		return nil, err
 	}

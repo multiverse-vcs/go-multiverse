@@ -1,10 +1,11 @@
-package dag
+package merge
 
 import (
 	"context"
 
 	cid "github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
+	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 )
 
 // Base returns the best common ancestor of local and remote.
@@ -14,7 +15,7 @@ func Base(ctx context.Context, ds ipld.NodeGetter, local, remote cid.Cid) (cid.C
 	}
 
 	refs := cid.NewSet()
-	if err := Walk(ctx, ds, local, refs.Visit); err != nil {
+	if err := dag.Walk(ctx, ds, local, refs.Visit); err != nil {
 		return cid.Cid{}, err
 	}
 
@@ -38,14 +39,14 @@ func Base(ctx context.Context, ds ipld.NodeGetter, local, remote cid.Cid) (cid.C
 			return true
 		}
 
-		if match, err0 = IsAncestor(ctx, ds, best, id); !match {
+		if match, err0 = dag.IsAncestor(ctx, ds, best, id); !match {
 			best = id
 		}
 
 		return false
 	}
 
-	if err := Walk(ctx, ds, remote, visit); err != nil {
+	if err := dag.Walk(ctx, ds, remote, visit); err != nil {
 		return cid.Cid{}, err
 	}
 

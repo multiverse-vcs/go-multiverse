@@ -40,7 +40,7 @@ func NewLogCommand() *cli.Command {
 				fmt.Printf("\n\t%s\n\n", commit.Message)
 				return true
 			}
-			
+
 			return dag.Walk(c.Context, cc.DAG, branch.Head, visit)
 		},
 	}

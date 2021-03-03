@@ -1,4 +1,4 @@
-package dag
+package merge
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
-func TestMergeConflicts(t *testing.T) {
+func TestTree(t *testing.T) {
 	ctx := context.Background()
 	mem := dagutils.NewMemoryDagService()
 
@@ -56,7 +56,7 @@ func TestMergeConflicts(t *testing.T) {
 		t.Fatal("failed to add commit")
 	}
 
-	merge, err := Merge(ctx, mem, o, a, b)
+	merge, err := Tree(ctx, mem, o, a, b)
 	if err != nil {
 		t.Fatalf("failed to merge %s", err)
 	}

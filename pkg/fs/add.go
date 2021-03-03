@@ -3,7 +3,6 @@ package fs
 import (
 	"context"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -11,11 +10,13 @@ import (
 	"github.com/ipfs/go-merkledag"
 	unixfs "github.com/ipfs/go-unixfs"
 	"github.com/ipfs/go-unixfs/io"
-	ignore "github.com/sabhiram/go-gitignore"
+	
+	"github.com/multiverse-vcs/go-multiverse/internal/ignore"
+	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 )
 
 // Add creates a node from the file at path and adds it to the merkle dag.
-func Add(ctx context.Context, dag ipld.DAGService, path string, ignore *ignore.GitIgnore) (ipld.Node, error) {
+func Add(ctx context.Context, ds ipld.DAGService, path string, filter ignore.Filter) (ipld.Node, error) {
 	stat, err := os.Lstat(path)
 	if err != nil {
 		return nil, err
@@ -23,29 +24,29 @@ func Add(ctx context.Context, dag ipld.DAGService, path string, ignore *ignore.G
 
 	switch mode := stat.Mode(); {
 	case mode.IsRegular():
-		return addFile(ctx, dag, path)
+		return addFile(ctx, ds, path)
 	case mode&os.ModeSymlink != 0:
-		return addSymlink(ctx, dag, path)
+		return addSymlink(ctx, ds, path)
 	case mode.IsDir():
-		return addDir(ctx, dag, path, ignore)
+		return addDir(ctx, ds, path, filter)
 	default:
 		return nil, errors.New("invalid file type")
 	}
 }
 
 // addFile creates a dag node from the file at the given path.
-func addFile(ctx context.Context, dag ipld.DAGService, path string) (ipld.Node, error) {
+func addFile(ctx context.Context, ds ipld.DAGService, path string) (ipld.Node, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	return Chunk(ctx, dag, file)
+	return dag.Chunk(ctx, ds, file)
 }
 
 // addSymlink creates a dag node from the symlink at the given path.
-func addSymlink(ctx context.Context, dag ipld.DAGService, path string) (ipld.Node, error) {
+func addSymlink(ctx context.Context, ds ipld.DAGService, path string) (ipld.Node, error) {
 	target, err := os.Readlink(path)
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func addSymlink(ctx context.Context, dag ipld.DAGService, path string) (ipld.Nod
 	}
 
 	node := merkledag.NodeWithData(data)
-	if err := dag.Add(ctx, node); err != nil {
+	if err := ds.Add(ctx, node); err != nil {
 		return nil, err
 	}
 
@@ -65,35 +66,42 @@ func addSymlink(ctx context.Context, dag ipld.DAGService, path string) (ipld.Nod
 }
 
 // addDir creates a dag node from the directory entries at the given path.
-func addDir(ctx context.Context, dag ipld.DAGService, path string, ignore *ignore.GitIgnore) (ipld.Node, error) {
-	entries, err := ioutil.ReadDir(path)
+func addDir(ctx context.Context, ds ipld.DAGService, path string, filter ignore.Filter) (ipld.Node, error) {
+	entries, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
 
-	dir := io.NewDirectory(dag)
+	other, err := ignore.Load(path)
+	if err != nil {
+		return nil, err
+	}
+
+	filter = filter.Merge(other)
+	ufsdir := io.NewDirectory(ds)
+
 	for _, info := range entries {
 		subpath := filepath.Join(path, info.Name())
-		if ignore != nil && ignore.MatchesPath(subpath) {
+		if filter.Match(subpath) {
 			continue
 		}
 
-		subnode, err := Add(ctx, dag, subpath, ignore)
+		subnode, err := Add(ctx, ds, subpath, filter)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := dir.AddChild(ctx, info.Name(), subnode); err != nil {
+		if err := ufsdir.AddChild(ctx, info.Name(), subnode); err != nil {
 			return nil, err
 		}
 	}
 
-	node, err := dir.GetNode()
+	node, err := ufsdir.GetNode()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := dag.Add(ctx, node); err != nil {
+	if err := ds.Add(ctx, node); err != nil {
 		return nil, err
 	}
 

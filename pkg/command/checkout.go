@@ -5,11 +5,12 @@ import (
 	"os"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/urfave/cli/v2"
+
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/urfave/cli/v2"
 )
 
 // NewCheckoutCommand returns a new cli command.
@@ -71,7 +72,7 @@ func NewCheckoutCommand() *cli.Command {
 				cli.ShowAppHelpAndExit(c, -1)
 			}
 
-			stash, err := cc.Tree(c.Context)
+			stash, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)
 			if err != nil {
 				return err
 			}

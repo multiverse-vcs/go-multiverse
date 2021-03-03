@@ -8,6 +8,7 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
+	"github.com/multiverse-vcs/go-multiverse/pkg/merge"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 	"github.com/multiverse-vcs/go-multiverse/pkg/p2p"
 )
@@ -68,7 +69,7 @@ func (s *Service) Push(args *PushArgs, reply *PushReply) error {
 		return err
 	}
 
-	base, err := dag.Base(ctx, s.Peer.DAG, prev, next)
+	base, err := merge.Base(ctx, s.Peer.DAG, prev, next)
 	if err != nil {
 		return err
 	}

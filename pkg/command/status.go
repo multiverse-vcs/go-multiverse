@@ -6,9 +6,11 @@ import (
 	"sort"
 
 	"github.com/ipfs/go-merkledag/dagutils"
+	"github.com/urfave/cli/v2"
+
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
-	"github.com/urfave/cli/v2"
+	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 )
 
 // NewStatusCommand returns a new cli command.
@@ -27,7 +29,7 @@ func NewStatusCommand() *cli.Command {
 				return err
 			}
 
-			tree, err := cc.Tree(c.Context)
+			tree, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)
 			if err != nil {
 				return err
 			}
@@ -46,7 +48,7 @@ func NewStatusCommand() *cli.Command {
 
 			fmt.Printf("Tracking changes on branch %s:\n", cc.Config.Branch)
 			fmt.Printf("  (all files are automatically considered for commit)\n")
-			fmt.Printf("  (to stop tracking files add rules to '%s')\n", context.IgnoreFile)
+			fmt.Printf("  (to stop tracking files add rules to '.multignore')\n")
 
 			for _, p := range paths {
 				switch status[p] {

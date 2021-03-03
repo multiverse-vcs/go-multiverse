@@ -5,11 +5,13 @@ import (
 	"errors"
 	"os"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
+	"github.com/multiverse-vcs/go-multiverse/pkg/merge"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc"
 	"github.com/multiverse-vcs/go-multiverse/pkg/rpc/repo"
-	"github.com/urfave/cli/v2"
 )
 
 // NewPushCommand returns a new cli command.
@@ -77,7 +79,7 @@ func NewPushCommand() *cli.Command {
 			refs := reply.Repository.Heads()
 			head := reply.Repository.Branches[target]
 
-			base, err := dag.Base(c.Context, cc.DAG, head, branch.Head)
+			base, err := merge.Base(c.Context, cc.DAG, head, branch.Head)
 			if err != nil {
 				return err
 			}

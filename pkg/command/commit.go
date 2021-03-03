@@ -4,10 +4,12 @@ import (
 	"errors"
 	"os"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
+	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
-	"github.com/urfave/cli/v2"
 )
 
 // NewCommitCommand returns a new cli command.
@@ -33,13 +35,12 @@ func NewCommitCommand() *cli.Command {
 				return err
 			}
 
-			branch := cc.Config.Branches[cc.Config.Branch]
-
-			tree, err := cc.Tree(c.Context)
+			tree, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)
 			if err != nil {
 				return err
 			}
 
+			branch := cc.Config.Branches[cc.Config.Branch]
 			diffs, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
 			if err != nil {
 				return err

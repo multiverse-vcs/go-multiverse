@@ -4,9 +4,10 @@ import (
 	"errors"
 	"os"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/context"
 	"github.com/multiverse-vcs/go-multiverse/pkg/fs"
-	"github.com/urfave/cli/v2"
 )
 
 // NewSwitchCommand returns a new cli command.
@@ -48,7 +49,7 @@ func NewSwitchCommand() *cli.Command {
 				return errors.New("branch does not exist")
 			}
 
-			stash, err := cc.Tree(c.Context)
+			stash, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)
 			if err != nil {
 				return err
 			}
