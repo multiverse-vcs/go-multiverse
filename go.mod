@@ -3,7 +3,6 @@ module github.com/multiverse-vcs/go-multiverse
 go 1.16
 
 require (
-	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/ipfs/go-bitswap v0.3.2
 	github.com/ipfs/go-blockservice v0.1.4

@@ -16,8 +16,7 @@ type Filter []Rule
 func New(dir string, patterns ...string) Filter {
 	var rules []Rule
 	for _, p := range patterns {
-		rule := ParseRule(filepath.Join(dir, p))
-		rules = append(rules, rule)
+		rules = append(rules, ParseRule(dir, p))
 	}
 
 	return Filter(rules)

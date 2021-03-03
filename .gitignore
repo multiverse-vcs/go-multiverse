@@ -14,9 +14,6 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 bin
-multi.json
-multi.ignore
 coverage.txt
-.multi
-.multiverse
+.multi/
 .DS_Store

@@ -54,7 +54,7 @@ func (r EmptyRule) Match(name string) (bool, error) {
 }
 
 // ParseRule returns a rule for the given pattern.
-func ParseRule(pattern string) Rule {
+func ParseRule(dir, pattern string) Rule {
 	pattern = strings.TrimSpace(pattern)
 	if pattern == "" {
 		return EmptyRule(pattern)
@@ -66,9 +66,9 @@ func ParseRule(pattern string) Rule {
 
 	var rule Rule
 	if strings.Contains(pattern, "/") {
-		rule = PathRule(pattern)
+		rule = PathRule(filepath.Join(dir, pattern))
 	} else {
-		rule = BaseRule(filepath.Base(pattern))
+		rule = BaseRule(pattern)
 	}
 
 	if strings.HasPrefix(pattern, "!") {
