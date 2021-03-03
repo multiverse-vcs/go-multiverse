@@ -9,9 +9,9 @@
 
 ### Features
 
-- ***Peer-to-Peer*** - self host your repositories
-- ***Works Offline*** - internet connection optional
-- ***Private & Secure*** - all communications are encrypted
+- Self host your repositories. No server setup required.
+- Internet connection optional. Works on your local area network.
+- Private by default. Remain anonymous or use a custom handle.
 
 ### Getting Started
 
