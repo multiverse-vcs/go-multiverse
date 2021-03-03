@@ -50,7 +50,7 @@ func NewClient() (*rpc.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	config := remote.NewConfig(filepath.Join(home, remote.DotDir))
 	if err := config.Read(); err != nil {
 		return nil, err
@@ -64,9 +64,7 @@ func ListenAndServe(server *remote.Server) error {
 	rpc.RegisterName("Author", &author.Service{server})
 	rpc.RegisterName("File", &file.Service{server})
 	rpc.RegisterName("Repo", &repo.Service{server})
-
 	rpc.HandleHTTP()
-	http.HandleFunc("/_jsonRPC_", ServeHTTP)
 
 	listener, err := net.Listen("tcp", server.Config.HttpAddress)
 	if err != nil {
@@ -74,6 +72,7 @@ func ListenAndServe(server *remote.Server) error {
 	}
 	defer listener.Close()
 
+	http.HandleFunc("/_jsonRPC_", ServeHTTP)
 	return http.Serve(listener, nil)
 }
 

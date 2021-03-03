@@ -56,12 +56,12 @@ func NewPullCommand() *cli.Command {
 				return err
 			}
 
-			diffs, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
+			status, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
 			if err != nil {
 				return err
 			}
 
-			if len(diffs) != 0 {
+			if len(status) != 0 {
 				return errors.New("uncommitted changes")
 			}
 

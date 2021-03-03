@@ -29,7 +29,7 @@ type SearchReply struct {
 	// Entries contains directory entries.
 	Entries []*fs.DirEntry
 	// IsDir specifies if the file is a directory.
-	IsDir   bool
+	IsDir bool
 }
 
 // Search returns the contents of a file at the given remote path.

@@ -33,14 +33,13 @@ func NewStatusCommand() *cli.Command {
 			}
 
 			branch := cc.Config.Branches[cc.Config.Branch]
-
-			diffs, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
+			status, err := dag.Status(c.Context, cc.DAG, tree, branch.Head)
 			if err != nil {
 				return err
 			}
 
 			paths := make([]string, 0)
-			for path := range diffs {
+			for path := range status {
 				paths = append(paths, path)
 			}
 			sort.Strings(paths)
@@ -50,7 +49,7 @@ func NewStatusCommand() *cli.Command {
 			fmt.Printf("  (to stop tracking files add rules to '%s')\n", context.IgnoreFile)
 
 			for _, p := range paths {
-				switch diffs[p] {
+				switch status[p] {
 				case dagutils.Add:
 					fmt.Printf("\tnew file: %s\n", p)
 				case dagutils.Remove:
