@@ -15,21 +15,21 @@ import (
 // SearchArgs contains the args.
 type SearchArgs struct {
 	// Remote is the remote path.
-	Remote string
+	Remote string `json:"remote"`
 	// Branch is the branch name.
-	Branch string
+	Branch string `json:"branch"`
 	// Path is the file path.
-	Path string
+	Path string `json:"path"`
 }
 
 // SearchReply contains the reply.
 type SearchReply struct {
 	// Content contains file content.
-	Content string
+	Content string `json:"content"`
 	// Entries contains directory entries.
-	Entries []*fs.DirEntry
+	Entries []*fs.DirEntry `json:"entries"`
 	// IsDir specifies if the file is a directory.
-	IsDir bool
+	IsDir bool `json:"is_dir"`
 }
 
 // Search returns the contents of a file at the given remote path.
