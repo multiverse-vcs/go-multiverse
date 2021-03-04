@@ -3,7 +3,6 @@ package git
 import (
 	"context"
 	"testing"
-	"path/filepath"
 
 	"github.com/ipfs/go-merkledag/dagutils"
 )
@@ -11,13 +10,9 @@ import (
 func TestImportFromURL(t *testing.T) {
 	ctx := context.Background()
 	mem := dagutils.NewMemoryDagService()
+	url := "https://github.com/multiverse-vcs/go-multiverse"
 
-	path, err := filepath.Abs("./../../")
-	if err != nil {
-		t.Fatal("failed to get absolute path")
-	}
-
-	_, err = ImportFromFS(ctx, mem, "test", path)
+	_, err := ImportFromURL(ctx, mem, "test", url)
 	if err != nil {
 		t.Fatal("failed to import git repo")
 	}

@@ -1,8 +1,7 @@
 package command
 
 import (
-	"fmt"
-	"os"
+	"time"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/author"
 	"github.com/multiverse-vcs/go-multiverse/pkg/command/branch"
@@ -14,11 +13,11 @@ import (
 // NewApp returns a new cli app.
 func NewApp() *cli.App {
 	return &cli.App{
+		Compiled:    time.Now(),
 		Name:        "multi",
 		HelpName:    "multi",
 		Usage:       "Multiverse command line interface",
 		Description: `Multiverse is a decentralized version control system for peer-to-peer software development.`,
-		Version:     "0.0.5",
 		Authors: []*cli.Author{
 			{Name: "Keenan Nemetz", Email: "keenan.nemetz@pm.me"},
 		},
@@ -37,12 +36,5 @@ func NewApp() *cli.App {
 			author.NewCommand(),
 			NewDaemonCommand(),
 		},
-	}
-}
-
-// Execute runs the cli app.
-func Execute() {
-	if err := NewApp().Run(os.Args); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 	}
 }
