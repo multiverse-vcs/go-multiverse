@@ -13,6 +13,7 @@ func NewCommand() *cli.Command {
 			NewCreateCommand(),
 			NewListCommand(),
 			NewDeleteCommand(),
+			NewImportCommand(),
 		},
 	}
 }
