@@ -11,6 +11,7 @@ func NewCommand() *cli.Command {
 		Usage: "Manage remote repositories",
 		Subcommands: []*cli.Command{
 			NewCreateCommand(),
+			NewForkCommand(),
 			NewListCommand(),
 			NewDeleteCommand(),
 			NewImportCommand(),

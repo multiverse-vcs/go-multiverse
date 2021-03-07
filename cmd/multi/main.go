@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 
 	"github.com/multiverse-vcs/go-multiverse/pkg/command"
 )

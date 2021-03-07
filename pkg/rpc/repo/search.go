@@ -13,11 +13,12 @@ import (
 // SearchArgs contains the args.
 type SearchArgs struct {
 	// Remote is the remote path.
-	Remote string `json"remote"`
+	Remote string `json:"remote"`
 }
 
 // SearchReply contains the reply.
 type SearchReply struct {
+	// Repository contains repo info.
 	Repository *object.Repository `json:"repository"`
 }
 
