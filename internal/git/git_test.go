@@ -14,6 +14,6 @@ func TestImportFromURL(t *testing.T) {
 
 	_, err := ImportFromURL(ctx, mem, "test", url)
 	if err != nil {
-		t.Fatal("failed to import git repo")
+		t.Fatalf("failed to import git repo %v", err)
 	}
 }

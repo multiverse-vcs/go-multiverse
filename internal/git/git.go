@@ -45,25 +45,22 @@ func ImportFromURL(ctx context.Context, dag ipld.DAGService, name, url string) (
 		URL: url,
 	}
 
-	_, err := git.PlainClone(dir, false, &opts)
+	repo, err := git.PlainClone(dir, true, &opts)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	return ImportFromFS(ctx, dag, name, dir)
+	return NewImporter(ctx, dag, repo, name).AddRepository()
 }
 
 // ImportFromFS is a helper to import a git repo from a directory.
 func ImportFromFS(ctx context.Context, dag ipld.DAGService, name, dir string) (cid.Cid, error) {
-	dot := filepath.Join(dir, ".git")
-
-	repo, err := git.PlainOpen(dot)
+	repo, err := git.PlainOpen(dir)
 	if err != nil {
 		return cid.Cid{}, err
 	}
 
-	importer := NewImporter(ctx, dag, repo, name)
-	return importer.AddRepository()
+	return NewImporter(ctx, dag, repo, name).AddRepository()
 }
 
 // NewImporter returns an importer for the given repo.
@@ -131,9 +128,9 @@ func (i *importer) AddBranch(ref *plumbing.Reference) error {
 
 // AddTag adds the tag with the given ref to the dag.
 func (i *importer) AddTag(ref *plumbing.Reference) error {
-	id, err := i.AddCommit(ref.Hash())
-	if err != nil {
-		return err
+	id, ok := i.objects[ref.Hash().String()]
+	if !ok {
+		return nil
 	}
 
 	name := string(ref.Name())
