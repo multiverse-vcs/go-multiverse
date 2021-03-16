@@ -3,9 +3,18 @@
 [![Gitter](https://badges.gitter.im/multiverse-vcs/community.svg)](https://gitter.im/multiverse-vcs/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![codecov](https://codecov.io/gh/multiverse-vcs/go-multiverse/branch/master/graph/badge.svg?token=Y6UBYBD56P)](https://codecov.io/gh/multiverse-vcs/go-multiverse)
 
-> A decentralized version control system for peer-to-peer software development.
+> The goal of the Multiverse project is to create a developer centric network for code hosting, collaboration, and archival.
+> One that is community operated, privacy respecting, and completely open source.
 
 *This project is under heavy development. Changes may cause compatibility issues with previous versions.*
+
+### About
+
+Multiverse builds on top of the libp2p and IPFS projects to provide a decentralized code hosting network.
+Decentralized networks shift the power from service providers to the users in the form of data ownership.
+
+Data ownership and data portability are the two core factors that will drive innovation on the Multiverse network.
+Switching service providers is completely transparent as none of your data is trapped behind a walled garden.
 
 ### Features
 
