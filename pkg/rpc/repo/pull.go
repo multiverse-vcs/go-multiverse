@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"strings"
 
 	cid "github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -15,12 +14,14 @@ import (
 
 // PullArgs contains the args.
 type PullArgs struct {
-	// Remote is the remote path.
-	Remote string
+	// Peer is the author peer ID.
+	Peer string `json:"key"`
+	// Name is the repository name.
+	Name string `json:"name"`
 	// Branch is the branch name.
-	Branch string
+	Branch string `json:"branch"`
 	// Refs is a list of known references.
-	Refs []cid.Cid
+	Refs []cid.Cid `json:"refs"`
 }
 
 // PullReply contains the reply.
@@ -33,15 +34,7 @@ func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	parts := strings.Split(args.Remote, "/")
-	if len(parts) != 2 {
-		return errors.New("invalid remote")
-	}
-
-	pname := parts[0]
-	rname := parts[1]
-
-	peerID, err := peer.Decode(pname)
+	peerID, err := peer.Decode(args.Peer)
 	if err != nil {
 		return err
 	}
@@ -56,7 +49,7 @@ func (s *Service) Pull(args *PullArgs, reply *PullReply) error {
 		return err
 	}
 
-	repoID, ok := author.Repositories[rname]
+	repoID, ok := author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}

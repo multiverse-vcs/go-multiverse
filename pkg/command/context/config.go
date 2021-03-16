@@ -15,14 +15,20 @@ const (
 	DefaultBranch = "main"
 )
 
+// Remote contains remote info.
+type Remote struct {
+	// Peer is the id of the author.
+	Peer string `json:"peer"`
+	// Name is the repository name.
+	Name string `json:"name"`
+}
+
 // Branch contains branch info.
 type Branch struct {
 	// Head is the CID of the branch head.
 	Head cid.Cid `json:"head"`
 	// Stash is the CID of the tree stash.
 	Stash cid.Cid `json:"stash"`
-	// Remote is the remote branch path.
-	Remote string `json:"remote"`
 }
 
 // Config contains repository info.
@@ -32,7 +38,7 @@ type Config struct {
 	// Branches contains named branches.
 	Branches map[string]*Branch `json:"branches"`
 	// Remotes contains named remotes.
-	Remotes map[string]string `json:"remotes"`
+	Remotes map[string]*Remote `json:"remotes"`
 
 	path string
 }
@@ -44,7 +50,7 @@ func NewConfig(root string) *Config {
 		Branches: map[string]*Branch{
 			DefaultBranch: {},
 		},
-		Remotes: make(map[string]string),
+		Remotes: make(map[string]*Remote),
 		path:    filepath.Join(root, ConfigFile),
 	}
 }

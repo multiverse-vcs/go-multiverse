@@ -69,7 +69,7 @@ func NewCheckoutCommand() *cli.Command {
 
 				treeID = commit.Tree
 			default:
-				cli.ShowAppHelpAndExit(c, -1)
+				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
 			stash, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)

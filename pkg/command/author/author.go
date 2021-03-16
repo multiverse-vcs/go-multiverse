@@ -10,11 +10,9 @@ func NewCommand() *cli.Command {
 		Name:  "author",
 		Usage: "Manage author profiles",
 		Subcommands: []*cli.Command{
-			NewSelfCommand(),
-			NewListCommand(),
-			NewViewCommand(),
-			NewFollowCommand(),
-			NewUnfollowCommand(),
+			NewCreateCommand(),
+			NewExportCommand(),
+			NewImportCommand(),
 		},
 	}
 }

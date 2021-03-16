@@ -8,9 +8,9 @@ import (
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/ipfs/go-path/resolver"
 
+	"github.com/multiverse-vcs/go-multiverse/internal/key"
 	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/name"
-	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
 // DotDir is the dot directory for the remote.
@@ -20,10 +20,12 @@ const DotDir = ".multiverse"
 type Server struct {
 	// Config contains server settings.
 	Config *Config
-	// Peer manages peer services.
-	Peer *p2p.Peer
+	// Keystore contains author keys.
+	Keystore *key.Store
 	// Namesys resolves named resources.
 	Namesys *name.System
+	// Peer manages peer services.
+	Peer *p2p.Peer
 	// Resolover is an ipfs path resolver.
 	Resolver *resolver.Resolver
 	// Root is the server root path.
@@ -42,12 +44,12 @@ func NewServer(ctx context.Context, home string) (*Server, error) {
 		return nil, err
 	}
 
-	key, err := p2p.DecodeKey(config.PrivateKey)
+	priv, err := key.Decode(config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	host, router, err := p2p.NewHost(ctx, key, config.ListenAddresses)
+	host, router, err := p2p.NewHost(ctx, priv, config.ListenAddresses)
 	if err != nil {
 		return nil, err
 	}
@@ -70,25 +72,16 @@ func NewServer(ctx context.Context, home string) (*Server, error) {
 		return nil, err
 	}
 
-	authorID, err := object.AddAuthor(ctx, peer.DAG, config.Author)
+	keystore, err := key.NewStore(root)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := namesys.Publish(ctx, key, authorID); err != nil {
-		return nil, err
-	}
-
-	for _, peerID := range config.Author.Following {
-		if err := namesys.Subscribe(peerID); err != nil {
-			return nil, err
-		}
-	}
-
 	return &Server{
 		Config:   config,
-		Peer:     peer,
+		Keystore: keystore,
 		Namesys:  namesys,
+		Peer:     peer,
 		Resolver: resolver.NewBasicResolver(peer.DAG),
 		Root:     root,
 	}, nil
@@ -105,12 +98,12 @@ func initServer(root string) error {
 		return err
 	}
 
-	key, err := p2p.GenerateKey()
+	priv, err := key.Generate()
 	if err != nil {
 		return err
 	}
 
-	enc, err := p2p.EncodeKey(key)
+	enc, err := key.Encode(priv)
 	if err != nil {
 		return err
 	}

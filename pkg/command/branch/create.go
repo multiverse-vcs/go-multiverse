@@ -36,9 +36,8 @@ func NewCreateCommand() *cli.Command {
 			branch := cc.Config.Branches[cc.Config.Branch]
 
 			cc.Config.Branches[name] = &context.Branch{
-				Head:   branch.Head,
-				Stash:  branch.Stash,
-				Remote: branch.Remote,
+				Head:  branch.Head,
+				Stash: branch.Stash,
 			}
 
 			return cc.Config.Write()

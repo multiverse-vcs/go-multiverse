@@ -11,8 +11,9 @@ import (
 // NewListCommand returns a new command.
 func NewListCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "list",
-		Usage: "List all remotes",
+		Name:    "list",
+		Aliases: []string{"ls"},
+		Usage:   "List all remotes",
 		Action: func(c *cli.Context) error {
 			cwd, err := os.Getwd()
 			if err != nil {

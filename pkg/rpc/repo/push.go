@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 
-	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/dag"
 	"github.com/multiverse-vcs/go-multiverse/pkg/merge"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
@@ -16,12 +14,14 @@ import (
 
 // PushArgs contains the args.
 type PushArgs struct {
-	// Remote is the remote path.
-	Remote string
+	// Peer is the author peer ID.
+	Peer string `json:"key"`
+	// Name is the repository name.
+	Name string `json:"name"`
 	// branch is the branch name.
-	Branch string
+	Branch string `json:"branch"`
 	// Data contains objects to add.
-	Data []byte
+	Data []byte `json:"data"`
 }
 
 // PushReply contains the reply.
@@ -31,30 +31,27 @@ func (s *Service) Push(args *PushArgs, reply *PushReply) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	parts := strings.Split(args.Remote, "/")
-	if len(parts) != 2 {
-		return errors.New("invalid remote")
-	}
-
-	pname := parts[0]
-	rname := parts[1]
-
-	key, err := p2p.DecodeKey(s.Config.PrivateKey)
+	priv, err := s.Keystore.Get(args.Peer)
 	if err != nil {
 		return err
 	}
 
-	peerID, err := peer.Decode(pname)
+	peerID, err := peer.IDFromPrivateKey(priv)
 	if err != nil {
 		return err
 	}
 
-	if !peerID.MatchesPrivateKey(key) {
-		return errors.New("private key does not match")
+	authorID, err := s.Namesys.Search(ctx, peerID)
+	if err != nil {
+		return err
 	}
 
-	author := s.Config.Author
-	repoID, ok := author.Repositories[rname]
+	author, err := object.GetAuthor(ctx, s.Peer.DAG, authorID)
+	if err != nil {
+		return err
+	}
+
+	repoID, ok := author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}
@@ -85,15 +82,11 @@ func (s *Service) Push(args *PushArgs, reply *PushReply) error {
 		return err
 	}
 
-	author.Repositories[rname] = repoID
-	if err := s.Config.Write(); err != nil {
-		return err
-	}
-
-	authorID, err := object.AddAuthor(ctx, s.Peer.DAG, author)
+	author.Repositories[args.Name] = repoID
+	authorID, err = object.AddAuthor(ctx, s.Peer.DAG, author)
 	if err != nil {
 		return err
 	}
 
-	return s.Namesys.Publish(ctx, key, authorID)
+	return s.Namesys.Publish(ctx, priv, authorID)
 }

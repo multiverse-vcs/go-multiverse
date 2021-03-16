@@ -11,10 +11,11 @@ import (
 // NewCreateCommand returns a new command.
 func NewCreateCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "create",
-		Usage: "Create a new repository",
+		Name:      "create",
+		Usage:     "Create a new repository",
+		ArgsUsage: "[peer] [name]",
 		Action: func(c *cli.Context) error {
-			if c.NArg() != 1 {
+			if c.NArg() != 2 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
@@ -24,7 +25,8 @@ func NewCreateCommand() *cli.Command {
 			}
 
 			args := repo.CreateArgs{
-				Name: c.Args().Get(0),
+				Peer: c.Args().Get(0),
+				Name: c.Args().Get(1),
 			}
 
 			var reply repo.CreateReply

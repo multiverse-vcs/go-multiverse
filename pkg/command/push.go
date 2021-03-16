@@ -17,21 +17,14 @@ import (
 // NewPushCommand returns a new cli command.
 func NewPushCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "push",
-		Usage: "Update a remote branch with local changes",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "remote",
-				Aliases: []string{"r"},
-				Usage:   "Remote repository path",
-			},
-			&cli.StringFlag{
-				Name:    "branch",
-				Aliases: []string{"b"},
-				Usage:   "Remote branch name",
-			},
-		},
+		Name:      "push",
+		Usage:     "Update a remote branch with local changes",
+		ArgsUsage: "[remote] [branch]",
 		Action: func(c *cli.Context) error {
+			if c.NArg() != 2 {
+				cli.ShowSubcommandHelpAndExit(c, 1)
+			}
+
 			cwd, err := os.Getwd()
 			if err != nil {
 				return err
@@ -48,27 +41,21 @@ func NewPushCommand() *cli.Command {
 			}
 
 			branch := cc.Config.Branches[cc.Config.Branch]
-			remote := branch.Remote
-			target := cc.Config.Branch
+			rname := c.Args().Get(0)
+			bname := c.Args().Get(1)
 
 			if !branch.Head.Defined() {
 				return errors.New("nothing to push")
 			}
 
-			if c.IsSet("remote") {
-				remote = c.String("remote")
-			}
-
-			if c.IsSet("branch") {
-				target = c.String("branch")
-			}
-
-			if alias, ok := cc.Config.Remotes[remote]; ok {
-				remote = alias
+			remote, ok := cc.Config.Remotes[rname]
+			if !ok {
+				return errors.New("remote does not exist")
 			}
 
 			args := repo.SearchArgs{
-				Remote: remote,
+				Peer: remote.Peer,
+				Name: remote.Name,
 			}
 
 			var reply repo.SearchReply
@@ -77,7 +64,7 @@ func NewPushCommand() *cli.Command {
 			}
 
 			refs := reply.Repository.Heads()
-			head := reply.Repository.Branches[target]
+			head := reply.Repository.Branches[bname]
 
 			base, err := merge.Base(c.Context, cc.DAG, head, branch.Head)
 			if err != nil {
@@ -94,8 +81,9 @@ func NewPushCommand() *cli.Command {
 			}
 
 			pushArgs := repo.PushArgs{
-				Remote: remote,
-				Branch: target,
+				Peer:   remote.Peer,
+				Name:   remote.Name,
+				Branch: bname,
 				Data:   data.Bytes(),
 			}
 

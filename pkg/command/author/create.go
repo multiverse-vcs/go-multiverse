@@ -8,25 +8,25 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// NewSelfCommand returns a new command.
-func NewSelfCommand() *cli.Command {
+// NewCreateCommand returns a new command.
+func NewCreateCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "self",
-		Usage: "View your profile",
+		Name:  "create",
+		Usage: "Create a new author",
 		Action: func(c *cli.Context) error {
 			client, err := rpc.NewClient()
 			if err != nil {
 				return cli.Exit(rpc.DialErrMsg, -1)
 			}
 
-			args := author.SelfArgs{}
+			args := author.CreateArgs{}
 
-			var reply author.SelfReply
-			if err := client.Call("Author.Self", &args, &reply); err != nil {
+			var reply author.CreateReply
+			if err := client.Call("Author.Create", &args, &reply); err != nil {
 				return err
 			}
 
-			fmt.Println(reply.PeerID.Pretty())
+			fmt.Println(reply.Peer)
 			return nil
 		},
 	}

@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 
@@ -12,8 +11,10 @@ import (
 
 // SearchArgs contains the args.
 type SearchArgs struct {
-	// Remote is the remote path.
-	Remote string `json:"remote"`
+	// Peer is the author peer ID.
+	Peer string `json:"key"`
+	// Name is the repository name.
+	Name string `json:"name"`
 }
 
 // SearchReply contains the reply.
@@ -27,15 +28,7 @@ func (s *Service) Search(args *SearchArgs, reply *SearchReply) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	parts := strings.Split(args.Remote, "/")
-	if len(parts) != 2 {
-		return errors.New("invalid remote path")
-	}
-
-	pname := parts[0]
-	rname := parts[1]
-
-	peerID, err := peer.Decode(pname)
+	peerID, err := peer.Decode(args.Peer)
 	if err != nil {
 		return err
 	}
@@ -50,7 +43,7 @@ func (s *Service) Search(args *SearchArgs, reply *SearchReply) error {
 		return err
 	}
 
-	repoID, ok := author.Repositories[rname]
+	repoID, ok := author.Repositories[args.Name]
 	if !ok {
 		return errors.New("repository does not exist")
 	}

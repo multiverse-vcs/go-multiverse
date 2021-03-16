@@ -8,13 +8,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// NewCreateCommand returns a new command.
-func NewCreateCommand() *cli.Command {
+// NewRemoveCommand returns a new command.
+func NewRemoveCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "create",
-		Usage: "Create a new remote",
+		Name:    "remove",
+		Aliases: []string{"rm"},
+		Usage:   "Remove an existing remote",
 		Action: func(c *cli.Context) error {
-			if c.NArg() != 2 {
+			if c.NArg() != 1 {
 				cli.ShowAppHelpAndExit(c, -1)
 			}
 
@@ -28,12 +29,12 @@ func NewCreateCommand() *cli.Command {
 				return err
 			}
 
-			name := c.Args().Get(0)
-			if _, ok := cc.Config.Remotes[name]; ok {
-				return errors.New("remote already exists")
+			alias := c.Args().Get(0)
+			if _, ok := cc.Config.Remotes[alias]; !ok {
+				return errors.New("remote does not exists")
 			}
 
-			cc.Config.Remotes[name] = c.Args().Get(1)
+			delete(cc.Config.Remotes, alias)
 			return cc.Config.Write()
 		},
 	}

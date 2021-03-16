@@ -11,8 +11,9 @@ import (
 // NewListCommand returns a new command.
 func NewListCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "list",
-		Usage: "List all branches",
+		Name:    "list",
+		Aliases: []string{"ls"},
+		Usage:   "List all branches",
 		Action: func(c *cli.Context) error {
 			cwd, err := os.Getwd()
 			if err != nil {

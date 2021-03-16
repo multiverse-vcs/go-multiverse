@@ -10,9 +10,9 @@ func NewCommand() *cli.Command {
 		Name:  "remote",
 		Usage: "List, create, or delete remotes",
 		Subcommands: []*cli.Command{
+			NewAddCommand(),
 			NewListCommand(),
-			NewCreateCommand(),
-			NewDeleteCommand(),
+			NewRemoveCommand(),
 		},
 	}
 }

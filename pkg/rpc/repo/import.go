@@ -6,14 +6,16 @@ import (
 	"path"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/libp2p/go-libp2p-core/peer"
 
 	"github.com/multiverse-vcs/go-multiverse/internal/git"
-	"github.com/multiverse-vcs/go-multiverse/internal/p2p"
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
 // ImportArgs contains the args.
 type ImportArgs struct {
+	// Peer is the author peer ID.
+	Peer string `json:"key"`
 	// Name is the repository name.
 	Name string `json:"name"`
 	// URL is the repository url.
@@ -37,12 +39,26 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 		return errors.New("name cannot be empty")
 	}
 
-	key, err := p2p.DecodeKey(s.Config.PrivateKey)
+	priv, err := s.Keystore.Get(args.Peer)
 	if err != nil {
 		return err
 	}
 
-	author := s.Config.Author
+	peerID, err := peer.IDFromPrivateKey(priv)
+	if err != nil {
+		return err
+	}
+
+	authorID, err := s.Namesys.Search(ctx, peerID)
+	if err != nil {
+		return err
+	}
+
+	author, err := object.GetAuthor(ctx, s.Peer.DAG, authorID)
+	if err != nil {
+		return err
+	}
+
 	if _, ok := author.Repositories[args.Name]; ok {
 		return errors.New("repository already exists")
 	}
@@ -64,15 +80,11 @@ func (s *Service) Import(args *ImportArgs, reply *ImportReply) error {
 	}
 
 	author.Repositories[args.Name] = repoID
-	if err := s.Config.Write(); err != nil {
-		return err
-	}
-
-	authorID, err := object.AddAuthor(ctx, s.Peer.DAG, author)
+	authorID, err = object.AddAuthor(ctx, s.Peer.DAG, author)
 	if err != nil {
 		return err
 	}
 
 	reply.Remote = path.Join(s.Peer.Host.ID().Pretty(), args.Name)
-	return s.Namesys.Publish(ctx, key, authorID)
+	return s.Namesys.Publish(ctx, priv, authorID)
 }

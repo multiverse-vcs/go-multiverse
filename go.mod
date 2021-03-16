@@ -17,7 +17,7 @@ require (
 	github.com/ipfs/go-ipfs-provider v0.4.3
 	github.com/ipfs/go-ipld-cbor v0.0.3
 	github.com/ipfs/go-ipld-format v0.2.0
-	github.com/ipfs/go-merkledag v0.3.2
+	github.com/ipfs/go-merkledag v0.3.3-0.20210106041509-bf51443272bb
 	github.com/ipfs/go-path v0.0.9
 	github.com/ipfs/go-unixfs v0.2.4
 	github.com/ipld/go-car v0.1.0
@@ -28,7 +28,7 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
 	github.com/libp2p/go-libp2p-noise v0.1.1
 	github.com/libp2p/go-libp2p-pubsub v0.4.1
-	github.com/libp2p/go-libp2p-pubsub-router v0.4.0
+	github.com/libp2p/go-libp2p-pubsub-router v0.4.1-0.20210212185610-58d4a764b390
 	github.com/libp2p/go-libp2p-record v0.1.3
 	github.com/libp2p/go-libp2p-tls v0.1.3
 	github.com/multiformats/go-multihash v0.0.14

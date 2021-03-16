@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/libp2p/go-libp2p-core/peer"
+
 	"github.com/multiverse-vcs/go-multiverse/pkg/object"
 )
 
 // SearchArgs contains the args.
 type SearchArgs struct {
-	// PeerID is the peer ID of the author.
-	PeerID peer.ID `json:"peerID"`
+	// Peer is the peer ID of the author.
+	Peer string `json:"peer"`
 }
 
 // SearchReply contains the reply
@@ -24,11 +25,12 @@ func (s *Service) Search(args *SearchArgs, reply *SearchReply) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := args.PeerID.Validate(); err != nil {
+	peerID, err := peer.Decode(args.Peer)
+	if err != nil {
 		return err
 	}
 
-	authorID, err := s.Namesys.Search(ctx, args.PeerID)
+	authorID, err := s.Namesys.Search(ctx, peerID)
 	if err != nil {
 		return err
 	}

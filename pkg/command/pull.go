@@ -19,21 +19,14 @@ import (
 // NewPullCommand returns a new cli command.
 func NewPullCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "pull",
-		Usage: "Update a local branch with remote changes",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "remote",
-				Aliases: []string{"r"},
-				Usage:   "Remote repository path",
-			},
-			&cli.StringFlag{
-				Name:    "branch",
-				Aliases: []string{"b"},
-				Usage:   "Remote branch name",
-			},
-		},
+		Name:      "pull",
+		Usage:     "Update a local branch with remote changes",
+		ArgsUsage: "[remote] [branch]",
 		Action: func(c *cli.Context) error {
+			if c.NArg() != 2 {
+				cli.ShowSubcommandHelpAndExit(c, 1)
+			}
+
 			cwd, err := os.Getwd()
 			if err != nil {
 				return err
@@ -50,8 +43,8 @@ func NewPullCommand() *cli.Command {
 			}
 
 			branch := cc.Config.Branches[cc.Config.Branch]
-			remote := branch.Remote
-			source := cc.Config.Branch
+			rname := c.Args().Get(0)
+			bname := c.Args().Get(1)
 
 			stash, err := fs.Add(c.Context, cc.DAG, cc.Root, context.DefaultIgnore)
 			if err != nil {
@@ -67,16 +60,9 @@ func NewPullCommand() *cli.Command {
 				return errors.New("uncommitted changes")
 			}
 
-			if c.IsSet("remote") {
-				remote = c.String("remote")
-			}
-
-			if c.IsSet("branch") {
-				source = c.String("branch")
-			}
-
-			if alias, ok := cc.Config.Remotes[remote]; ok {
-				remote = alias
+			remote, ok := cc.Config.Remotes[rname]
+			if !ok {
+				return errors.New("remote does not exist")
 			}
 
 			var refs []cid.Cid
@@ -89,8 +75,9 @@ func NewPullCommand() *cli.Command {
 			}
 
 			args := repo.PullArgs{
-				Remote: remote,
-				Branch: source,
+				Peer:   remote.Peer,
+				Name:   remote.Name,
+				Branch: bname,
 				Refs:   refs,
 			}
 

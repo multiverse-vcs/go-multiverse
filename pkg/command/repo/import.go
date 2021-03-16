@@ -12,8 +12,9 @@ import (
 // NewImportCommand returns a new command.
 func NewImportCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "import",
-		Usage: "Import an external repository",
+		Name:      "import",
+		Usage:     "Import an external repository",
+		ArgsUsage: "[peer] [name]",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "url",
@@ -25,7 +26,7 @@ func NewImportCommand() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			if c.NArg() == 0 {
+			if c.NArg() != 2 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
@@ -39,7 +40,8 @@ func NewImportCommand() *cli.Command {
 			}
 
 			args := repo.ImportArgs{
-				Name: c.Args().Get(0),
+				Peer: c.Args().Get(0),
+				Name: c.Args().Get(1),
 				URL:  c.String("url"),
 				Path: c.String("path"),
 			}

@@ -9,10 +9,11 @@ import (
 // NewDeleteCommand returns a new command.
 func NewDeleteCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "delete",
-		Usage: "Delete an existing repository",
+		Name:      "delete",
+		Usage:     "Delete an existing repository",
+		ArgsUsage: "[peer] [name]",
 		Action: func(c *cli.Context) error {
-			if c.NArg() != 1 {
+			if c.NArg() != 2 {
 				cli.ShowSubcommandHelpAndExit(c, 1)
 			}
 
@@ -22,7 +23,8 @@ func NewDeleteCommand() *cli.Command {
 			}
 
 			args := repo.DeleteArgs{
-				Name: c.Args().Get(0),
+				Peer: c.Args().Get(0),
+				Name: c.Args().Get(1),
 			}
 
 			var reply repo.DeleteReply
