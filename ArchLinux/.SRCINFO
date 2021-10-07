@@ -1,6 +1,6 @@
 pkgbase = multiverse-git
 	pkgdesc = A decentralized version control system for peer-to-peer software development.
-	pkgver = d945c32
+	pkgver = 0.0.5.3.g6171b8f
 	pkgrel = 1
 	url = http://www.multiverse-vcs.com/
 	arch = aarch64
@@ -10,7 +10,10 @@ pkgbase = multiverse-git
 	depends = go>=1.16
 	provides = multiverse
 	source = multiverse-git::git+https://github.com/multiverse-vcs/go-multiverse
+	source = multi-gensddmconfig.hook
+	source = multi-rmsddmconfig.hook
 	sha256sums = SKIP
+	sha256sums = 573122034ce6c0ee969668b85506396f1ad80afed6a5acea0dfb3331516c2a5e
+	sha256sums = 4986379de5a8dbd5acf04b93b170cb1cd36ff16fd1a1181d6bcf1b7c2db85a3f
 
 pkgname = multiverse-git
-

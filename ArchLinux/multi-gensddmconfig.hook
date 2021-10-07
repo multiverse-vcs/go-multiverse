@@ -1,0 +1,10 @@
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = multiverse-git
+
+[Action]
+Description = Trying to create SDDM config to hide multi user...
+When = PostTransaction
+Exec = /usr/bin/sh -c "which sddm-greeter > /dev/null; if [ $? -eq 0 ]; then mkdir -p /etc/sddm.conf.d && echo [Users] > /etc/sddm.conf.d/multi.conf && echo HideUsers=multi >> /etc/sddm.conf.d/multi.conf; fi"
