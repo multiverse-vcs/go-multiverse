@@ -1,17 +1,22 @@
 # Maintainer Keenan Nemetz <keenan.nemetz@gmail.com>
 # Maintainer teknomunk <https://github.com/teknomunk>
 pkgname=multiverse-git
-pkgver=abe236f
-pkgrel=1
+pkgver=0.0.5.3.g6171b8f
+pkgrel=2
 pkgdesc="A decentralized version control system for peer-to-peer software development."
 arch=(aarch64 x86_64)
 url=http://www.multiverse-vcs.com/
 licence=("AGPL3")
 provides=(multiverse)
-depends=("go>=1.16")
 makedepends=("git" "go>=1.16")
-source=(${pkgname}::git+https://github.com/multiverse-vcs/go-multiverse)
-sha256sums=("SKIP")
+source=(
+	${pkgname}::git+https://github.com/multiverse-vcs/go-multiverse
+	multi-gensddmconfig.hook
+	multi-rmsddmconfig.hook
+)
+sha256sums=('SKIP'
+            '573122034ce6c0ee969668b85506396f1ad80afed6a5acea0dfb3331516c2a5e'
+            '4986379de5a8dbd5acf04b93b170cb1cd36ff16fd1a1181d6bcf1b7c2db85a3f')
 check(){
 	export GOPATH=${srcdir}/go
 
@@ -20,7 +25,7 @@ check(){
 }
 pkgver(){
 	cd ${srcdir}/${pkgname}
-	git log --format=%h -1
+	git describe --tags | sed "s/v//;s/-/./g"
 }
 prepare(){
 	export GOPATH=${srcdir}/go
@@ -43,4 +48,8 @@ package(){
 	chown 5000:5000 ${pkgdir}/var/lib/multi
 	install -Dm644 ${srcdir}/${pkgname}/init/multiverse.service ${pkgdir}/usr/lib/systemd/system/multiverse.service
 	install -Dm644 ${srcdir}/${pkgname}/init/multi-user.conf ${pkgdir}/usr/lib/sysusers.d/multi.conf
+	# Create SDDM config to hide multi user in SDDM greeter
+	mkdir -p ${pkgdir}/usr/share/libalpm/hooks
+	install -Dm644 ${srcdir}/multi-gensddmconfig.hook ${pkgdir}/usr/share/libalpm/hooks/multi-gensddmconfig.hook
+	install -Dm644 ${srcdir}/multi-rmsddmconfig.hook ${pkgdir}/usr/share/libalpm/hooks/milti-rmssddmconfig.hook
 }
