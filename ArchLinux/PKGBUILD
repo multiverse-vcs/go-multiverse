@@ -2,13 +2,12 @@
 # Maintainer teknomunk <https://github.com/teknomunk>
 pkgname=multiverse-git
 pkgver=0.0.5.3.g6171b8f
-pkgrel=1
+pkgrel=2
 pkgdesc="A decentralized version control system for peer-to-peer software development."
 arch=(aarch64 x86_64)
 url=http://www.multiverse-vcs.com/
 licence=("AGPL3")
 provides=(multiverse)
-depends=("go>=1.16")
 makedepends=("git" "go>=1.16")
 source=(
 	${pkgname}::git+https://github.com/multiverse-vcs/go-multiverse
